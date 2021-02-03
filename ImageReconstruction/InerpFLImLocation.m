@@ -7,16 +7,17 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'C:\Users\Xiangnan\Documents\MyGitRepo\TRFS_TRIPLEX_GUI\TestData\20200921Lamp0.25mW480Hz\Decon 2021-1-7 15-13';
+root = 'C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTool\TestData\20200921Lamp1mW120Hz';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
+[videoName,videopath] = uigetfile([root '\*.avi'],'Please select video file');
+RepRate = 120;
 
 %% load in data
 load(fullfile(DeConpath,DeConfile))
 load(fullfile(Pospath,Posfile))
 MetaData = importVideoTextFile(fullfile(Txtpath,Txtfile));
-RepRate = 480;
 
 %% calculate num of data points
 % shift = length(Ch1LT)-(MetaData(end,9)-MetaData(1,9))/1000*120/4;
@@ -112,12 +113,12 @@ end
         cd(DeConpath)
         %% save data
         [filepath,name,ext] = fileparts(DeConfile);
-        save([name '_interp.mat'],'outputMat')
+        save([name '_ImgRecon.mat'],'outputMat')
         disp('Finished')
         close all
         
         %%
         cd(DeConpath)
-        videoName = [name(1:end-2) '_run' name(end-1:end)];
+        
         % replotVideo(['videos\' videoName '.avi'], [name '_interp.mat'])
-        replotInterpImage(['videos\' videoName '.avi'], [name '_interp.mat'])
+        replotInterpImage(videoName, [name '_ImgRecon.mat'])

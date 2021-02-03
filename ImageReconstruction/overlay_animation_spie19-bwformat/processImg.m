@@ -55,15 +55,11 @@ for i=1:3
     accum{i} = double( zeros(ssy,ssx,1)); 
 end
 
-% setup figure
-h=figure; hold on;
-
-set(h, 'Position', [200 200 640 300]);
-set(h,'Color',[1 1 1]);
-
 %df1 = im;
-
-for i = 1: length(posData.frames)
+f = waitbar(0,'Starting...'); % creat waitbar
+numOfFrames = length(posData.frames);
+BarStep = round(0.01*numOfFrames);
+for i = 1:numOfFrames
     % get current video frame
     %df1= vr.read(i);
     % get current segmentation position
@@ -103,8 +99,16 @@ for i = 1: length(posData.frames)
         % borrow overlay{1} to store overlaid redox ratio
         [overlay{1}, val_field{1}, accum{1}] = drawCirc( [px,py], rad*0.7, rad, overlay{1}, jet_cmap(ind1,:)*254+1, val_field{1}, ind1, accum{1} );
     end
-        fprintf('%i\n ', i);
+        if mod(i,BarStep)
+            waitbar(i/numOfFrames,f,sprintf('%d %%',round(i/numOfFrames*100)));
+        end
 end
+delete(f);
+% setup figure
+h=figure; hold on;
+
+set(h, 'Position', [200 200 640 300]);
+set(h,'Color',[1 1 1]);
 
 df1 = im;
 df1( ~(overlay{dest_channel}(:,:,:) == 0) ) = alpha*overlay{dest_channel}( ~(overlay{dest_channel}(:,:,:) == 0) ) + (1-alpha)*df1( ~(overlay{dest_channel}(:,:,:) == 0) );
@@ -128,9 +132,9 @@ else
 end
 
 set(gca,'LooseInset',get(gca,'TightInset'))
-
+[~,name,~] = fileparts(filename);
 if ~plot_redox
-    saveas(gcf, [filename 'outimg_ch', num2str(dest_channel),'.jpg']);
+    saveas(gcf, [name '_ch', num2str(dest_channel),'.jpg']);
 else
     saveas(gcf, ['outimg_rr','.jpg']);
 end
