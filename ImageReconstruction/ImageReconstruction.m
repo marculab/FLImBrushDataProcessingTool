@@ -7,7 +7,7 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTool\TestData\20200921Lamp1mW120Hz';
+root = '';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
