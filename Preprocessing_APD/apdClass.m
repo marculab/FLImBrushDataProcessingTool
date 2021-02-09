@@ -20,6 +20,28 @@ classdef apdClass < handle
         end
         
         function creatFromPath(apdObj)
+            [~,~,ext] = fileparts(apdObj.filePath);
+            switch ext
+                case '.tdms'
+                    loadTDMS(apdObj);
+                case '.mat'
+                    loadMat(apdObj);
+            end
+        end
+        
+        function loadMat(apdObj)
+            temp = load(apdObj.filePath);
+            apdObj.apdGain = temp.Gain;
+            apdObj.gainV = temp.GainVC;
+            apdObj.dateModified = temp.dateModified;
+            apdObj.irf = temp.irf;
+            apdObj.irfNorm = temp.irfNorm;
+            apdObj.irfV = temp.irfV;
+            apdObj.serialNumber = temp.serialNum;
+            apdObj.user = temp.user;
+        end
+        
+        function loadTDMS(apdObj)
             [output,~] = TDMS_getStruct(apdObj.filePath);
             % set file name as serialNumber
             apdObj.serialNumber = output.Props.Serial_number;
