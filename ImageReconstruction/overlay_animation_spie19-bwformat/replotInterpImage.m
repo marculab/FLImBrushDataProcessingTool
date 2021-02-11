@@ -3,7 +3,8 @@ function [] = replotInterpImage(filename1, filename2)
 tic
 % read image data
 v = VideoReader(filename1);
-D= v.Duration-0.04;
+% D= v.Duration-0.04;
+D = 0;
 v = VideoReader(filename1,'CurrentTime',D);
 im = readFrame(v);
 imshow(im)

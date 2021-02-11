@@ -12,7 +12,7 @@ root = '';
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
 [videoName,videopath] = uigetfile([root '\*.avi'],'Please select video file');
-RepRate = 120;
+RepRate = 250;
 
 %% load in data
 load(fullfile(DeConpath,DeConfile))
