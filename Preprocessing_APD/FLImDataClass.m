@@ -23,11 +23,17 @@ classdef FLImDataClass < handle
             FLImDataObj.numOfPoints = output.Channel1.Props.Num_of_points;
             FLImDataObj.WFLength = output.Channel1.Props.Data_Length;
             FLImDataObj.ch1RawWF = reshape(output.Channel1.Waveform.data,FLImDataObj.WFLength,FLImDataObj.numOfPoints);
-            FLImDataObj.V1 = output.Channel1.Voltage.data;
+            FLImDataObj.V1 = output.Channel1.Voltage.data; 
+            FLImDataObj.ch1RawWF = circshift(FLImDataObj.ch1RawWF,-1,2); % circular shift to account for delay
+            FLImDataObj.V1 = circshift(FLImDataObj.V1,-1); % circular shift to account for delay
             FLImDataObj.ch2RawWF = reshape(output.Channel2.Waveform.data,FLImDataObj.WFLength,FLImDataObj.numOfPoints);
             FLImDataObj.V2 = output.Channel2.Voltage.data;
+            FLImDataObj.ch2RawWF = circshift(FLImDataObj.ch2RawWF,-1,2); % circular shift to account for delay
+            FLImDataObj.V2 = circshift(FLImDataObj.V2,-1); % circular shift to account for delay
             FLImDataObj.ch3RawWF = reshape(output.Channel3.Waveform.data,FLImDataObj.WFLength,FLImDataObj.numOfPoints);
             FLImDataObj.V3 = output.Channel3.Voltage.data;
+            FLImDataObj.ch3RawWF = circshift(FLImDataObj.ch3RawWF,-1,2); % circular shift to account for delay
+            FLImDataObj.V3 = circshift(FLImDataObj.V3,-1); % circular shift to account for delay
             checkDataIntegraty(FLImDataObj)
         end
         
