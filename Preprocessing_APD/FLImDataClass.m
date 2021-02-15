@@ -44,7 +44,7 @@ classdef FLImDataClass < handle
             if (ch1Integraty+ch2Integraty+ch3Integraty)>0
                 warndlg('Data dimention missmatch, possible corrupted data','Warning');
             else
-                msgbox('FLIm data loaded successfully!')
+%                 msgbox('FLIm data loaded successfully!')
                 FLImDataObj.dataAvg = FLImDataObj.numOfPoints/length(FLImDataObj.V1);
             end
             
