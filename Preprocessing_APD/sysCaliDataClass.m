@@ -3,6 +3,7 @@ classdef sysCaliDataClass < handle
     
     properties (Access = public)
         filePath = ''; % path to apd file
+        SystemID % system id to track system
         caliDateTime = ''; % last modified date time
         ch1V % control voltage channel 1
         ch2V % control voltage channel 2
@@ -10,6 +11,9 @@ classdef sysCaliDataClass < handle
         ch1WF % channel 1 calibration waveform
         ch2WF % channel 2 calibration waveform
         ch3WF % channel 3 calibration waveform
+        ch1Gain % channel 1 gain
+        ch2Gain % channel 2 gain
+        ch3Gain % channel 3 gain
     end
     
     methods
@@ -21,6 +25,7 @@ classdef sysCaliDataClass < handle
         function load(obj)
             [output,~] = TDMS_getStruct(obj.filePath);
             fileInfo = dir(obj.filePath);
+            obj.SystemID = output.Props.SystemID;
             obj.caliDateTime = fileInfo.date;
             obj.ch1V = output.channel_1.Props.voltage;
             obj.ch2V = output.channel_2.Props.voltage;
