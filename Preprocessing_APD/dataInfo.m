@@ -15,7 +15,6 @@ classdef dataInfo < handle
         bgFileFolder;
         caliFileName;
         caliFileFolder;
-        laserRepRate = NaN;
     end
     
     
@@ -24,7 +23,7 @@ classdef dataInfo < handle
         function obj = dataInfo(dataFileNamesIn, dataFolderNamesIn, ...
                 apd1NameIn, apd1FolderIn, apd2NameIn, apd2FolderIn, ...
                 apd3NameIn, apd3FolderIn, bgFileNameIn, bgFolderNameIn,...
-                caliFileNameIn, caliFileFolderIn, laserRepRateIn)
+                caliFileNameIn, caliFileFolderIn)
             %UNTITLED4 Construct an instance of this class
             %   Detailed explanation goes here
             obj.dataFileNames = dataFileNamesIn;
@@ -39,7 +38,6 @@ classdef dataInfo < handle
             obj.bgFileFolder = bgFolderNameIn;
             obj.caliFileName = caliFileNameIn;
             obj.caliFileFolder = caliFileFolderIn;
-            obj.laserRepRate = laserRepRateIn;
         end
         
 %         function pathToOutput = writeDataInfoToDisk(filename,pathToFolder)
