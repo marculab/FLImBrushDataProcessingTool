@@ -14,12 +14,12 @@ classdef backGround < handle
         
         function loadBG(obj)
             [output,~] = TDMS_getStruct(obj.pathToBg);
-            bg1 = output.Background.Ch1.data;
-            bg2 = output.Background.Ch2.data;
-            bg3 = output.Background.Ch3.data;
-            obj.bgCh1 = bg1;
-            obj.bgCh2 = bg2;
-            obj.bgCh3 = bg3;                       
+            bg1 = output.Channel_1.AvgBgData.data;
+            bg2 = output.Channel_2.AvgBgData.data;
+            bg3 = output.Channel_3.AvgBgData.data;
+            obj.bgCh1 = bg1';
+            obj.bgCh2 = bg2';
+            obj.bgCh3 = bg3';                       
         end
     end
     
