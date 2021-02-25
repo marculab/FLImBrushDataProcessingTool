@@ -19,7 +19,7 @@ xlabel('Lifetime (ns)')
 ylabel('Count')
 
 %% get decays
-tWindow = 100; % same for V4 nad V5
+tWindow = 80; % ns same for V4 nad V5
 dt = 0.2;
 t = 0:dt:tWindow-dt;
 decay = zeros(tWindow/dt,N);
