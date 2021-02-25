@@ -8,8 +8,10 @@ classdef ChannelDataAPD < handle
         wfLenght % length of each waveform
         goodDataIdx % raw waveform good data index, result of saturation filtering
         badDataIdx % raw waveform bad data index, result of saturation filtering
+        rawCtrlV % raw control voltage, same as number of waveforms
         CtrlV % APD control voltage
         CtrlVDecon % decon data ctrl v
+        rawGain % raw gain, same size as number of waveforms
         gain % gain lise 1D vector
         gainDecon % Decon data point gain
         APDObj % apd detector class obj, contain gain and iRF information
@@ -51,17 +53,22 @@ classdef ChannelDataAPD < handle
         timeStamp % time stamp of averaged data used for image reconstruction
         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
         laserRepRate % laser rep rate
+        outlierFlag % 1D column vector
     end
     methods
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, MaxWFAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
+            obj.dtRaw = dtIn;
+%             figure;plot(rawDataIn(:,1:4));
+            rawDataIn = alignWaveform_CFDNew(rawDataIn,3,obj.dtRaw); % CFD raw waveform 1st
+%             figure;plot(rawDataIn(:,1:4));
             obj.rawData = rawDataIn;
             obj.preProcessedData = rawDataIn;
-            obj.CtrlV = CtrlVIn;
+            obj.rawCtrlV = CtrlVIn;
             obj.dataAveragingLV = MaxWFAvgIn;
             obj.APDObj = APDObjIn;
             obj.dtRaw = dtIn;
             obj.bg = bgIn;
-            obj.gain = interp1(APDObjIn.gainV,APDObjIn.apdGain,CtrlVIn,'spline'); % use spline interpolation method
+            obj.rawGain = interp1(APDObjIn.gainV,APDObjIn.apdGain,CtrlVIn,'spline'); % use spline interpolation method
             obj.numOfWFs = size(rawDataIn,2);
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
@@ -80,15 +87,20 @@ classdef ChannelDataAPD < handle
             badNumOfWf = length(obj.badDataIdx);
             totalNumOfWf = goodNumOfWf+badNumOfWf;
             obj.preProcessedData(:,obj.badDataIdx) = NaN;
-%             msg = sprintf('Total number of waveforms: %d. \n Waveforms removed: %d. \n Waveforms left: %d.',...
-%                 length(obj.badDataIdx)+length(obj.goodDataIdx),length(obj.badDataIdx),length(obj.goodDataIdx));
-%             msgbox(msg);
+            %             msg = sprintf('Total number of waveforms: %d. \n Waveforms removed: %d. \n Waveforms left: %d.',...
+            %                 length(obj.badDataIdx)+length(obj.goodDataIdx),length(obj.badDataIdx),length(obj.goodDataIdx));
+            %             msgbox(msg);
         end
         
         function avgData(obj,avgIn)
             obj.dataAveraging = avgIn;
-            [obj.preProcessedData, ~] = averageWF(obj.preProcessedData, avgIn);
+            obj.CtrlV = averageGianOrV(obj.rawCtrlV,avgIn);
+            obj.gain = averageGianOrV(obj.rawGain,avgIn);
+%             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData,3,obj.dtRaw);
+            [obj.preProcessedData, obj.outlierFlag] = averageWF(obj.preProcessedData, avgIn);
             obj.averagedData = obj.preProcessedData;
+%             sum(isnan(sum(obj.preProcessedData)))
+            obj.preProcessedData(:,isnan(sum(obj.preProcessedData)))=[];
             obj.noise = std(obj.averagedData(end-50:end,:),1);
             WFMax = max(obj.averagedData);
             obj.SNR = 20*log10(WFMax./obj.noise);
@@ -124,7 +136,7 @@ classdef ChannelDataAPD < handle
             bgAUC = sum(obj.bgDcRemoved(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
-            obj.preProcessedData = obj.preProcessedData-obj.bgDcRemoved'*bgScaleFactor;
+            obj.preProcessedData = obj.preProcessedData-obj.bgDcRemoved*bgScaleFactor;
         end
         
         function upSampleData(obj)
@@ -140,9 +152,9 @@ classdef ChannelDataAPD < handle
             for i = 1:size(WFtoDecon,2)
                 WFUpsampled(:,i) = interp(WFtoDecon(:,i),2);
             end
-            [~,peakLocation] = max(WFUpsampled);
-            peakLocation = mode(peakLocation);
-            WFUpsampled = alignWaveform_CFD(WFUpsampled,0.5,peakLocation);
+%             [~,peakLocation] = max(WFUpsampled);
+%             peakLocation = mode(peakLocation);
+            WFUpsampled = alignWaveform_CFDNew(WFUpsampled,3, obj.dtUp);
             obj.preProcessedData = WFUpsampled;
             %             figure; plot(WFUpsampled)
             %--------------------------------------------------------------
@@ -151,9 +163,9 @@ classdef ChannelDataAPD < handle
         function truncateData(obj, timeWindowIn)
             [~,dataMaxI] = max(obj.preProcessedData);
             dataMaxI = mode(dataMaxI);
-            [~,irfMaxI] = max(obj.APDObj.irfNorm);
+            [~,irfMaxI] = max(obj.APDObj.irf);
             irfMaxI = mode(irfMaxI);
-            obj.APDObj.irfNorm = circshift(obj.APDObj.irfNorm,dataMaxI-irfMaxI);
+            obj.APDObj.irf = circshift(obj.APDObj.irf,dataMaxI-irfMaxI); % pre shift irf so the max align with data
             
             dataLength = timeWindowIn/obj.dtUp;
             obj.truncationLength = dataLength;
@@ -163,7 +175,8 @@ classdef ChannelDataAPD < handle
                 start_idx=1;
             end
             obj.dataT = obj.preProcessedData(start_idx:start_idx+dataLength-1,:);
-            obj.APDObj.irfT = obj.APDObj.irfNorm(start_idx:start_idx+dataLength-1,:);
+            obj.APDObj.irfTNorm = obj.APDObj.irf(start_idx:start_idx+dataLength-1,:);
+            obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm); 
             %             figure;
             %             hold on
             %             plot(obj.dataT(:,1:100:end))
@@ -178,10 +191,10 @@ classdef ChannelDataAPD < handle
                 case 1
                     obj.K = 12; %default Laguerre order
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 2
+                case 2 % runDecon(obj, order)
                     obj.K = varargin{1};
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 3
+                case 3 % runDecon(obj, order, alpha)
                     obj.K = varargin{1};
                     obj.alpha = varargin{2};
                 otherwise
@@ -194,22 +207,30 @@ classdef ChannelDataAPD < handle
             obj.LTs = zeros(numOfDataPoints,1);
             obj.INTs = zeros(numOfDataPoints,1);
             obj.shift = zeros(numOfDataPoints,1);
-%             obj.spec_aligned = zeros(size(obj.dataT));
-%             obj.fit = zeros(size(obj.dataT));
-%             obj.res = zeros(size(obj.dataT));
+            %             obj.spec_aligned = zeros(size(obj.dataT));
+            %             obj.fit = zeros(size(obj.dataT));
+            %             obj.res = zeros(size(obj.dataT));
             obj.irfIdx = zeros(numOfDataPoints,1);
             %--------------------------------------------------------------
             
             numOfiRFV = length(obj.APDObj.irfV);
             
             % loop through all V and find corresponding data index
-            for i = 2:numOfiRFV
-                vLow = obj.APDObj.irfV(i-1);
-                vHigh = obj.APDObj.irfV(i);
+            for i = 1:numOfiRFV % to account for out of range V
+                if i==1
+                    vLow = 0;
+                else
+                    vLow = obj.APDObj.irfV(i-1);
+                end
+                if i==numOfiRFV
+                    vHigh = 5;
+                else
+                    vHigh = obj.APDObj.irfV(i);
+                end
                 idx = find(obj.CtrlVDecon>=vLow & obj.CtrlVDecon< vHigh);
                 if ~isempty(idx)
                     spec = obj.dataT(:,idx); % get waveforms
-                    irf = obj.APDObj.irfT(:,i); % get irf
+                    irf = obj.APDObj.irfTNorm(:,i); % get irf
                     obj.irfIdx(idx) = i; %  store irf index
                     channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gainDecon(idx));
                     laguerreObj = LaguerreModel(channelDataStruct);
@@ -224,11 +245,11 @@ classdef ChannelDataAPD < handle
                 end
             end
             %             obj.stat_test = test_stats(obj.spec_aligned,obj.fit, obj.dtUp, obj.bw);
-            obj.INTsGainCorrected = obj.INTs./obj.gainDecon';
+            obj.INTsGainCorrected = obj.INTs./obj.gainDecon;
             obj.LTsAll = zeros(size(obj.averagedData,2),1);
-            obj.LTsAll(obj.deconIdx) = obj.LTs';
+            obj.LTsAll(obj.deconIdx) = obj.LTs;
             obj.INTsAllGainCorrected = zeros(size(obj.averagedData,2),1);
-            obj.INTsAllGainCorrected(obj.deconIdx) = obj.INTsGainCorrected';
+            obj.INTsAllGainCorrected(obj.deconIdx) = obj.INTsGainCorrected;
             obj.LTsAll(obj.LTsAll==0)=NaN;
             obj.INTsAllGainCorrected(obj.INTsAllGainCorrected==0)=NaN;
         end
@@ -246,12 +267,12 @@ classdef ChannelDataAPD < handle
                             case 2
                                 result = zeros(obj.truncationLength,length(obj.deconIdx));
                                 for i = 1:length(obj.deconIdx)
-                                    irfTemp = obj.APDObj.irfT(:,obj.irfIdx(i));
+                                    irfTemp = obj.APDObj.irfTNorm(:,obj.irfIdx(i));
                                     result(:,i) = filter(irfTemp,1,obj.LaguerreBasis)*obj.LCs(:,i);
                                 end
                             case 3
                                 idx = varargin{1};
-                                irfTemp = obj.APDObj.irfT(:,obj.irfIdx(idx));
+                                irfTemp = obj.APDObj.irfTNorm(:,obj.irfIdx(idx));
                                 result = filter(irfTemp,1,obj.LaguerreBasis)*obj.LCs(:,idx);
                         end
                     else
