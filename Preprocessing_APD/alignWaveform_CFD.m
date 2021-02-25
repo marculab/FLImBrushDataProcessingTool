@@ -16,7 +16,7 @@ switch nargin
         error('Wrong number of Imputs')
 end
 
-x = 1:size(data_in,1);
+% x = 1:size(data_in,1);
 % why did I do interplation?
 %xx = 0.2:0.2:size(data_in,1);
 %data_in = interp1(x,data_in,xx);
@@ -25,7 +25,7 @@ data_out = data_in; % make copy
 [maxV,maxIdxs]=max(data_in(1:peakMaxLocs,:)); % find max index
 maxIdxs = max(maxIdxs);
 risingEdge = data_in(1:maxIdxs,:);
-risingEdge(1:maxIdxs-40,:)=0;
+risingEdge(1:maxIdxs-100,:)=0;
 %--------------------------------------------------------------------------
 % figure
 % plot(risingEdge(:,1:100:end))
