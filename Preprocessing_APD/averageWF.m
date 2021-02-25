@@ -19,7 +19,7 @@ else
             
         end
         temp(:,outlierFlagTemp==1) = [];
-        temp = alignWaveform_CFDNew(temp,3,0.4); % align waveforms
+%         temp = alignWaveform_CFDNew(temp,3,0.4); % align waveforms
         avgTemp = nanmean(temp,2);
         data_out(:,i) = avgTemp;
     end
