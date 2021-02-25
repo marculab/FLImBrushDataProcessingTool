@@ -35,7 +35,7 @@ classdef apdClass < handle
             apdObj.apdGain = temp.gain;
             apdObj.gainV = temp.gainV;
             apdObj.dateModified = temp.dateModified;
-            apdObj.irf = temp.irfUpSampled;
+            apdObj.irf = temp.irf;
             apdObj.irfV = temp.irfV;
             apdObj.serialNumber = temp.serialNumber;
             apdObj.user = temp.user;
