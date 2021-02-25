@@ -9,8 +9,9 @@ classdef apdClass < handle
         apdGain % APD gain, 1D vector, must be the same size as gianV
         irfV % control voltage for irf, 1D vector of size M
         irf % irf matrix, 2D matrix of N by M
-        irfNorm % AUC normalized irf
-        irfT = []; % trauncated irf
+        irfTNorm % truncated and AUC normalized irf
+        irfRawdt % time resolution of irf measurement
+        irfdt % % time resolution of irf after interpolation
     end
     
     methods
@@ -31,14 +32,15 @@ classdef apdClass < handle
         
         function loadMat(apdObj)
             temp = load(apdObj.filePath);
-            apdObj.apdGain = temp.Gain;
-            apdObj.gainV = temp.GainVC;
+            apdObj.apdGain = temp.gain;
+            apdObj.gainV = temp.gainV;
             apdObj.dateModified = temp.dateModified;
-            apdObj.irf = temp.irf;
-            apdObj.irfNorm = temp.irfNorm;
+            apdObj.irf = temp.irfUpSampled;
             apdObj.irfV = temp.irfV;
-            apdObj.serialNumber = temp.serialNum;
+            apdObj.serialNumber = temp.serialNumber;
             apdObj.user = temp.user;
+            apdObj.irfRawdt = temp.irfRawdt;
+            apdObj.irfdt = temp.irfdt;
         end
         
         function loadTDMS(apdObj)
@@ -56,20 +58,33 @@ classdef apdClass < handle
             apdObj.apdGain = apdGainTemp';
                        
             % load irf
-            iRFName = fieldnames(output.iRF);
+            apdObj.irfRawdt = output.iRF.Props.dt;
+            iRFName = fieldnames(output.iRFRaw);
             numOfIrf = length(iRFName)-2;
-            temp = getfield(output.iRF,iRFName{end});
-            lengthOfIRF = length(temp.data);
+            lengthOfIRF = output.iRFRaw.Props.WFLength;
+            numOfiRFPerV = output.iRFRaw.Props.NumOfWFsPerV;
             iRF = zeros(lengthOfIRF,numOfIrf);
             iRFV = zeros(numOfIrf,1);
             
             find_c = strfind(iRFName, 'c');
             iRFName(cellfun('isempty', find_c)) = [];
             iRFNameNumOnly = erase(iRFName,'_');
+            iRFRawtemp = zeros(lengthOfIRF,numOfiRFPerV);
             for i = 1:numOfIrf
                 iRFV(i) = sscanf(iRFNameNumOnly{i},'c%d')*0.01;
-                iRFTemp = getfield(output.iRF,iRFName{i});
-                iRF(:,i) = iRFTemp.data;
+                iRFTemp = getfield(output.iRFRaw,iRFName{i});
+                iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,numOfiRFPerV);
+%                 figure; plot(iRFRawtemp);title('Before alignment');xlim([200 230])
+                iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 5, 0.2,0.5);
+%                 figure; plot(iRFRawtemp);title('After alignment');xlim([200 230])
+%                 for m = 1:numOfiRFPerV
+%                     iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),2);
+%                 end
+%                 figure;plot(iRFRawtempUpSampled);xlim([430 450])
+%                 iRFRawtempUpSampled = alignWaveform_CFDNew(iRFRawtempUpSampled, 5, apdObj.irfdt, 0.5); % CFD alignment    
+%                 figure;plot(iRFRawtempUpSampled);xlim([430 450])
+%                 outlierIdx = isoutlier(max(iRFRawtemp));
+                iRF(:,i) = mean(iRFRawtemp,2);
             end
             
             [iRFV,I] = sort(iRFV,'ascend');
@@ -79,8 +94,6 @@ classdef apdClass < handle
             iRF = iRF-DC;
             apdObj.irfV = iRFV;
             apdObj.irf = iRF;
-            apdObj.irfNorm = iRF./sum(iRF);
-            
         end
     end
 end
