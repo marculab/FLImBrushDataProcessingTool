@@ -61,8 +61,16 @@ classdef apdClass < handle
             apdObj.irfRawdt = output.iRF.Props.dt;
             iRFName = fieldnames(output.iRFRaw);
             numOfIrf = length(iRFName)-2;
+            try
             lengthOfIRF = output.iRFRaw.Props.WFLength;
+            catch
+               lengthOfIRF = output.iRF.Props.DataLength; 
+            end
+            try
             numOfiRFPerV = output.iRFRaw.Props.NumOfWFsPerV;
+            catch
+                numOfiRFPerV = output.iRFRaw.Props.DataLength/lengthOfIRF;
+            end
             iRF = zeros(lengthOfIRF,numOfIrf);
             iRFV = zeros(numOfIrf,1);
             
