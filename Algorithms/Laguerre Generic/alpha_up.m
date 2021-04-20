@@ -1,4 +1,6 @@
 function out=alpha_up(M,K,init,eps)
+% M is data length
+% K is Laguerre Order
 % find the upper bound of alpha value
 % input: init - initial guess of alpha value
 %        eps - the upper bound for the condition number
