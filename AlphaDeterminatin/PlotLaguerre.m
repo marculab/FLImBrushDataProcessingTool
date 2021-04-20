@@ -17,6 +17,7 @@ plot(laguerreFuncsLong,'LineWidth',1.3)
 title(sprintf('First 8 Laguerre basis functions, alpha = %.3f, k = %d',alphaUpperLim,L))
 box off
 grid on
+legend('Order = 1','Order = 2','Order = 3','Order = 4','Order = 5','Order = 6','Order = 7','Order = 8')
 xlabel('k')
 ylabel('Amplitude (a.u.)')
 set(gca,'LineWidth',1.3)
