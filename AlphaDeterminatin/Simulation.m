@@ -79,7 +79,7 @@ zlim([0 15])
 xlabel('Alpha')
 ylabel('True Lifetime (ns)')
 zlabel('Computed Lifetime (ns)')
-title(sprintf('Order = 12, time window = %dns, %d simulation per alpha',tWindow,N));
+title(sprintf('Order = %d, time window = %dns, %d simulation per alpha',LagOrder,tWindow,N));
 saveas(gcf,'Lifetime Plot.fig')
 %% plot 3D error
 E = trueLT-LTArray;
@@ -104,5 +104,5 @@ zlim([-20 50])
 xlabel('Alpha')
 ylabel('True Lifetime (ns)')
 zlabel('Percentage Error')
-title(sprintf('Order = 12, time window = %dns, %d simulation per alpha',tWindow,N));
+title(sprintf('Order = %d, time window = %dns, %d simulation per alpha',LagOrder,tWindow,N));
 saveas(gcf,'Lifetime Relative Error Plot.fig')
