@@ -37,7 +37,7 @@ for i = 1:length(alpha)
     if i~=4
     xticklabels({})
     end
-    title(['$\alpha = $ ' sprintf('%.3f', alpha(i))],'Interpreter','latex')
+    title(['l = 7th Laguerre function with $\alpha = $ ' sprintf('%.3f', alpha(i))],'Interpreter','latex')
     box off
     grid on
     set(gca,'LineWidth',1.3)
