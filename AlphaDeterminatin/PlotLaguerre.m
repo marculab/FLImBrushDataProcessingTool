@@ -32,6 +32,8 @@ for i = 1:length(alpha)
     nexttile
     laguerreFuncs = Laguerre(L,8,alpha(i));
     plot(laguerreFuncs(:,7),'LineWidth',1.3)
+    ylim([-0.4 0.4])
+    set(gca,'YTick',[-0.4 -0.2 0 0.2 0.4])
     if i~=4
     xticklabels({})
     end
