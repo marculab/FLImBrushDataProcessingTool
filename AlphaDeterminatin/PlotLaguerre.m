@@ -11,7 +11,7 @@ O = 8;
 L = 500;
 alphaUpperLim=alpha_up(L,O,[],[]);
 laguerreFuncsLong = Laguerre(L,O,alphaUpperLim);
-%%
+%% plot first 8 LBFs
 figure('Position',[200 200 800 600])
 plot(laguerreFuncsLong,'LineWidth',1.3)
 title(sprintf('First 8 Laguerre basis functions, alpha = %.3f, k = %d',alphaUpperLim,L))
@@ -23,6 +23,30 @@ ylabel('Amplitude (a.u.)')
 set(gca,'LineWidth',1.3)
 set(gca,'FontSize',15)
 saveas(gcf,'Laguerre Functions','png')
+
+%%
+alpha = linspace(0.6,alphaUpperLim,4);
+figure('Position',[200 200 800 1000])
+tiledlayout(4,1)
+for i = 1:length(alpha)
+    nexttile
+    laguerreFuncs = Laguerre(L,8,alpha(i));
+    plot(laguerreFuncs(:,7),'LineWidth',1.3)
+    if i~=4
+    xticklabels({})
+    end
+    title(['$\alpha = $ ' sprintf('%.3f', alpha(i))],'Interpreter','latex')
+    box off
+    grid on
+    set(gca,'LineWidth',1.3)
+    set(gca,'FontSize',15)
+end
+box off
+grid on
+% legend('Order = 1','Order = 2','Order = 3','Order = 4','Order = 5','Order = 6','Order = 7','Order = 8')
+xlabel('k')
+saveas(gcf,'Laguerre Functions varying alpha','png')
+
 
 %%
 laguerreFuncsAlphaHalf = Laguerre(L,O,alphaUpperLim*0.8);
