@@ -7,18 +7,18 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = '';
+root = 'C:\Users\Xiangnan\Box Sync\V6 Clinical Data\20210505_IGH samples';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
 [videoName,videopath] = uigetfile([root '\*.avi'],'Please select video file');
-RepRate = 250;
+
 
 %% load in data
 load(fullfile(DeConpath,DeConfile))
 load(fullfile(Pospath,Posfile))
-MetaData = importVideoTextFile(fullfile(Txtpath,Txtfile));
-
+VideoData = importVideoTextFile(fullfile(Txtpath,Txtfile));
+RepRate = Ch1DataObj.laserRepRate;
 %% calculate num of data points
 % shift = length(Ch1LT)-(MetaData(end,9)-MetaData(1,9))/1000*120/4;
 % shift = round(shift);
@@ -41,61 +41,61 @@ G3 = circshift(Ch3DataObj.gain,shift);
 
 %% repopulate output data mat with interplation
 % reset start time to 0
-MetaData(:,9) = MetaData(:,9)-MetaData(1,9);
+VideoData(:,9) = VideoData(:,9)-VideoData(1,9);
+% use CNN segmentation location data
+try
+VideoData(:,6:7) = double(pos(:,7:8));
+catch
+    VideoData(:,6:7) = double(pos_new(:,1:2));
+end
 % Length = 70000;
-Length = MetaData(end,9);
-MetaData(MetaData(:,9)>Length,:) = [];
-numOfData = size(MetaData,1);
-removeFlag = zeros(numOfData,1);
+Length = VideoData(end,9);
+VideoData(VideoData(:,9)>Length,:) = [];
+numOfVideoFrame = size(VideoData,1);
+removeFlag = zeros(numOfVideoFrame,1);
 %------------remove single 0 lines---------------------------------------%
-for i = 1:numOfData
-    posCurrent = MetaData(i,6)+ MetaData(i,7);
+for i = 1:numOfVideoFrame
+    posCurrent = VideoData(i,6)+ VideoData(i,7);
     if posCurrent==0 % if current pos is all 0 check before and after
         if i==1
             posBefore = 1;
-            posAfter = MetaData(i+1,6)+ MetaData(i+1,7);
-        else if i==numOfData
-                posBefore = MetaData(i-1,6)+ MetaData(i-1,7);
+            posAfter = VideoData(i+1,6)+ VideoData(i+1,7);
+        else if i==numOfVideoFrame
+                posBefore = VideoData(i-1,6)+ VideoData(i-1,7);
                 posAfter = 1;
             else
-                posBefore = MetaData(i-1,6)+ MetaData(i-1,7);
-                posAfter = MetaData(i+1,6)+ MetaData(i+1,7);
+                posBefore = VideoData(i-1,6)+ VideoData(i-1,7);
+                posAfter = VideoData(i+1,6)+ VideoData(i+1,7);
             end
             removeFlag(i) = posBefore&posAfter;
         end
     end
 end
         removeIdx = find(removeFlag);
-        MetaData(removeIdx,:) = [];
+        VideoData(removeIdx,:) = [];
         
-        % replace all 0 points with NaN
-        Idx = MetaData(:,6)+MetaData(:,7);
-        temp = MetaData(:,6:7);
-        temp(temp==0)=NaN;
-        MetaData(:,6:7)=temp;
-        
-        frameNum = 1:size(MetaData,1);
+        frameNum = 1:size(VideoData,1);
         frameNum = frameNum';
         outputMat = zeros(size(Ch1LT,1),23);
         
         time = 0:1:size(Ch1LT,1)-1;
         time = time*1000/RepRate*4;
-        frameT = MetaData(:,9);
+        frameT = VideoData(:,9);
         [frameT,ia] = unique(frameT); % find duplicate frame
-        MetaData = MetaData(ia,:); % remove duplicated data
+        VideoData = VideoData(ia,:); % remove duplicated data
         frameNum = frameNum(ia); % remove duplicated frame
         frameIdx = interp1(frameT,frameNum,time);
         frameIdx = ceil(frameIdx)';
         outputMat(:,1) = frameIdx;
-        MetaData = [frameNum MetaData];
+        VideoData = [frameNum VideoData];
         
         
-        %%
-        xx = interp1(MetaData(:,10),MetaData(:,7),time);
+        %% interpolate locations
+        xx = interp1(VideoData(:,10),VideoData(:,7),time);
         xx(isnan(xx))=0; % replace NaN with 0
-        yy = interp1(MetaData(:,10),MetaData(:,8),time);
+        yy = interp1(VideoData(:,10),VideoData(:,8),time);
         yy(isnan(yy))=0; % replace NaN with 0
-        rr = interp1(MetaData(:,10),MetaData(:,9),time);
+        rr = interp1(VideoData(:,10),VideoData(:,9),time);
         rr(isnan(rr)) = 0;
         outputMat(:,7) = xx;
         outputMat(:,8) = yy;
@@ -110,8 +110,9 @@ end
         outputMat(:,21) = Ch2SNR;
         outputMat(:,22) = Ch3SNR;
         outputMat((xx+yy)==0,:)=[]; % remove bad data points
-        cd(DeConpath)
+        
         %% save data
+        cd(DeConpath)
         [filepath,name,ext] = fileparts(DeConfile);
         save([name '_ImgRecon.mat'],'outputMat')
         disp('Finished')
@@ -121,4 +122,4 @@ end
         cd(DeConpath)
         
         % replotVideo(['videos\' videoName '.avi'], [name '_interp.mat'])
-        replotInterpImage(videoName, [name '_ImgRecon.mat'])
+        replotInterpImage(fullfile(videopath,videoName), [name '_ImgRecon.mat'])

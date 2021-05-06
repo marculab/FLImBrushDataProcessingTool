@@ -6,8 +6,8 @@ clc
 addpath(genpath(pwd))
 
 %% selection data and video file
-root = 'C:\Users\Xiangnan\OneDrive - University of California, Davis\UC Davis\Paper&Grant\My Paper\2020 APD Paper\Data';
-[dataFile,dataPath] = uigetfile([root '\*.mat'],'Please select DeCon file');
+root = 'C:\Users\Xiangnan\Box Sync\V6 Clinical Data\20210505_IGH samples';
+[dataFile,dataPath] = uigetfile([root '\*.mat'],'Please select DeCon Image reconstruction file');
 [vidFile,vidPath] = uigetfile([root '\*.avi'],'Please select video file');
 
 %% load image

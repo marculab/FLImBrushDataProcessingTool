@@ -1,2 +1,2 @@
 LifetimeChannel,"PlotRedox?(1 for yes, 0 for no) (if yes, ignoring the LifetimeChannel parameter)",SNRLowerBound,CircleRadius,CircleOpacity,LTCh1ColorScaleFrom,LTCh1ColorScaleTo,LTCh2ColorScaleFrom,LTCh2ColorScaleTo,LTCh3ColorScaleFrom,LTCh3ColorScaleTo,RedoxColorScaleFrom,RedoxColorScaleTo
-2,0,45,15,0.3,4,8,4,9,4,9,0,1
+1,0,20,5,0.3,1,5,1.5,7,1,7,0,1
