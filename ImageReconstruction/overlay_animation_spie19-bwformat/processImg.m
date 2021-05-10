@@ -1,62 +1,43 @@
-function [] = processImg( im, posData, ltData ,filename)
+function [out,scale] = processImg(im, posData, FLImData, radius, alpha, SNR_low)
 
 % settings
-rad = 25; %15; %3; %10; % radius
-alpha = 0.5; % alpha value for overlay
-dest_channel = 2;
+rad = radius; %15; %3; %10; % radius
 % SNR filters
-snr_lowerbound = 10;
+snr_lowerbound = SNR_low;
 % color scale
-scale_from=[]; scale_to=[];
-scale_from(1) = 3.5;
-scale_to(1) = 5;
-scale_from(2) = 3;
-scale_to(2) = 6;
-scale_from(3) = 2.5;
-scale_to(3) = 5;
+scale = cell(3,1);
+out = cell(3,1);
+for i =1:3
+low = floor(min(FLImData.lt{i})/0.5)*0.5;
+high = ceil(max(FLImData.lt{i}/0.5)*0.5);
+scale{i} = [low high];
+end
 
-% if configuration file exists
-if exist('plotConfig.csv', 'file') == 2
-    fprintf('plotConfig.csv file exists\n');
-    configMat = csvread('plotConfig.csv',1,0);
-    dest_channel = configMat(1,1);
-    plot_redox = configMat(1,2);
-    snr_lowerbound = configMat(1,3);
-    rad = configMat(1,4);
-    alpha = configMat(1,5);
-    scale_from(1) = configMat(1,6);
-    scale_to(1) = configMat(1,7);
-    scale_from(2) = configMat(1,8);
-    scale_to(2) = configMat(1,9);
-    scale_from(3) = configMat(1,10);
-    scale_to(3) = configMat(1,11);
-    scale_redox_from = configMat(1,12);
-    scale_redox_to = configMat(1,13);
-else
-    fprintf('plotConfig.csv file does not exist, using default values\n');
-end
-if ~plot_redox
-    fprintf('Plot Lifetime Channel %d\n', dest_channel);
-else
-    fprintf('Plot Redox Ratio\n');
-end
+for dest_channel = 1:3
+fprintf('Plot Lifetime Channel %d\n', dest_channel);
 fprintf('SNR LowerBound = %f, Radius = %f, Alpha = %f', snr_lowerbound, rad, alpha);
 
 % setup video
-set(gcf,'Visible', 'off');
-jet_cmap =  colormap('jet');
+%set(gcf,'Visible', 'off');
+jet_cmap =  jet;
 %ssx = vr.Width;
 %ssy = vr.Height;
 ssx = size(im, 2);
 ssy = size(im, 1);
+% preallocation
+overlay = cell(3,1);
+val_field = cell(3,1);
+accum = cell(3,1);
+
 for i=1:3
-    overlay{i}  = uint8( zeros(ssy,ssx,3)); 
-    val_field{i} = double( zeros(ssy,ssx,1)); 
-    accum{i} = double( zeros(ssy,ssx,1)); 
+    overlay{i}  = uint8(zeros(ssy,ssx,3));
+    val_field{i} = double(zeros(ssy,ssx,1));
+    accum{i} = double(zeros(ssy,ssx,1));
 end
 
 %df1 = im;
-f = waitbar(0,'Starting...'); % creat waitbar
+message = sprintf('Processing channel %d',dest_channel);
+f = waitbar(0,message); % creat waitbar
 numOfFrames = length(posData.frames);
 BarStep = round(0.01*numOfFrames);
 for i = 1:numOfFrames
@@ -66,78 +47,37 @@ for i = 1:numOfFrames
     px = posData.px(i);
     py = posData.py(i);
     
-    current_value = ltData.lt{dest_channel}(i);
-    current_snr = ltData.snr{dest_channel}(i);
-    current_redox = ltData.lt{2}(i) / (ltData.lt{2}(i) + ltData.lt{3}(i)); % rr = (Int 2/(Int 2 + Int 3))
+    current_value = FLImData.lt{dest_channel}(i);
+    current_snr = FLImData.snr{dest_channel}(i);
     % conditions to skip
-    if px == 0 || py == 0 || isnan(current_value) || current_value == 0 
+    if px == 0 || py == 0 || isnan(current_value) || current_value == 0
         continue
     end
     if isnan(current_snr) || current_snr < snr_lowerbound
         continue;
     end
-    if ~plot_redox
-        if current_value<scale_from(dest_channel)
-            current_value = scale_from(dest_channel);
-        end
-        if current_value>scale_to(dest_channel)
-            current_value = scale_to(dest_channel);
-        end
-        ind1 = round((current_value-scale_from(dest_channel))/(scale_to(dest_channel)-scale_from(dest_channel))*254+1);
-        [overlay{dest_channel}, val_field{dest_channel}, accum{dest_channel}] = drawCirc( [px,py], rad*0.7, rad, overlay{dest_channel}, jet_cmap(ind1,:)*254+1, val_field{dest_channel}, ind1, accum{dest_channel} );
-    else % plot redox ratio
-        if isnan(current_redox)
-            continue
-        end
-        if current_redox<scale_redox_from
-            current_redox = scale_redox_from;
-        end
-        if current_redox>scale_redox_to
-            current_redox = scale_redox_to;
-        end
-        ind1 = round((current_redox-scale_redox_from)/(scale_redox_to-scale_redox_from)*254+1);
-        % borrow overlay{1} to store overlaid redox ratio
-        [overlay{1}, val_field{1}, accum{1}] = drawCirc( [px,py], rad*0.7, rad, overlay{1}, jet_cmap(ind1,:)*254+1, val_field{1}, ind1, accum{1} );
+    scaleLow = scale{dest_channel}(1);
+    scaleHigh = scale{dest_channel}(2);
+    if current_value<scaleLow
+        current_value = scaleLow;
     end
-        if mod(i,BarStep)
-            waitbar(i/numOfFrames,f,sprintf('%d %%',round(i/numOfFrames*100)));
-        end
+    if current_value>scaleHigh
+        current_value = scaleHigh;
+    end
+    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*256);
+    [overlay{dest_channel}, val_field{dest_channel}, accum{dest_channel}] = drawCirc( [px,py], rad*0.7, rad, overlay{dest_channel}, jet_cmap(ind1,:)*254+1, val_field{dest_channel}, ind1, accum{dest_channel} );
+    
+    if mod(i,BarStep)
+        waitbar(i/numOfFrames,f,sprintf('Processing channel %d %d %%',dest_channel, round(i/numOfFrames*100)));
+    end
 end
 delete(f);
-% setup figure
-h=figure; hold on;
-
-set(h, 'Position', [200 200 640 300]);
-set(h,'Color',[1 1 1]);
-
 df1 = im;
-df1( ~(overlay{dest_channel}(:,:,:) == 0) ) = alpha*overlay{dest_channel}( ~(overlay{dest_channel}(:,:,:) == 0) ) + (1-alpha)*df1( ~(overlay{dest_channel}(:,:,:) == 0) );
-
+df1(~(overlay{dest_channel}(:,:,:) == 0)) = alpha*overlay{dest_channel}(~(overlay{dest_channel}(:,:,:) == 0) ) + (1-alpha)*df1( ~(overlay{dest_channel}(:,:,:) == 0) );
+out{dest_channel} = df1;
 %set(gcf,'Visible', 'off');
-hold off; imshow(df1);
 
-colormap(jet);
 
-if ~plot_redox
-    caxis([scale_from(dest_channel) scale_to(dest_channel)]);
-    h0 = colorbar;
-%     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
-    h0.Label.String = 'Lifetime (ns)';
-    set(gca,'FontSize',20)
-
-else
-    caxis([scale_redox_from scale_redox_to]);
-    h0 = colorbar;
-    ylabel(h0, 'Redox Ratio')
-end
-
-set(gca,'LooseInset',get(gca,'TightInset'))
-[~,name,~] = fileparts(filename);
-if ~plot_redox
-    saveas(gcf, [name '_ch', num2str(dest_channel),'.jpg']);
-else
-    saveas(gcf, ['outimg_rr','.jpg']);
-end
 
 % close window
 %close(h);
