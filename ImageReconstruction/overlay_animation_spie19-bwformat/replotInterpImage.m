@@ -1,5 +1,5 @@
 % code to replot interplated video
-function [] = replotInterpImage(matName, videoName, radius, alpha, SNR_low)
+function [] = replotInterpImage(matName, videoName, radius, alpha, SNR_low, varargin)
 tic
 % read image data
 % D= v.Duration-0.04;
@@ -34,6 +34,9 @@ ltData.it  = {mat_data(:, 16), mat_data(:, 17), mat_data(:, 18), mat_data(:, 19)
 ltData.snr = {mat_data(:, 20), mat_data(:, 21), mat_data(:, 22), mat_data(:, 23)};
 
 [img,scale]=processImg(im, posData, ltData,radius, alpha, SNR_low);
+if ~isempty(varargin)
+    scale = varargin{1};
+end
 
 [~,name,~] = fileparts(matName);
 
@@ -46,7 +49,7 @@ for i=1:3
     h0 = colorbar;
     %     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
     h0.Label.String = 'Lifetime (ns)';
-    set(gca,'FontSize',20)
+    set(gca,'FontSize',15)
     set(gca,'LooseInset',get(gca,'TightInset'))
     saveas(gcf, [name '_ch', num2str(i),'.jpg']);
 end

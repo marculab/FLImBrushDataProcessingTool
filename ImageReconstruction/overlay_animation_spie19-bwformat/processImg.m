@@ -15,7 +15,7 @@ end
 
 for dest_channel = 1:3
 fprintf('Plot Lifetime Channel %d\n', dest_channel);
-fprintf('SNR LowerBound = %f, Radius = %f, Alpha = %f', snr_lowerbound, rad, alpha);
+fprintf('SNR LowerBound = %f, Radius = %f, Alpha = %f\n', snr_lowerbound, rad, alpha);
 
 % setup video
 %set(gcf,'Visible', 'off');
