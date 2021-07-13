@@ -1,15 +1,14 @@
 % code to replot interplated video
-function [] = replotInterpImage(filename1, filename2)
+function [] = replotInterpImage(matName, videoName, radius, alpha, SNR_low, varargin)
 tic
 % read image data
-v = VideoReader(filename1);
 % D= v.Duration-0.04;
 D = 0;
-v = VideoReader(filename1,'CurrentTime',D);
+v = VideoReader(videoName,'CurrentTime',D);
 im = readFrame(v);
-imshow(im)
+%imshow(im)
 
-mat_file = load( filename2 );
+mat_file = load( matName );
 fields = fieldnames(mat_file);
 mat_data = getfield(mat_file, fields{1,1});
 posData = {};
@@ -22,7 +21,7 @@ posData.radius = mat_data(:,9);
 % number; awaiting confirmation
 
 %assert(v.NumberOfFrames == posData.frames);
-assert(v.NumberOfFrames >= max(posData.frames));
+assert(v.NumFrames >= max(posData.frames));
 
 % read lifetime related values from mat file
 % write into one object
@@ -34,7 +33,25 @@ ltData.lt  = {mat_data(:, 12), mat_data(:, 13), mat_data(:, 14), mat_data(:, 15)
 ltData.it  = {mat_data(:, 16), mat_data(:, 17), mat_data(:, 18), mat_data(:, 19)};
 ltData.snr = {mat_data(:, 20), mat_data(:, 21), mat_data(:, 22), mat_data(:, 23)};
 
-processImg(im, posData, ltData, filename2);
+[img,scale]=processImg(im, posData, ltData,radius, alpha, SNR_low);
+if ~isempty(varargin)
+    scale = varargin{1};
+end
 
+[~,name,~] = fileparts(matName);
+
+for i=1:3
+    figure
+    imshow(img{i})
+    title([name ' Channel', num2str(i)],'Interpreter','none');
+    colormap(jet);
+    caxis(gca,scale{i});
+    h0 = colorbar;
+    %     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
+    h0.Label.String = 'Lifetime (ns)';
+    set(gca,'FontSize',15)
+    set(gca,'LooseInset',get(gca,'TightInset'))
+    saveas(gcf, [name '_ch', num2str(i),'.jpg']);
+end
 toc
 end

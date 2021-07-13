@@ -7,17 +7,12 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\FLImBrush\20210505_neuro024';
+root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\V4\Subject024_20210505';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
 [videoName,videoPath] = uigetfile([root '\*.avi'],'Please select video file');
-savePath = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\FLImBrush\20210505_neuro024\AugmentedImages';
-%% load in data
-load(fullfile(DeConpath,DeConfile))
-load(fullfile(Pospath,Posfile))
-VideoData = importVideoTextFile(fullfile(Txtpath,Txtfile));
-RepRate = Ch1DataObj.laserRepRate;
+savePath = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\V4\Subject024_20210505\AugmentedImages';
 
 %% open video and get the last image for augmentation
 v = VideoReader(fullfile(videoPath, videoName));
@@ -26,26 +21,31 @@ im = read(v,inf);
 figure
 image(im)
 output.img = im;
-%% calculate num of data points
+%% load in data
+load(fullfile(DeConpath,DeConfile))
+load(fullfile(Pospath,Posfile))
+VideoData = importVideoTextFile(fullfile(Txtpath,Txtfile));
+% RepRate = 100;
+%% get parameters
 % shift = length(Ch1LT)-(MetaData(end,9)-MetaData(1,9))/1000*120/4;
 % shift = round(shift);
 shift=0; %shift need to be 0!
 
-Ch1INTCorr = circshift(Ch1DataObj.INTsAllGainCorrected,shift);
-Ch1LT = circshift(Ch1DataObj.LTsAll,shift);
-Ch1SNR = circshift(Ch1DataObj.SNR,shift)';
-G1 = circshift(Ch1DataObj.gain,shift);
+Ch1INTCorr = circshift(spec_int{1},shift);
+Ch1LT = circshift(lifet_avg{1},shift);
+Ch1SNR = circshift(SNR{1},shift);
 
-Ch2INTCorr = circshift(Ch2DataObj.INTsAllGainCorrected,shift);
-Ch2LT = circshift(Ch2DataObj.LTsAll,shift);
-Ch2SNR = circshift(Ch2DataObj.SNR,shift)';
-G2 = circshift(Ch2DataObj.gain,shift);
 
-Ch3INTCorr = circshift(Ch3DataObj.INTsAllGainCorrected,shift);
-Ch3LT = circshift(Ch3DataObj.LTsAll,shift);
-Ch3SNR = circshift(Ch3DataObj.SNR,shift)';
-G3 = circshift(Ch3DataObj.gain,shift);
+Ch2INTCorr = circshift(spec_int{2},shift);
+Ch2LT = circshift(lifet_avg{2},shift);
+Ch2SNR = circshift(SNR{2},shift);
 
+Ch3INTCorr = circshift(spec_int{3},shift);
+Ch3LT = circshift(lifet_avg{3},shift);
+Ch3SNR = circshift(SNR{3},shift);
+HV = gain_list(:,1);
+nonDeconIdx = setdiff(1:full_data_size(1),decon_idx);
+HV(nonDeconIdx) = NaN;
 %% repopulate output data mat with interplation
 % reset start time to 0
 VideoData(:,9) = VideoData(:,9)-VideoData(1,9);
@@ -88,9 +88,10 @@ VideoData(ZeroIdx,:)=[];
 
 frameNum = 1:size(VideoData,1);
 frameNum = frameNum';
+% outputMat = zeros(size(Ch1LT,1),23);
 
-time = 0:1:size(Ch1LT,1)-1;
-time = time'*1000/RepRate*4;
+time = timeStamp*1000;
+% time = time*1000/RepRate*4;
 frameT = VideoData(:,9);
 [frameT,ia] = unique(frameT); % find duplicate frame
 VideoData = VideoData(ia,:); % remove duplicated data
@@ -108,6 +109,7 @@ yy = interp1(VideoData(:,10),VideoData(:,8),time);
 yy(isnan(yy))=0; % replace NaN with 0
 rr = interp1(VideoData(:,10),VideoData(:,9),time);
 rr(isnan(rr)) = 0;
+
 output.xx = xx;
 output.yy = yy;
 output.rr = rr;
@@ -120,9 +122,10 @@ output.int3 = Ch3INTCorr;
 output.snr1 = Ch1SNR;
 output.snr2 = Ch2SNR;
 output.snr3 = Ch3SNR;
-output.gain1 = G1;
-output.gain2 = G2;
-output.gain3 = G3;
+output.highVoltage1 = HV;
+output.highVoltage1 = HV;
+output.highVoltage1 = HV;
+% outputMat((xx+yy)==0,:)=[]; % remove bad data points
 
 %% save data
 cd(DeConpath)
@@ -130,6 +133,7 @@ cd(DeConpath)
 save([name '_ImgRecon.mat'],'output')
 disp('Reconstructed image .mat file saved successfully!')
 close all
+
 %% set position daya
 posData.px = xx;
 posData.py = yy;
@@ -141,7 +145,7 @@ radius = 10;
 alpha = 0.5;
 %-------------------------------------------Channel 1 lifetime----------------------------------------------------------
 figure('units','normalized','outerposition',[0 0 1 1])
-tiledlayout(1,2)
+tiledlayout(2,2)
 nexttile
 % scale = [floor(quantile(Ch1LT,0.1)) ceil(quantile(Ch1LT,0.9))];
 scale = [2 5];
@@ -157,27 +161,9 @@ h0.Label.String = 'Lifetime (ns)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
 % exportgraphics(gca, [name '_ch1 lifetime','.jpg'],'Resolution',600);
-%-------------------------------------------Channel 1 Gain----------------------------------------------------------
-scale  = [floor(quantile(G1,0.10)) ceil(quantile(G1,0.90))];
-[augmentedImg,~] = AugmentImg(im, posData, G1, scale, radius, alpha);
-% show image
-nexttile
-imshow(augmentedImg)
-title([name ' Channel 1 Gain'],'Interpreter','none')
-colormap(jet);
-caxis(gca,scale);
-h0 = colorbar;
-%     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
-h0.Label.String = 'Gain (a.u.)';
-set(gca,'FontSize',15)
-set(gca,'LooseInset',get(gca,'TightInset'))
-% exportgraphics(gca, [name '_ch1 gain','.jpg'],'Resolution',600);
-exportgraphics(gcf, [name '_ch1','.jpg'],'Resolution',600);
-%----------------------------------------Channel 2 lifetime----------------------------------------------
-figure('units','normalized','outerposition',[0 0 1 1])
-tiledlayout(1,2)
-nexttile
 
+%----------------------------------------Channel 2 lifetime----------------------------------------------
+nexttile
 % scale = [floor(quantile(Ch2LT,0.1)) ceil(quantile(Ch2LT,0.9))];
 scale = [2 5];
 [augmentedImg,~] = AugmentImg(im, posData, Ch2LT, scale, radius, alpha);
@@ -192,31 +178,12 @@ h0.Label.String = 'Lifetime (ns)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
 % exportgraphics(gca, [name '_ch2 lifetime','.jpg'],'Resolution',600);
-%-------------------------------------------Channel 2 Gain----------------------------------------------------------
-% scale = [mean(G2)-1*std(G2) mean(G2)+1*std(G2)];
-scale  = [floor(quantile(G2,0.10)) ceil(quantile(G2,0.90))];
-% scale(scale<0) = 0;
-[augmentedImg,~] = AugmentImg(im, posData, G2, scale, radius, alpha);
-% show image
-nexttile
-imshow(augmentedImg)
-title([name ' Channel 2 Gain'],'Interpreter','none')
-colormap(jet);
-caxis(gca,scale);
-h0 = colorbar;
-%     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
-h0.Label.String = 'Gain (a.u.)';
-set(gca,'FontSize',15)
-set(gca,'LooseInset',get(gca,'TightInset'))
-exportgraphics(gcf, [name '_ch2','.jpg'],'Resolution',600);
 
 %------------------------------------Channel 3 lifetime------------------------------------------------------
 % scale = [floor(quantile(Ch3LT,0.1)) ceil(quantile(Ch3LT,0.9))];
 scale = [2 5];
 [augmentedImg,~] = AugmentImg(im, posData, Ch3LT, scale, radius, alpha);
 % show image
-figure('units','normalized','outerposition',[0 0 1 1])
-tiledlayout(1,2)
 nexttile
 imshow(augmentedImg)
 title([name ' Channel 3 lifetime'],'Interpreter','none')
@@ -230,19 +197,19 @@ set(gca,'LooseInset',get(gca,'TightInset'))
 % exportgraphics(gca, [name '_ch3 lifetime','.jpg'],'Resolution',600);
 
 %-------------------------------------------Channel 3 Gain----------------------------------------------------------
-scale  = [floor(quantile(G3,0.10)) ceil( quantile(G3,0.90))];
-[augmentedImg,~] = AugmentImg(im, posData, G3, scale, radius, alpha);
+scale  = [floor(quantile(HV,0.10)) ceil( quantile(HV,0.90))];
+[augmentedImg,~] = AugmentImg(im, posData, HV, scale, radius, alpha);
 % show image
 nexttile
 imshow(augmentedImg)
-title([name ' Channel 3 Gain'],'Interpreter','none')
+title([name ' PMT Bias'],'Interpreter','none')
 colormap(jet);
 caxis(gca,scale);
 h0 = colorbar;
 %     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
-h0.Label.String = 'Gain (a.u.)';
+h0.Label.String = 'HV (V)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
-exportgraphics(gcf, [name '_ch3','.jpg'],'Resolution',600);
+exportgraphics(gcf, [name,'.jpg'],'Resolution',600);
 
 close all
