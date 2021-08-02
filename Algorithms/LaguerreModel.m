@@ -66,7 +66,8 @@ classdef LaguerreModel < handle
             % within the parallel for loop if using "obj.channeldata.data".
             switch nargin
                 case 1
-                    shift_range= -5:5; %default Laguerre order
+                    shift_range= -10:10; %default shift range order
+%                     shift_range= 0; %default shift range order
                 case 2
                     shift_range = varargin{1};
                 otherwise
@@ -74,6 +75,7 @@ classdef LaguerreModel < handle
             end
             spec_raw = obj.channeldata.data;
             spec = spec_raw;
+%             spec = spec./max(spec);
             shift_i = shift_range';
             spec = repmat(spec,length(shift_i),1);
             spec = reshape(spec,size(spec_raw,1),[]);
@@ -91,12 +93,21 @@ classdef LaguerreModel < handle
             C=H_chol*D';
             l1=H_chol*vv';
             lam=zeros(size(D,1),size(spec,2));
+%             options = optimset('Display','notify','TolX',10*eps);
             parfor i=1:size(spec,2)
                 d=l1*spec(:,i);
                 lam(:,i)=lsqnonneg(C,d);
             end
             obj.LCs=(vv'*vv)\(vv'*spec-D'*lam);
-            res = spec-obj.get('fit');
+            fit_all = obj.get('fit');
+            res = spec-fit_all;
+%             ind1 = sub2ind([length(shift_range),size(spec_raw,2)],14,25);
+%             ind2 = sub2ind([length(shift_range),size(spec_raw,2)],15,25);
+%             figure;plot(res(:,[ind1,ind2]))
+%             figure;plot(spec(:,[ind1,ind2]))
+%             figure;plot(spec(:,ind1),'.-');hold on;plot(fit_all(:,ind1));hold off
+%             figure;plot(spec(:,ind2),'.-');hold on;plot(fit_all(:,ind2));hold off
+%             res = res(40:50,:);
             res_norm = vecnorm(res);
             res_norm = reshape(res_norm,[],size(spec_raw,2));
             if size(res_norm,1)==1
@@ -105,11 +116,23 @@ classdef LaguerreModel < handle
             [~,res_norm_min_idx] = min(res_norm);
             best_fit_idx = res_norm_min_idx+size(res_norm,1)*(1:size(res_norm_min_idx,2))-size(res_norm,1);
             end
-            obj.LCs=obj.LCs(:,best_fit_idx);
+%             shift = shift_v(best_fit_idx);
+%             shiftMode = mode(shift);
+%             best_fit_idx = find(shift_v==shiftMode);
             obj.shift = shift_v(best_fit_idx);
+            obj.LCs=obj.LCs(:,best_fit_idx);
             obj.spec_aligned = spec(:,best_fit_idx);
+%             fit = obj.get('fit');
+%             idx = 3;
+%             figure;plot(fit(:,idx));hold on;plot(obj.spec_aligned(:,idx),'*-');hold off
+%             figure;plot(obj.spec_aligned(:,1),'.-');hold on;plot(obj.spec_aligned(:,3),'+-');hold off
+%             figure;plot(spec_raw(:,1),'.-');hold on;plot(spec_raw(:,3),'+-');hold off
             decays = obj.LaguerreBasis*obj.LCs;
+%             figure;plot(decays);
+%             figure;plot(decays(:,[1,3]))
+%             figure;plot(decays./max(decays));
             [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldata.dt,'average');
+%             LTe = h_lifet(decays,obj.channeldata.dt,'1/e');
 %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldata.dt, obj.channeldata.bw);
         end
         

@@ -22,7 +22,7 @@ xlabel('k')
 ylabel('Amplitude (a.u.)')
 set(gca,'LineWidth',1.3)
 set(gca,'FontSize',15)
-saveas(gcf,'Laguerre Functions','png')
+saveas(gcf,'Laguerre Functions','svg')
 
 %%
 alpha = linspace(0.6,alphaUpperLim,4);
@@ -47,7 +47,7 @@ box off
 grid on
 % legend('Order = 1','Order = 2','Order = 3','Order = 4','Order = 5','Order = 6','Order = 7','Order = 8')
 xlabel('k')
-saveas(gcf,'Laguerre Functions varying alpha','png')
+saveas(gcf,'Laguerre Functions varying alpha','svg')
 
 
 %%
