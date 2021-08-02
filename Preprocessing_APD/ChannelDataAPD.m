@@ -59,7 +59,8 @@ classdef ChannelDataAPD < handle
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, MaxWFAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
             obj.dtRaw = dtIn;
 %             figure;plot(rawDataIn(:,1:4));
-            rawDataIn = alignWaveform_CFDNew(rawDataIn,3,obj.dtRaw); % CFD raw waveform 1st
+%             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
+%             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
 %             figure;plot(rawDataIn(:,1:4));
             obj.rawData = rawDataIn;
             obj.preProcessedData = rawDataIn;
@@ -154,8 +155,12 @@ classdef ChannelDataAPD < handle
             end
 %             [~,peakLocation] = max(WFUpsampled);
 %             peakLocation = mode(peakLocation);
-            WFUpsampled = alignWaveform_CFDNew(WFUpsampled,3, obj.dtUp);
-            obj.preProcessedData = WFUpsampled;
+%             WFUpsampled = alignWaveform_CFDNew(WFUpsampled,3, obj.dtUp,0.6);
+            WFUpsampledShifted = WFUpsampled;
+%             for i = 1:size(WFUpsampled,2)
+%                 WFUpsampledShifted(:,i) = circshift(WFUpsampled(:,i),-shiftTemp(i));
+%             end
+            obj.preProcessedData = WFUpsampledShifted;
             %             figure; plot(WFUpsampled)
             %--------------------------------------------------------------
         end
@@ -175,8 +180,12 @@ classdef ChannelDataAPD < handle
                 start_idx=1;
             end
             obj.dataT = obj.preProcessedData(start_idx:start_idx+dataLength-1,:);
-            obj.APDObj.irfTNorm = obj.APDObj.irf(start_idx:start_idx+dataLength-1,:);
-            obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm); 
+            iRFLength = dataLength;
+            obj.APDObj.irfTNorm = obj.APDObj.irf(start_idx:start_idx+iRFLength-1,:);
+            obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm); %normalize by peak value
+%             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm);  % normalize by AUC
+            %try CFD alignment
+%             obj.dataT = alignWaveform_CFDNew(obj.dataT,0.26, obj.dtUp);
             %             figure;
             %             hold on
             %             plot(obj.dataT(:,1:100:end))
