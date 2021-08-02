@@ -233,7 +233,7 @@ classdef ChannelDataAPD < handle
                     irf = obj.APDObj.irfTNorm(:,i); % get irf
                     obj.irfIdx(idx) = i; %  store irf index
                     channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gainDecon(idx));
-                    laguerreObj = LaguerreModel(channelDataStruct);
+                    laguerreObj = LaguerreModel(channelDataStruct,obj.K, obj.alpha);
                     laguerreObj.estimate_laguerre();
                     obj.LCs(:,idx) = laguerreObj.LCs;
                     obj.LTs(idx) = laguerreObj.LTs;
