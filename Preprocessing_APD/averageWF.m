@@ -8,8 +8,8 @@ else
     data_out = zeros(size(data_in,1),numOfWFPostAvg);
     
     for i = 1:numOfWFPostAvg
-        temp_in = data_in(:,numOfAvg*(i-1)+1:numOfAvg*i);  
-        temp = alignWaveform_CFDNew(temp_in,2.8, 0.4);
+        temp = data_in(:,numOfAvg*(i-1)+1:numOfAvg*i);  
+%         temp = alignWaveform_CFDNew(temp_in,2.8, 0.4);
 %         figure
 %         tiledlayout(2,1)
 %         nexttile

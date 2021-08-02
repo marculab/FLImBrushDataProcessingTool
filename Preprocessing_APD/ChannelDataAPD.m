@@ -59,7 +59,7 @@ classdef ChannelDataAPD < handle
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, MaxWFAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
             obj.dtRaw = dtIn;
 %             figure;plot(rawDataIn(:,1:4));
-%             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
+            rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
 %             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
 %             figure;plot(rawDataIn(:,1:4));
             obj.rawData = rawDataIn;
