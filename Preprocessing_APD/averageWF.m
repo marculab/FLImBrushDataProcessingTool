@@ -8,7 +8,14 @@ else
     data_out = zeros(size(data_in,1),numOfWFPostAvg);
     
     for i = 1:numOfWFPostAvg
-        temp = data_in(:,numOfAvg*(i-1)+1:numOfAvg*i);  
+        temp_in = data_in(:,numOfAvg*(i-1)+1:numOfAvg*i);  
+        temp = alignWaveform_CFDNew(temp_in,2.8, 0.4);
+%         figure
+%         tiledlayout(2,1)
+%         nexttile
+%         plot(temp_in,'*-');
+%         nexttile
+%         plot(temp,'*-');
 %         temp = alignWaveform_CFDNew(temp,3,0.4); % align waveforms
         WFMax = max(temp);
         outlierFlagTemp = isoutlier(WFMax);
