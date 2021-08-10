@@ -1,4 +1,4 @@
-function [A1,A2,A3,A4,T1,T2,T3,T4,avglife,intensity,fitt,raw]=quadriexp_fit(spec,dt,laser)
+function [A1,A2,A3,A4,T1,T2,T3,T4,avglife,intensity,fitt,raw,h]=quadriexp_fit(spec,dt,laser)
 A1 =[];A2=[];A3=[];A4=[];T1=[];T2=[];T3=[];T4=[];h =[];fitt=[];raw=[];
 %figure
 parfor ii = 1:size(spec,2)

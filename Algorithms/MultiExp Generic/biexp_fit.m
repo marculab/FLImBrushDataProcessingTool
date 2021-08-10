@@ -1,4 +1,4 @@
-function [A1,A2,T1,T2,avglife,intensity,fitt,raw]=biexp_fit(spec,dt,laser)
+function [A1,A2,T1,T2,avglife,intensity,fitt,raw,h]=biexp_fit(spec,dt,laser)
 A1 =[];A2=[];T1=[];T2=[];h =[];fitt=[];raw=[];
 Raw_INT=[];
 %figure
@@ -94,7 +94,9 @@ T1 = TF(1,:);T2=TF(2,:);A1=AF(1,:);A2=AF(2,:);
 % A1 = A1.*MaxData;
 % A2 = A2.*MaxData;
 % average lifetime from decay
-[avglife,intensity]=h_lifet(h,dt,'average');
+intensity = sum(h);
+avglife = (A1.*T1.^2+A2.*T2.^2)./(A1.*T1+A2.*T2);
+% [avglife,intensity]=h_lifet(h,dt,'average');
 % intensity = Raw_INT;
 % re-enable the warning
 warning('on','curvefit:fit:noStartPoint')

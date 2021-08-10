@@ -1,4 +1,4 @@
-function [A,T,avglife,intensity,fitt,raw]=monoexp_fit(spec,dt,laser)
+function [A,T,avglife,intensity,fitt,raw,h]=monoexp_fit(spec,dt,laser)
 A =[];T=[];h =[];fitt=[];raw=[];
 %figure
 parfor ii = 1:size(spec,2)
@@ -49,7 +49,7 @@ parfor ii = 1:size(spec,2)
         y = filter(laser,1,decay);% fitting
                
         decay = decay/max(y)*max(spec(:,ii));
-        yy = filter(laser,1,decay); 
+        
         
         y = y./max(y); 
         fff = y(1:length(x));

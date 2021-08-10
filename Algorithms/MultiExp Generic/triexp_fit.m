@@ -1,4 +1,4 @@
-function [A1,A2,A3,T1,T2,T3,avglife,intensity,fitt,raw]=triexp_fit(spec,dt,laser)
+function [A1,A2,A3,T1,T2,T3,avglife,intensity,fitt,raw,h]=triexp_fit(spec,dt,laser)
 A1 =[];A2=[];A3=[];T1=[];T2=[];T3=[];h =[];fitt=[];raw=[];
 %figure
 parfor ii = 1:size(spec,2)
