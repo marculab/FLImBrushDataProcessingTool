@@ -1,9 +1,9 @@
 clear all;
 close all;
 home;
-addpath(genpath(pwd))
+% addpath(genpath(pwd))
 %% IMPORT VIDEO FILE
-root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505';
+root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811\videos';
 [file,path] = uigetfile([root '\*.avi'],'Please select avi video file');
 obj=VideoReader(fullfile(path,file)); % Specify the video file to load
 %% read in video data
