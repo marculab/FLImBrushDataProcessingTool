@@ -5,7 +5,7 @@ parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii)./max(spec(:,ii));
         lower = [0 0.01];
-        upper = [1 40];
+        upper = [Inf Inf];
         %lower = [0 0 eps eps];
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
@@ -29,14 +29,14 @@ parfor ii = 1:size(spec,2)
             %     hold off
             start = [ff.a ff.t];
         else
-            start = [0.5 1];
+            start = [1 3];
         end
         %start = [ff.a1 ff.a2 ff.t1 ff.t2];
         x = linspace(0,length(Y)-1,length(Y))*dt; % time in ns
         op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper,'StartPoint',start);
-        fitWeights2 = zeros(size(Y));
-        fitWeights2(1:90) = 1;
-        op.Weights = fitWeights2;
+%         fitWeights2 = zeros(size(Y));
+%         fitWeights2(1:90) = 1;
+%         op.Weights = fitWeights2;
         ft = fittype('monoexp_model(x,a,t,L)','problem','L','options',op);
         %ft = fittype('biexp_model3(x,a1,a2,t1,t2,L)','problem','L','options',op);
         
@@ -82,8 +82,9 @@ end
 %     end
 %  T1 = TF(1,:);T2=TF(2,:);A1=AF(1,:);A2=AF(2,:);
 % average lifetime from decay
-[avglife,intensity]=h_lifet(h,dt,'average');
-
+% [avglife,intensity]=h_lifet(h,dt,'average');
+intensity = sum(h);
+avglife = T;
 % re-enable the warning
 warning('on','curvefit:fit:noStartPoint')
 end
