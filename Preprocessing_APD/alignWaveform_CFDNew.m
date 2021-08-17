@@ -31,13 +31,13 @@ dataSum = dataDelayed+dataInvert;
 % figure;plot(dataSum)
 
 % figure;plot(dataSum(:,4)); hold on; plot(dataInvert(:,4));plot(dataDelayed(:,4));hold off
-[~,minIdx] = min(dataInvert);
-minIdx = round(mean(minIdx))-1;
+[~,minIdx] = min(dataSum);
+minIdx = floor(mode(minIdx))-1;
 if minIdx<1
     minIdx = 1;
 end
 
-[~,maxIdx] = max(dataDelayed);
+[~,maxIdx] = max(dataSum);
 maxIdx = round(mean(maxIdx))+1;
 
 % plotIdx = 100;
