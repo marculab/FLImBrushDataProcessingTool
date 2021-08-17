@@ -1,71 +1,73 @@
 classdef ChannelDataAPD < handle
     properties
-        rawData % raw data
         averagedData % averaged data
-        preProcessedData % final preprocessed data
-        numOfWFs % number of waveforms
-        numOfAvgWFs % number of waforms after averaging
-        wfLenght % length of each waveform
-        goodDataIdx % raw waveform good data index, result of saturation filtering
-        badDataIdx % raw waveform bad data index, result of saturation filtering
-        rawCtrlV % raw control voltage, same as number of waveforms
-        CtrlV % APD control voltage
-        CtrlVDecon % decon data ctrl v
-        rawGain % raw gain, same size as number of waveforms
-        gain % gain lise 1D vector
-        gainDecon % Decon data point gain
+        alpha % alpha value
         APDObj % apd detector class obj, contain gain and iRF information
+        badDataIdx % raw waveform bad data index, result of saturation filtering
         bg % channel background
         bgDcRemoved % DC removed bg
+        bgLow; % BG removal index low
+        bgHigh; % BG removal index low
+        bw = 400 % MHz detector bandwidth
+        CtrlV % APD control voltage
+        CtrlVDecon % decon data ctrl v
         dtRaw % raw data dt
         dtUp % upsampled data dt
-        bw = 400 % MHz detector bandwidth
-        noise % data noise
-        SNR % data SNR
         dataAveragingLV % maximum number of WF to average
         dataAveraging % data averaging used for processing
         dataLow; % data amplitude threshold low
         dataHigh; % data amplitude threshold high
         dcLow; % DC removal index low
         dcHigh; % DC removal index low
-        bgLow; % BG removal index low
-        bgHigh; % BG removal index low
         deconIdx; % deconvolution index of preprocessed data
-        nonDeconIdx; % non deconvolution index of processed data
         dataT % truncated data
+        goodDataIdx % raw waveform good data index, result of saturation filtering
+        gain % gain lise 1D vector
+        gainDecon % Decon data point gain
+        irfIdx % 1 by (number of data points) index of correponding irf in the APD Obj
+        INTs % intensities
+        INTsAllGainCorrected % all intensity including non-decon data
+        INTsGainCorrected % intensities
         K % Laguerre order
-        M % truncated data length
-        alpha % alpha value
         LaguerreBasis = []; % Laguerre base funciton
         LCs %Laguerre coefficient
         LTs %lifetimes
         LTsAll % all lifetims including non-decon data
-        INTs % intensities
-        INTsAllGainCorrected % all intensity including non-decon data
-        INTsGainCorrected % intensities
+        laserRepRate % laser rep rate
+        M % truncated data length
+        numOfWFs % number of waveforms
+        numOfAvgWFs % number of waforms after averaging
+        nonDeconIdx; % non deconvolution index of processed data
+        noise % data noise
+        outlierFlag % 1D column vector
+        preProcessedData % final preprocessed data
+        rawData % raw data
+        rawDataUpsampled % upsampled raw data
+        rawCtrlV % raw control voltage, same as number of waveforms
+        rawGain % raw gain, same size as number of waveforms
+        SNR % data SNR
         stat_test % statistic test
         shift % WF shift amount
-        %         spec_aligned % aligned WF with iRF
-        %         fit % fitting result
-        %         res % residue
-        irfIdx % 1 by (number of data points) index of correponding irf in the APD Obj
         truncationLength % data truncation length
         timeStamp % time stamp of averaged data used for image reconstruction
         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
-        laserRepRate % laser rep rate
-        outlierFlag % 1D column vector
+        upSampleFactor = 2; % upsample factor
+        wfLenght % length of each waveform
+        %         spec_aligned % aligned WF with iRF
+        %         fit % fitting result
+        %         res % residue
     end
     methods
-        function obj = ChannelDataAPD(rawDataIn, CtrlVIn, MaxWFAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
+        function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
             obj.dtRaw = dtIn;
-%             figure;plot(rawDataIn(:,1:4));
-            rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
-%             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
-%             figure;plot(rawDataIn(:,1:4));
+            %             figure;plot(rawDataIn(:,1:4));
+            %             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
+            %             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
+            %             figure;plot(rawDataIn(:,1:4));
             obj.rawData = rawDataIn;
             obj.preProcessedData = rawDataIn;
             obj.rawCtrlV = CtrlVIn;
-            obj.dataAveragingLV = MaxWFAvgIn;
+            obj.dataAveragingLV = LVAvgIn;
             obj.APDObj = APDObjIn;
             obj.dtRaw = dtIn;
             obj.bg = bgIn;
@@ -74,6 +76,25 @@ classdef ChannelDataAPD < handle
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
             % calculate SNR
+        end
+        
+        function upSampleData(obj)
+            obj.dtUp = obj.dtRaw/obj.upSampleFactor; % compute new time resolution
+            %-------------------------upsample waveforms-------------------
+            WFUpsampled = zeros(obj.wfLenght*obj.upSampleFactor,obj.numOfWFs);
+            for i = 1:obj.numOfWFs
+                WFUpsampled(:,i) = interp(obj.rawData(:,i),obj.upSampleFactor);
+            end
+            obj.rawDataUpsampled = WFUpsampled;
+            obj.preProcessedData = WFUpsampled;
+            %             figure; plot(WFUpsampled)
+            %--------------------------------------------------------------
+        end
+        
+        function alignWF_CFD(obj, f) % constant factor alginment of waveforms, each channel has a different factor 
+            % f is factor
+           obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f);
+           obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
         end
         
         function [totalNumOfWf, goodNumOfWf, badNumOfWf]=removeSaturation(obj, low, high)
@@ -97,10 +118,10 @@ classdef ChannelDataAPD < handle
             obj.dataAveraging = avgIn;
             obj.CtrlV = averageGianOrV(obj.rawCtrlV,avgIn);
             obj.gain = averageGianOrV(obj.rawGain,avgIn);
-%             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData,3,obj.dtRaw);
+            %             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData,3,obj.dtRaw);
             [obj.preProcessedData, obj.outlierFlag] = averageWF(obj.preProcessedData, avgIn);
             obj.averagedData = obj.preProcessedData;
-%             sum(isnan(sum(obj.preProcessedData)))
+            %             sum(isnan(sum(obj.preProcessedData)))
             obj.preProcessedData(:,isnan(sum(obj.preProcessedData)))=[];
             obj.noise = std(obj.averagedData(end-50:end,:),1);
             WFMax = max(obj.averagedData);
@@ -140,32 +161,15 @@ classdef ChannelDataAPD < handle
             obj.preProcessedData = obj.preProcessedData-obj.bgDcRemoved*bgScaleFactor;
         end
         
-        function upSampleData(obj)
-            obj.dtUp = 0.5*obj.dtRaw;
+        
+        function truncateData(obj, timeWindowIn)
             nanCol = isnan(sum(obj.preProcessedData));
             obj.nonDeconIdx = find(nanCol);
             obj.deconIdx = find(~nanCol);
             WFtoDecon = obj.preProcessedData(:,obj.deconIdx);
             obj.CtrlVDecon = obj.CtrlV(obj.deconIdx);
             obj.gainDecon = obj.gain(obj.deconIdx);
-            %-------------------------upsample waveforms-------------------
-            WFUpsampled = zeros(length(interp(WFtoDecon(:,1),2)),size(WFtoDecon,2));
-            for i = 1:size(WFtoDecon,2)
-                WFUpsampled(:,i) = interp(WFtoDecon(:,i),2);
-            end
-%             [~,peakLocation] = max(WFUpsampled);
-%             peakLocation = mode(peakLocation);
-%             WFUpsampled = alignWaveform_CFDNew(WFUpsampled,3, obj.dtUp,0.6);
-            WFUpsampledShifted = WFUpsampled;
-%             for i = 1:size(WFUpsampled,2)
-%                 WFUpsampledShifted(:,i) = circshift(WFUpsampled(:,i),-shiftTemp(i));
-%             end
-            obj.preProcessedData = WFUpsampledShifted;
-            %             figure; plot(WFUpsampled)
-            %--------------------------------------------------------------
-        end
-        
-        function truncateData(obj, timeWindowIn)
+            
             [~,dataMaxI] = max(obj.preProcessedData);
             dataMaxI = mode(dataMaxI);
             [~,irfMaxI] = max(obj.APDObj.irf);
@@ -182,10 +186,10 @@ classdef ChannelDataAPD < handle
             obj.dataT = obj.preProcessedData(start_idx:start_idx+dataLength-1,:);
             iRFLength = dataLength;
             obj.APDObj.irfTNorm = obj.APDObj.irf(start_idx:start_idx+iRFLength-1,:);
-            obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm); %normalize by peak value
-%             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm);  % normalize by AUC
+            obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by peak value
+            %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm);  % normalize by AUC
             %try CFD alignment
-%             obj.dataT = alignWaveform_CFDNew(obj.dataT,0.26, obj.dtUp);
+            %             obj.dataT = alignWaveform_CFDNew(obj.dataT,0.26, obj.dtUp);
             %             figure;
             %             hold on
             %             plot(obj.dataT(:,1:100:end))

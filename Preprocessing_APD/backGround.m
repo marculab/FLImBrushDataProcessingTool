@@ -46,9 +46,9 @@ classdef backGround < handle
                     bgCh2Temp(:,i) = interp(obj.bgCh2Raw(:,i),obj.upSampleFactor);
                     bgCh3Temp(:,i) = interp(obj.bgCh3Raw(:,i),obj.upSampleFactor);
                 end
-                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp-0.5, 2.8, obj.dt/obj.upSampleFactor,1);
-                obj.bgCh2Aligned = alignWaveform_CFDNew(bgCh2Temp, 2.6, obj.dt/obj.upSampleFactor,0.6);
-                obj.bgCh3Aligned = alignWaveform_CFDNew(bgCh3Temp, 2.8, obj.dt/obj.upSampleFactor,0.6);
+                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp, 2.8, obj.dt/obj.upSampleFactor,1);
+                obj.bgCh2Aligned = alignWaveform_CFDNew(bgCh2Temp, 2.8, obj.dt/obj.upSampleFactor,0.5);
+                obj.bgCh3Aligned = alignWaveform_CFDNew(bgCh3Temp, 2.8, obj.dt/obj.upSampleFactor,0.5);
                 %--------------------------------------plot alignment result-------------------------------------------
 %                 figure;
 %                 tiledlayout(1,2)
