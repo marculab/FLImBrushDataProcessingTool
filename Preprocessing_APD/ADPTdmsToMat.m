@@ -5,10 +5,23 @@ close all
 clc
 %% select tdms file
 [file,path] = uigetfile('.tdms','MultiSelect','on');
-numOfFiles = length(file);
+
+if iscell(file)
+    numOfFiles = length(file);
+else
+    numOfFiles = 1;
+end
+
+upSampleFactor = 4;
 
 for n = 1: numOfFiles
-    [output,~] = TDMS_getStruct(fullfile(path, file{n}));
+    if numOfFiles==1
+        [output,~] = TDMS_getStruct(fullfile(path, file));
+        [~,saveName,~] = fileparts(file);
+    else
+        [output,~] = TDMS_getStruct(fullfile(path, file{n}));
+        [~,saveName,~] = fileparts(file{n});
+    end
     serialNumber = output.Props.Serial_number;
     dateModified = output.Props.DateTime;
     user = output.Props.Author;
@@ -27,30 +40,34 @@ for n = 1: numOfFiles
     lengthOfIRF = output.iRFRaw.Props.WFLength;
     numOfiRFPerV = output.iRFRaw.Props.NumOfWFsPerV;
     iRF = zeros(lengthOfIRF,numOfIrf);
-    iRFUpSampled = zeros(lengthOfIRF*2,numOfIrf);
+    iRFUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfIrf);
     iRFV = zeros(numOfIrf,1);
     
     find_c = strfind(iRFName, 'c');
     iRFName(cellfun('isempty', find_c)) = [];
     iRFNameNumOnly = erase(iRFName,'_');
     iRFRawtemp = zeros(lengthOfIRF,numOfiRFPerV);
-    iRFRawtempUpSampled = zeros(lengthOfIRF*2,numOfiRFPerV);
-    irfdt = 0.5*irfRawdt;
+    iRFRawtempUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfiRFPerV);
+    irfdt = irfRawdt/upSampleFactor;
     for i = 1:numOfIrf
         iRFV(i) = sscanf(iRFNameNumOnly{i},'c%d')*0.01;
         iRFTemp = getfield(output.iRFRaw,iRFName{i});
         iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,numOfiRFPerV);
         for m = 1:numOfiRFPerV % upsample rawa data
-            iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),2);
+            iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),upSampleFactor);
         end
         %                 figure; plot(iRFRawtemp);title('Before alignment');xlim([200 230])
-        iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 3, irfRawdt,0.5);
+        iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 2.8, irfRawdt,0.5);
         iRF(:,i) = mean(iRFRawtemp,2);
-        
-        iRFRawtempUpSampled = alignWaveform_CFDNew(iRFRawtempUpSampled, 3, irfdt, 0.5); % CFD alignment
-        %                 figure;plot(iRFRawtempUpSampled);xlim([430 450])
+                
+        iRFRawtempUpSampledAligned = alignWaveform_CFDNew(iRFRawtempUpSampled, 2.8, irfdt, 0.5); % CFD alignment
+        %         xlim([400 460])
+                if i==225
+                   figure;tiledlayout(1,2);nexttile;plot(iRFRawtempUpSampled);xlim([400 460]);
+                   nexttile;plot(iRFRawtempUpSampledAligned);xlim([400 460]);
+                end
         %                 outlierIdx = isoutlier(max(iRFRawtemp));
-        iRFUpSampled(:,i) = mean(iRFRawtempUpSampled,2);
+        iRFUpSampled(:,i) = mean(iRFRawtempUpSampledAligned,2);
     end
     
     [iRFV,I] = sort(iRFV,'ascend');
@@ -64,15 +81,17 @@ for n = 1: numOfFiles
     DCUp = mean(iRFUpSampled(1:200,:)); % compute DC
     iRFUpSampled = iRFUpSampled-DCUp; % remove DC
     irfUpSampled = iRFUpSampled;
-    [~,saveName,~] = fileparts(file{n});
     saveName = [saveName '.mat'];
     save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
 end
-%%
-idx = 100;
+%% plot result
 figure
-plot(irf(:,idx));
+idx = 100;
+x = 0:size(irf,1)-1;
+plot(x,irf(:,idx));
 hold on
-plot(irfUpSampled(:,idx));
+xx = 0:1/upSampleFactor:size(irf,1)-1/upSampleFactor;
+plot(xx,irfUpSampled(:,idx));
 hold off
+xlim([100 600])
 
