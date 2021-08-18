@@ -11,7 +11,7 @@ parfor ii = 1:size(spec,2)
         [~,b] = max(Y);
         ynew = Y(b:end);
         %     if ~any(isnan(ynew(:)))
-        if length(ynew)>3
+        if length(ynew)>0.5*length(Y) % tail should be at least half the WF length
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
             ft2 = fittype('triexp_model_init(x,a1,a2,a3,t1,t2,t3)','options',op);
