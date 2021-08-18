@@ -62,10 +62,10 @@ for n = 1: numOfFiles
                 
         iRFRawtempUpSampledAligned = alignWaveform_CFDNew(iRFRawtempUpSampled, 2.8, irfdt, 0.5); % CFD alignment
         %         xlim([400 460])
-                if i==225
-                   figure;tiledlayout(1,2);nexttile;plot(iRFRawtempUpSampled);xlim([400 460]);
-                   nexttile;plot(iRFRawtempUpSampledAligned);xlim([400 460]);
-                end
+%                 if i==225
+%                    figure;tiledlayout(1,2);nexttile;plot(iRFRawtempUpSampled);
+%                    nexttile;plot(iRFRawtempUpSampledAligned);
+%                 end
         %                 outlierIdx = isoutlier(max(iRFRawtemp));
         iRFUpSampled(:,i) = mean(iRFRawtempUpSampledAligned,2);
     end
