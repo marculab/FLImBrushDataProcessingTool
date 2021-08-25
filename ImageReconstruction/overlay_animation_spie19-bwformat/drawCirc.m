@@ -1,4 +1,4 @@
-function [ img, val_field, accum ] = drawCirc( c, r, N, img, val, val_field, vls, accum )
+function [ img, val_field, accum ] = drawCirc( c, r, img, val, val_field, vls, accum )
 %DRAWCIRC Summary of this function goes here
 %   Detailed explanation goes here
 N=100;
