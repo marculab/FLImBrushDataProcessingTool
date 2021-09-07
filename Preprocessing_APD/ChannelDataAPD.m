@@ -42,7 +42,8 @@ classdef ChannelDataAPD < handle
         outlierFlag % 1D column vector
         preProcessedData % final preprocessed data
         rawData % raw data
-        rawDataUpsampled % upsampled raw data
+        rawDataDCRemoved % raw data DC removed
+        rawDataUpsampled % upsampled raw data after DC removal
         rawCtrlV % raw control voltage, same as number of waveforms
         rawGain % raw gain, same size as number of waveforms
         SNR % data SNR
@@ -75,16 +76,40 @@ classdef ChannelDataAPD < handle
             obj.numOfWFs = size(rawDataIn,2);
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
-            obj.upSampleFactor = 2;
+            obj.upSampleFactor = 4;
             % calculate SNR
         end
-        
+        function removeDCData(obj)
+            numOfWF = size(obj.preProcessedData,2);
+            DC = zeros(1,numOfWF);
+            WFWindow = 500; % WF window to average DC
+            gainWindow = 5; % gain window to average DC
+            for i = 1:numOfWF %loop thorugh all data and find DC
+                G = obj.rawGain(i);
+                timeIdx1 = i-WFWindow;
+                if timeIdx1<1
+                    timeIdx1 = 1;
+                end
+                timeIdx2 = i+WFWindow;
+                if timeIdx2 > numOfWF
+                    timeIdx2 = numOfWF;
+                end
+                timeIdx =  timeIdx1:timeIdx2; % idx of data point inside time window
+                GTemp = obj.rawGain(timeIdx); % gain of data inside time window
+                timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
+                DCAllWF = obj.rawData(450:500,timeIdx); % get all data used for DC removal
+                DC(i) = mean(DCAllWF(:)); % average all DC data
+            end
+            obj.rawDataDCRemoved = obj.rawData-DC; % store data 
+            obj.preProcessedData = obj.rawData-DC; % store data
+            
+        end
         function upSampleData(obj)
             obj.dtUp = obj.dtRaw/obj.upSampleFactor; % compute new time resolution
             %-------------------------upsample waveforms-------------------
             WFUpsampled = zeros(obj.wfLenght*obj.upSampleFactor,obj.numOfWFs);
             for i = 1:obj.numOfWFs
-                WFUpsampled(:,i) = interp(obj.rawData(:,i),obj.upSampleFactor);
+                WFUpsampled(:,i) = interp(obj.rawDataDCRemoved(:,i),obj.upSampleFactor);
             end
             obj.rawDataUpsampled = WFUpsampled;
             obj.preProcessedData = WFUpsampled;
@@ -92,10 +117,10 @@ classdef ChannelDataAPD < handle
             %--------------------------------------------------------------
         end
         
-        function alignWF_CFD(obj, f) % constant factor alginment of waveforms, each channel has a different factor 
+        function alignWF_CFD(obj, f) % constant factor alginment of waveforms, each channel has a different factor
             % f is factor
-           obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f);
-           obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
+            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f);
+            obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
         end
         
         function [totalNumOfWf, goodNumOfWf, badNumOfWf]=removeSaturation(obj, low, high)
@@ -122,7 +147,7 @@ classdef ChannelDataAPD < handle
             %             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData,3,obj.dtRaw);
             [obj.preProcessedData, obj.outlierFlag] = averageWF(obj.preProcessedData, avgIn); % NaN will presist, will not be removed
             obj.averagedData = obj.preProcessedData;
-            % record deconIdx 
+            % record deconIdx
             nanCol = isnan(sum(obj.preProcessedData));
             obj.nonDeconIdx = find(nanCol);
             obj.deconIdx = find(~nanCol);
@@ -154,14 +179,14 @@ classdef ChannelDataAPD < handle
             obj.bgLow = bgLowIn;
             obj.bgHigh = bgHighIn;
             
-            DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
-            obj.preProcessedData = obj.preProcessedData-DC;
+%             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
+%             obj.preProcessedData = obj.preProcessedData-DC;
             
-            bgDC = mean(obj.bg(dcLowIn:dcHighIn));
+            bgDC = mean(obj.bg(dcLowIn:dcHighIn)); % compute BG DC using all BG data, BG is 1D vector
             obj.bgDcRemoved = obj.bg - bgDC;
             
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
-            dataBGAUC(dataBGAUC<0.05) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
+            dataBGAUC(dataBGAUC<2) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bgDcRemoved(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
@@ -193,18 +218,30 @@ classdef ChannelDataAPD < handle
             dataMaxI = mode(dataMaxI);
             [~,irfMaxI] = max(obj.APDObj.irfDecon);
             for i = 1:length(irfMaxI)
-            obj.APDObj.irfDecon(:,i) = circshift(obj.APDObj.irfDecon(:,i),dataMaxI-irfMaxI(i)); % pre shift irf so the max align with data
+                obj.APDObj.irfDecon(:,i) = circshift(obj.APDObj.irfDecon(:,i),dataMaxI-irfMaxI(i)); % pre shift irf so the max align with data
             end
-            dataLength = timeWindowIn/obj.dtUp;
+            dataLength = round(timeWindowIn/obj.dtUp);
             obj.truncationLength = dataLength;
             
             start_idx = dataMaxI-round(0.2*dataLength);
             if start_idx<1
                 start_idx=1;
             end
-            obj.dataT = obj.preProcessedData(start_idx:start_idx+dataLength-1,:);
-            iRFLength = dataLength;
-            obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:start_idx+iRFLength-1,:);
+            endIdx = start_idx+dataLength-1;
+            if endIdx < size(obj.preProcessedData,1) % if enough data points
+                obj.dataT = obj.preProcessedData(start_idx:endIdx,:);
+            else % if not enough data points, add zero to the end
+                availableWFL = length(obj.preProcessedData(start_idx:end,1));
+                temp = zeros(dataLength,size(obj.preProcessedData,2));
+                temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
+                obj.dataT = temp;
+            end
+            iRFLength = dataLength; % use short irf
+            if start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
+                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:start_idx+iRFLength-1,:);
+            else
+                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:end,:); % if not use all data points
+            end
             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by AUC
             %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm);  % normalize by peak value
             %try CFD alignment
