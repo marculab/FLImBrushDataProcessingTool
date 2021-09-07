@@ -66,7 +66,7 @@ classdef LaguerreModel < handle
             % within the parallel for loop if using "obj.channeldata.data".
             switch nargin
                 case 1
-                    shift_range= -10:10; %default shift range order
+                    shift_range= -50:50; %default shift range order
 %                     shift_range= 0; %default shift range order
                 case 2
                     shift_range = varargin{1};
@@ -116,7 +116,7 @@ classdef LaguerreModel < handle
             [~,res_norm_min_idx] = min(res_norm);
             best_fit_idx = res_norm_min_idx+size(res_norm,1)*(1:size(res_norm_min_idx,2))-size(res_norm,1);
             end
-            shiftTemp = shift_v(best_fit_idx);
+            shiftTemp = shift_v(best_fit_idx); % fixed shift
             shiftMode = mode(shiftTemp);
             best_fit_idx = find(shift_v==shiftMode);
             obj.shift = shift_v(best_fit_idx);
