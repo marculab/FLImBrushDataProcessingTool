@@ -1,12 +1,12 @@
 % code to run simulated deconvolution to determine the best alpha value
 
 %%
-clear all
+clear variables
 close all
 clc
 
 %% get random lifetime
-N = 4000;
+N = 10000;
 % trueLT = rand(N,1);
 lowLT = 0.3;
 highLT = 20;
@@ -52,9 +52,9 @@ title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
-ref = spec*0.006;
+ref = spec*0.000;
 ref = circshift(ref, 32/dt);
-SNR = 55; %in dB, SNR = 20log10(Max/noise)
+SNR = 50; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
@@ -66,7 +66,7 @@ DC = DC';
 MaxIdx = mode(MaxIdx);
 DC(DC<MaxIdx)=0;
 DC(DC>=MaxIdx)=1;
-DC = DC*0.0001;
+DC = DC*0.0000;
 spec = spec+noise+DC+ref;
 figure
 plot(irfT)
@@ -81,10 +81,10 @@ alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = alphaUpperLim; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.93; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
-LagOrder = 12;
+LagOrder = 20;
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);
@@ -153,8 +153,8 @@ yline(0,'--r','LineWidth',1.5)
 % hold on
 % plot([0 10],[0 10],'r-')
 grid on
-xlim([0 20])
-ylim([-2 2])
+xlim([0 17])
+ylim([-1 1])
 xlabel('Ture lifetime (ns)')
 ylabel('Lifetime difference (ns)')
 title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end),SNR))
