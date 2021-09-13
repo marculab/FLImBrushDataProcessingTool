@@ -8,10 +8,13 @@ classdef apdClass < handle
         gainV % control voltage for gian, 1D vector
         apdGain % APD gain, 1D vector, must be the same size as gianV
         irfV % control voltage for irf, 1D vector of size M
-        irf % irf matrix, 2D matrix of N by M
+        irf % irf matrix, 2D matrix of N by M, not for use
+        irfUpSampled % upsampled irf matrix, 2D matrix of N*factor by M, not for use 
         irfTNorm % truncated and AUC normalized irf
         irfRawdt % time resolution of irf measurement
-        irfdt % % time resolution of irf after interpolation
+        irfUpSampleddt % time resolution of irf after interpolation
+        irfdt % time resolution of irf 
+        irfDecon % irf used for deconvolution, use this irf
     end
     
     methods
@@ -36,11 +39,12 @@ classdef apdClass < handle
             apdObj.gainV = temp.gainV;
             apdObj.dateModified = temp.dateModified;
             apdObj.irf = temp.irf;
+            apdObj.irfUpSampled = temp.irfUpSampled;
             apdObj.irfV = temp.irfV;
             apdObj.serialNumber = temp.serialNumber;
             apdObj.user = temp.user;
             apdObj.irfRawdt = temp.irfRawdt;
-            apdObj.irfdt = temp.irfdt;
+            apdObj.irfUpSampleddt = temp.irfdt;
         end
         
         function loadTDMS(apdObj)

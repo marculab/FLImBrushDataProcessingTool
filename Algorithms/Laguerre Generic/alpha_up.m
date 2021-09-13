@@ -10,7 +10,7 @@ if ~exist('init','var')||isempty(init)
 end
 
 if ~exist('eps','var')||isempty(eps)
-    eps=1.0001;
+    eps=1.01; % updated by Xiangnan 20210907
 end
 
 L=@(alpha)Laguerre(M,K,alpha);

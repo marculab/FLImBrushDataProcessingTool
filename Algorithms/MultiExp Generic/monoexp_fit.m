@@ -10,7 +10,7 @@ parfor ii = 1:size(spec,2)
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
         ynew = Y(b:end);
-        if length(ynew)>3
+        if length(ynew)>0.5*length(Y)
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
 %             fitWeights = ynew>0.2; %set weights of the fitting to 0 for tails
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);

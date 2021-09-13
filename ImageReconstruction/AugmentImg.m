@@ -10,7 +10,6 @@ jet_cmap =  jet;
 ssx = size(im, 2);
 ssy = size(im, 1);
 % preallocation
-
 overlay  = uint8(zeros(ssy,ssx,3));
 val_field = double(zeros(ssy,ssx,1));
 accum = double(zeros(ssy,ssx,1));
@@ -18,7 +17,7 @@ accum = double(zeros(ssy,ssx,1));
 %df1 = im;
 
 f = waitbar(0,'Starting'); % creat waitbar
-numOfFrames = length(posData.frames);
+numOfFrames = length(posData.px);
 BarStep = round(0.01*numOfFrames);
 for i = 1:numOfFrames
     % get current video frame
@@ -42,7 +41,7 @@ for i = 1:numOfFrames
         current_value = scaleHigh;
     end
     ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1;
-    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, radius, overlay, jet_cmap(ind1,:)*254+1, val_field, ind1, accum);
+    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, jet_cmap(ind1,:)*254+1, val_field, ind1, accum);
     
     if mod(i,BarStep)
         waitbar(i/numOfFrames,f,sprintf('Processing %d %%', round(i/numOfFrames*100)));
