@@ -240,7 +240,7 @@ classdef ChannelDataAPD < handle
                 temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
                 obj.dataT = temp;
             end
-            iRFLength = 1000; % use short irf
+            iRFLength = 1000; % use short irf 1000 points
             if start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:start_idx+iRFLength-1,:);
             else
