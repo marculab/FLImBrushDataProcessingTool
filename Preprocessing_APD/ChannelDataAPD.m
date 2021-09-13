@@ -65,6 +65,10 @@ classdef ChannelDataAPD < handle
             %             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
             %             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
             %             figure;plot(rawDataIn(:,1:4));
+            % flat blip
+%             for i = 1:size(rawDataIn,2)
+%             rawDataIn(305:350,i) = ones(350-305+1,1)*mean(rawDataIn(325:350,i));
+%             end
             obj.rawData = rawDataIn;
             obj.preProcessedData = rawDataIn;
             obj.rawCtrlV = CtrlVIn;
@@ -155,7 +159,7 @@ classdef ChannelDataAPD < handle
             obj.gainDecon = obj.gain(obj.deconIdx);
             %             sum(isnan(sum(obj.preProcessedData)))
             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
-            obj.noise = std(obj.averagedData(1:50,:),1);
+            obj.noise = std(obj.averagedData(end-50:end,:),1);
             WFMax = max(obj.averagedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
             obj.numOfAvgWFs = obj.numOfWFs/avgIn;
@@ -236,7 +240,7 @@ classdef ChannelDataAPD < handle
                 temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
                 obj.dataT = temp;
             end
-            iRFLength = dataLength; % use short irf
+            iRFLength = 1000; % use short irf
             if start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:start_idx+iRFLength-1,:);
             else
