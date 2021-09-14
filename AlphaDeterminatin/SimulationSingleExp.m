@@ -9,7 +9,7 @@ clc
 N = 10000;
 % trueLT = rand(N,1);
 lowLT = 0.3;
-highLT = 20;
+highLT = 16;
 trueLT = lowLT+rand(N,1)*(highLT-lowLT);
 binEdge = linspace(lowLT,highLT,40);
 figure
@@ -34,10 +34,11 @@ plot(decay(:,1:50:end))
 %% load and truncate irf
 irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
 UpFactor = irfStruc.irfRawdt/dt;
-irf = interp(irfStruc.irf(:,120),UpFactor);
+irf = interp(irfStruc.irf(:,200),UpFactor);
+% irf = circshift(irf,266-155);
 [~,irfMaxIdx] = max(irf);
 tLength = tWindow/dt;
-startIdx = round(irfMaxIdx-0.1*tLength);
+startIdx = round(irfMaxIdx-0.2*tLength);
 if startIdx <=0
     startIdx = 1;
 end
@@ -46,15 +47,20 @@ irfT = irf(startIdx:startIdx+tLength-1);
 catch
     irfT = irf(startIdx:end);
 end
+[~,MaxIdx] = max(irfT);
+irfT = circshift(irfT,266-MaxIdx);
 figure
 plot(irfT)
 title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
-ref = spec*0.000;
+ref = spec*0.007;
 ref = circshift(ref, 32/dt);
-SNR = 50; %in dB, SNR = 20log10(Max/noise)
+
+ref(641:end,:) = zeros(size(ref(641:end,:)));
+ref(1:539,:) = zeros(size(ref(1:539,:)));
+SNR = 55; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
@@ -76,15 +82,15 @@ hold off
 title('Simulation data and irf')
 
 %% deconvolution
-alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
+LagOrder = 12;
+alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 % alphaUpperLim=0.916;
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.93; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.8958; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
-LagOrder = 20;
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);
@@ -95,6 +101,17 @@ for i=1:numOfAlpha
 end
 fprintf('Finished\n')
 delete(f)
+%% plot fitting
+plotIdx = 500;
+fit = get(Laguerre_Struct,'fit');
+figure
+plot(spec(:,plotIdx),'.')
+hold on
+plot(fit(:,plotIdx),'r','LineWidth',1.2)
+plot(irfT,'g')
+hold off
+title(sprintf('Lifetime = %.4f',Laguerre_Struct.LTs(plotIdx)))
+legend('Simulated data','Fit','Irf')
 %% repopulate array for plotting
 XX = repmat(alphaVector,[N,1]); % alpha
 YY = repmat(trueLT,[1,numOfAlpha]); %$ true lifetime

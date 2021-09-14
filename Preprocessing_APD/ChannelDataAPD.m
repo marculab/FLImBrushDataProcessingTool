@@ -159,7 +159,7 @@ classdef ChannelDataAPD < handle
             obj.gainDecon = obj.gain(obj.deconIdx);
             %             sum(isnan(sum(obj.preProcessedData)))
             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
-            obj.noise = std(obj.averagedData(end-50:end,:),1);
+            obj.noise = std(obj.averagedData(end-200:end,:),1); % use last 200 points since data is upsampled
             WFMax = max(obj.averagedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
             obj.numOfAvgWFs = obj.numOfWFs/avgIn;
@@ -220,13 +220,10 @@ classdef ChannelDataAPD < handle
             end
             [~,dataMaxI] = max(obj.preProcessedData);
             dataMaxI = mode(dataMaxI);
-            [~,irfMaxI] = max(obj.APDObj.irfDecon);
-            for i = 1:length(irfMaxI)
-                obj.APDObj.irfDecon(:,i) = circshift(obj.APDObj.irfDecon(:,i),dataMaxI-irfMaxI(i)); % pre shift irf so the max align with data
-            end
+            
             dataLength = round(timeWindowIn/obj.dtUp);
             obj.truncationLength = dataLength;
-            
+            %--------------------------------------------truncate data--------------------------------------------------------------------
             start_idx = dataMaxI-round(0.2*dataLength);
             if start_idx<1
                 start_idx=1;
@@ -240,11 +237,23 @@ classdef ChannelDataAPD < handle
                 temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
                 obj.dataT = temp;
             end
-            iRFLength = 1000; % use short irf 1000 points
-            if start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
-                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:start_idx+iRFLength-1,:);
+ 
+            %---------------------------------------------------------------------------------------------------------------------------------------
+            iRFLength = dataLength; % use short irf 1000 points
+            [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
+            irf_start_idx = irfMaxI-round(0.2*iRFLength);
+            if irf_start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
+                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:irf_start_idx+iRFLength-1,:);
             else
-                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(start_idx:end,:); % if not use all data points
+                obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:end,:); % if not use all data points
+            end
+            %------------------------------------set tail of irf to be zero--------------------------------------------------------
+            irfRealLength = 1000; % real irf length
+            obj.APDObj.irfTNorm(irfRealLength:end,:) = zeros(size(obj.APDObj.irfTNorm(irfRealLength:end,:)));
+            %----------------------------------- pre shift irf so the max align with data----------------------------------------------------------
+            [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
+            for i = 1:length(irfTMaxIdx)
+                obj.APDObj.irfDecon(:,i) = circshift(obj.APDObj.irfDecon(:,i),dataMaxI-irfTMaxIdx(i)); 
             end
             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by AUC
             %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm);  % normalize by peak value
