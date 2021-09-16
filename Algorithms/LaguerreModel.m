@@ -88,7 +88,7 @@ classdef LaguerreModel < handle
             end
             
             vv=filter(obj.channeldata.iIRF,1,LaguerreBasisS);
-            vv(540:640,:) = zeros(size(vv(540:640,:)));
+%             vv(540:640,:) = zeros(size(vv(540:640,:))); % ignore data in range 540-640
             D_mat=conv2(eye(size(spec,1)),[1,-3,3,-1],'valid')'*LaguerreBasisS;
 %             D_mat(581:585,:) = zeros(size(D_mat(581:585,:)));
             % third order forward finite difference derivative  matrix
