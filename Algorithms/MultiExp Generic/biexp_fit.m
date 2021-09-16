@@ -8,7 +8,7 @@ parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii);% ./max(spec(:,ii));
         lower = [0 0.01 0.01];
-        upper = [1 20 20];
+        upper = [1 25 25];
         %lower = [0 0 eps eps];
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
