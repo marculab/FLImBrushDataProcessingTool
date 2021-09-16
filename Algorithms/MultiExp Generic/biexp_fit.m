@@ -1,25 +1,20 @@
 function [A1,A2,T1,T2,avglife,intensity,fitt,raw,h]=biexp_fit(spec,dt,laser)
 A1 =[];A2=[];T1=[];T2=[];h =[];fitt=[];raw=[];
-Raw_INT=[];
 %figure
 % hh=figure;
 % MaxData = ones(1,size(spec,2));
 
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
-        %normalize spec
-%         Raw_INT = [Raw_INT,sum(spec(:,ii))];
-        Y = spec(:,ii)./max(spec(:,ii));
-%         max(spec(:,ii))
-%         MaxData(ii) = max(spec(:,ii));
+        Y = spec(:,ii);% ./max(spec(:,ii));
         lower = [0 0.01 0.01];
-        upper = [1 Inf Inf];
+        upper = [1 20 20];
         %lower = [0 0 eps eps];
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
         ynew = Y(b:end);
 %         Y=ynew;
-        if length(ynew)>0.5*length(Y)
+        if length(ynew)>3
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
             ft2 = fittype('biexp_model_init(x,a1,t1,t2)','options',op);
@@ -37,9 +32,8 @@ parfor ii = 1:size(spec,2)
             start = [ff.a1 ff.t1 ff.t2];
 %             start = [0.5 1 1];
         else
-            start = [0.5 1 1];
+            start = [0.5 2 2]; % starting points
         end
-        %start = [ff.a1 ff.a2 ff.t1 ff.t2];
         x = linspace(0,length(Y)-1,length(Y))*dt; % time in ns
         op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper,'StartPoint',start);
         ft = fittype('biexp_model(x,a1,t1,t2,L)','problem','L','options',op);
@@ -51,11 +45,11 @@ parfor ii = 1:size(spec,2)
         decay = f.a1.*exp(-x./f.t1)+(1-f.a1).*exp(-x./f.t2);
         %decay = f.a1.*exp(-x./f.t1)+(f.a2).*exp(-x./f.t2);
         % correct for intensity
-        factor = sum((spec(:,ii)))/sum(decay);
-        decay = decay*factor;
+%         factor = sum((spec(:,ii)))/sum(decay);
+%         decay = decay*factor;
         y = filter(laser,1,decay);
-        y = y./max(y);
-        fff = y(1:length(x));
+%         y = y./max(y);
+        fff = y;
         yyy = Y;
 %         plot(x,fff);
 %         legend('off');
@@ -83,7 +77,7 @@ parfor ii = 1:size(spec,2)
     
 end
 % close(hh)
-
+% reorder according to lifetime values
 Ts = [T1;T2];As=[A1;A2];
 [TF, I] = sort(Ts,1);
 AF = zeros(size(As));

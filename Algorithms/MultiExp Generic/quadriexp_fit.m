@@ -3,9 +3,9 @@ A1 =[];A2=[];A3=[];A4=[];T1=[];T2=[];T3=[];T4=[];h =[];fitt=[];raw=[];
 %figure
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
-        Y = spec(:,ii)./max(spec(:,ii));
+        Y = spec(:,ii);
         lower = [0 0 0 0 0.01 0.01 0.01 0.01];
-        upper = [1 1 1 1 40 40 40 40];
+        upper = [1 1 1 1 20 20 20 20];
         %lower = [0 0 eps eps];
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
@@ -35,11 +35,8 @@ parfor ii = 1:size(spec,2)
         ft = fittype('quadriexp_model(x,a1,a2,a3,a4,t1,t2,t3,t4,L)','problem','L','options',op);
         [f,gof,gg] = fit(x',Y,ft,'problem',laser);
         decay = f.a1.*exp(-x./f.t1)+f.a2.*exp(-x./f.t2)+f.a3.*exp(-x./f.t3)+f.a4.*exp(-x./f.t4);
-        factor = sum((spec(:,ii)))/sum(decay);
-        decay = decay*factor;
         y = filter(laser,1,decay);
-        y = y./max(y);
-        fff = y(1:length(x));
+        fff = y;
         yyy = Y;
         %     plot(x, y(1:length(x)), 'LineWidth', 2)
         %     hold on
