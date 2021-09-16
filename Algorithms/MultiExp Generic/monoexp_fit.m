@@ -3,14 +3,14 @@ A =[];T=[];h =[];fitt=[];raw=[];
 %figure
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
-        Y = spec(:,ii)./max(spec(:,ii));
+        Y = spec(:,ii);
         lower = [0 0.01];
-        upper = [Inf Inf];
+        upper = [1 20];
         %lower = [0 0 eps eps];
         %upper = [1 1 Inf Inf];
         [~,b] = max(Y);
         ynew = Y(b:end);
-        if length(ynew)>0.5*length(Y)
+        if length(ynew)>3
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
 %             fitWeights = ynew>0.2; %set weights of the fitting to 0 for tails
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
@@ -29,14 +29,14 @@ parfor ii = 1:size(spec,2)
             %     hold off
             start = [ff.a ff.t];
         else
-            start = [1 3];
+            start = [0.5 1];
         end
         %start = [ff.a1 ff.a2 ff.t1 ff.t2];
         x = linspace(0,length(Y)-1,length(Y))*dt; % time in ns
         op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper,'StartPoint',start);
-%         fitWeights2 = zeros(size(Y));
-%         fitWeights2(1:90) = 1;
-%         op.Weights = fitWeights2;
+        fitWeights2 = zeros(size(Y));
+        fitWeights2(1:90) = 1;
+        op.Weights = fitWeights2;
         ft = fittype('monoexp_model(x,a,t,L)','problem','L','options',op);
         %ft = fittype('biexp_model3(x,a1,a2,t1,t2,L)','problem','L','options',op);
         
@@ -47,12 +47,7 @@ parfor ii = 1:size(spec,2)
 %         factor = sum((spec(:,ii)))/sum(decay);
 %         decay = decay*factor;
         y = filter(laser,1,decay);% fitting
-               
-        decay = decay/max(y)*max(spec(:,ii));
-        
-        
-        y = y./max(y); 
-        fff = y(1:length(x));
+        fff = y;
         yyy = Y;
         %plot normalized fitting result
 %         plot(x, yy, 'LineWidth', 2)
@@ -82,9 +77,8 @@ end
 %     end
 %  T1 = TF(1,:);T2=TF(2,:);A1=AF(1,:);A2=AF(2,:);
 % average lifetime from decay
-% [avglife,intensity]=h_lifet(h,dt,'average');
-intensity = sum(h);
-avglife = T;
+[avglife,intensity]=h_lifet(h,dt,'average');
+
 % re-enable the warning
 warning('on','curvefit:fit:noStartPoint')
 end
