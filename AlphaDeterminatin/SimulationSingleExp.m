@@ -55,24 +55,26 @@ title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
-ref = spec*0.007;
+ref = spec*0.000;
 ref = circshift(ref, 32/dt);
 
 ref(641:end,:) = zeros(size(ref(641:end,:)));
 ref(1:539,:) = zeros(size(ref(1:539,:)));
-SNR = 55; %in dB, SNR = 20log10(Max/noise)
+SNR = 49; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
     noise = randn(size(spec))*1/db2mag(SNR);
 end
+std(noise(:))
 DC = 1:size(spec,1);
 DC = DC';
 [~,MaxIdx] = max(spec);
 MaxIdx = mode(MaxIdx);
-DC(DC<MaxIdx)=0;
-DC(DC>=MaxIdx)=1;
-DC = DC*0.0000;
+% DC(DC<MaxIdx-20)=0;
+DC(DC>=1)=1;
+DC_value = 0.0002;
+DC = DC*DC_value;
 spec = spec+noise+DC+ref;
 figure
 plot(irfT)
@@ -88,7 +90,7 @@ alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.8958; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.9619; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
@@ -161,7 +163,7 @@ xlim([0 20])
 ylim([0 20])
 xlabel('Ture lifetime (ns)')
 ylabel('Computed lifetime (ns)')
-title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end),SNR))
+title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d, DC = %4f',tWindow,alphaVector(end),SNR,DC_value))
 %% plot specific alpha
 
 figure('Position',[200 200 800 450]);
@@ -174,5 +176,5 @@ xlim([0 17])
 ylim([-1 1])
 xlabel('Ture lifetime (ns)')
 ylabel('Lifetime difference (ns)')
-title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end),SNR))
+title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d, DC = %4f',tWindow,alphaVector(end),SNR,DC_value))
 
