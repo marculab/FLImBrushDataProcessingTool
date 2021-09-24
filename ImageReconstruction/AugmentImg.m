@@ -4,7 +4,7 @@ fprintf('Radius = %f, Alpha = %f\n', radius, alpha);
 
 % setup video
 %set(gcf,'Visible', 'off');
-jet_cmap =  jet;
+jet_cmap =  jet(256);
 %ssx = vr.Width;
 %ssy = vr.Height;
 ssx = size(im, 2);
@@ -40,8 +40,8 @@ for i = 1:numOfFrames
     if current_value>scaleHigh
         current_value = scaleHigh;
     end
-    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1;
-    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, jet_cmap(ind1,:)*254+1, val_field, ind1, accum);
+    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*256)-1;
+    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, ind1, val_field, accum, jet_cmap);
     
     if mod(i,BarStep)
         waitbar(i/numOfFrames,f,sprintf('Processing %d %%', round(i/numOfFrames*100)));

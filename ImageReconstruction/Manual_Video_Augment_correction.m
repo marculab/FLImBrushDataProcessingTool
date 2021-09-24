@@ -1,11 +1,12 @@
-clear all;
-close all;
-home;
+clear 
+close all
+clc
+
 % addpath(genpath(pwd))
 %% IMPORT VIDEO FILE
-root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811\videos';
-[file,path] = uigetfile([root '\*.avi'],'Please select avi video file');
-obj=VideoReader(fullfile(path,file)); % Specify the video file to load
+root = '';
+[file,vidPath] = uigetfile([root '\*.avi'],'Please select avi video file');
+obj=VideoReader(fullfile(vidPath,file)); % Specify the video file to load
 %% read in video data
 I=read(obj); % Stores data in variable I
 display('Finished reading video file!')
@@ -19,8 +20,8 @@ frame_temp=imresize(frame_temp,[obj.Height obj.Width]); % Enter Height & Width o
 imshow(frame_temp,'Parent',gca);
 ROI = drawfreehand(gca);
 %% load in CNN based segmentation location
-[file,path] = uigetfile([root '\*.mat'],'Please select CNN segmentation file');
-load(fullfile(path,file))
+[file,vidPath] = uigetfile([root '\*.mat'],'Please select CNN segmentation file');
+load(fullfile(vidPath,file))
 pos = pos(:,7:8);
 pos = double(pos);
 display('Finished loading CNN result!')
@@ -74,7 +75,8 @@ pos_new=[X Y];
 TF = inROI(ROI,pos_new(:,1),pos_new(:,2));
 TF = ~TF;
 pos_new(TF,:) = zeros(sum(TF),2);
-save(fullfile(path,'pos_corrected'),'pos_new')
+pos_new = cat(2,zeros(size(pos_new,1),6),pos_new);
+save(fullfile(vidPath,'pos_corrected'),'pos_new')
 
 
 
