@@ -1,7 +1,7 @@
 % code to run simulated deconvolution to determine the best alpha value
 
 %%
-clear variables
+clear 
 close all
 clc
 
@@ -29,7 +29,13 @@ for i = 1:N
     decay(:,i) = exp(-t/tau);
 end
 
-plot(decay(:,1:50:end))
+% plot(decay(:,1:50:end))
+figure
+plot(t,decay(:,5))
+grid on
+xlabel('Time (ns)')
+ylabel('Amplitude')
+title(['Lifetime ' num2str(trueLT(5))])
 
 %% load and truncate irf
 irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
@@ -81,10 +87,10 @@ alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.93; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.8; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
-LagOrder = 20;
+LagOrder = 12;
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);
