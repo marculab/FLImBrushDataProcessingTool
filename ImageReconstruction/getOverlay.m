@@ -51,7 +51,7 @@ for i = 1:numOfPoints
     if current_value>scaleHigh
         current_value = scaleHigh;
     end
-    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1; % find colormap index
+    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1; % find colormap index, range 1 to 256
     [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, ind1, val_field, accum, jet_cmap); % update overlay
     % if last points for the frame save overlay to cell
     if sum(i==frameChangeIdx)

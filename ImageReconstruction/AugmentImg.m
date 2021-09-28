@@ -40,7 +40,7 @@ for i = 1:numOfFrames
     if current_value>scaleHigh
         current_value = scaleHigh;
     end
-    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1;
+    ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1; % make sure index is between 1 to 256
     [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, ind1, val_field, accum, jet_cmap);
     
     if mod(i,BarStep)
