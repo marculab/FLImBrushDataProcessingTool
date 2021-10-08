@@ -29,7 +29,7 @@ else
             outlierFlagTemp = ones(size(outlierFlagTemp));
         end
         temp(:,outlierFlagTemp==1) = [];
-        avgTemp = nanmean(temp,2);
+        avgTemp = mean(temp,2,'omitnan');
         data_out(:,i) = avgTemp;
     end
 end
