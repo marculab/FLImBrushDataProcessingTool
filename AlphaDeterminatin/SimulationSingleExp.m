@@ -5,6 +5,7 @@ clear
 close all
 clc
 
+addpath(genpath('..\'))
 %% get random lifetime
 N = 10000;
 % trueLT = rand(N,1);
@@ -20,7 +21,7 @@ ylabel('Count')
 
 %% get decays
 dt = 0.1;
-tWindow = 154; % ns same for V4 nad V5
+tWindow = 54.4; % ns same for V4 nad V5
 
 t = 0:dt:tWindow-dt;
 decay = zeros(round(tWindow/dt),N);
@@ -31,11 +32,11 @@ end
 
 % plot(decay(:,1:50:end))
 figure
-plot(t,decay(:,5))
+plot(t,decay(:,17))
 grid on
 xlabel('Time (ns)')
 ylabel('Amplitude')
-title(['Lifetime ' num2str(trueLT(5))])
+title(['Decay wiht lifetime ' num2str(trueLT(17))])
 
 %% load and truncate irf
 irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
@@ -54,13 +55,16 @@ catch
 end
 figure
 plot(irfT)
+xlim([0 500])
+xlabel('Points')
+ylabel('Voltage (V)')
 title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
 ref = spec*0.000;
 ref = circshift(ref, 32/dt);
-SNR = 50; %in dB, SNR = 20log10(Max/noise)
+SNR = 55; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
@@ -75,11 +79,11 @@ DC(DC>=MaxIdx)=1;
 DC = DC*0.0000;
 spec = spec+noise+DC+ref;
 figure
-plot(irfT)
-hold on
+% plot(spec(:,17))
+% hold on
 plot(spec(:,1:50:end))
-hold off
-title('Simulation data and irf')
+% hold off
+title('Simulation data with noise, SNR = 30')
 
 %% deconvolution
 alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
@@ -87,7 +91,7 @@ alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.8; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 LagOrder = 12;
@@ -156,6 +160,7 @@ title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end
 figure('Position',[200 200 800 450]);
 scatter(trueLT,LTArray(:,end)-trueLT,'b.')
 yline(0,'--r','LineWidth',1.5)
+xline(0.5,'--r','0.5 ns','LineWidth',1.5)
 % hold on
 % plot([0 10],[0 10],'r-')
 grid on
