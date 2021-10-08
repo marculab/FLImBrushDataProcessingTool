@@ -13,7 +13,7 @@ tau1High = 16;
 tau2 = 16;
 tau1 = tau1Low+rand(N,1)*(tau1High-tau1Low);
 
-k=99; % photon ratio
+k=9; % photon ratio
 
 %% get decays
 dt = 0.1;
@@ -49,10 +49,10 @@ plot(decay(:,1:500:end))
 %% load and truncate irf
 irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
 UpFactor = irfStruc.irfRawdt/dt;
-irf = interp(irfStruc.irf(:,120),UpFactor);
+irf = interp(irfStruc.irf(:,200),UpFactor);
 [~,irfMaxIdx] = max(irf);
 tLength = tWindow/dt;
-startIdx = round(irfMaxIdx-0.1*tLength);
+startIdx = round(irfMaxIdx-0.2*tLength);
 if startIdx <=0
     startIdx = 1;
 end
@@ -61,14 +61,18 @@ irfT = irf(startIdx:startIdx+tLength-1);
 catch
     irfT = irf(startIdx:end);
 end
+[~,MaxIdx] = max(irfT);
+irfT = circshift(irfT,266-MaxIdx);
 figure
 plot(irfT)
 title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
-ref = spec*0.000;
+ref = spec*0.1;
 ref = circshift(ref, 32/dt);
+ref(701:end,:) = zeros(size(ref(701:end,:)));
+ref(1:539,:) = zeros(size(ref(1:539,:)));
 SNR = 50; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
@@ -91,15 +95,15 @@ hold off
 title('Simulation data and irf')
 
 %% deconvolution
-alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
+LagOrder = 20;
+alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 % alphaUpperLim=0.916;
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.9475; % 0.88 for 0.6-6, 0.95
+alphaVector = alphaUpperLim; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
-LagOrder = 20;
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);

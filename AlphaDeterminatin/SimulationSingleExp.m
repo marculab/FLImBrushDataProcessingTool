@@ -10,7 +10,7 @@ addpath(genpath('..\'))
 N = 10000;
 % trueLT = rand(N,1);
 lowLT = 0.3;
-highLT = 20;
+highLT = 16;
 trueLT = lowLT+rand(N,1)*(highLT-lowLT);
 binEdge = linspace(lowLT,highLT,40);
 figure
@@ -41,10 +41,11 @@ title(['Decay wiht lifetime ' num2str(trueLT(17))])
 %% load and truncate irf
 irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
 UpFactor = irfStruc.irfRawdt/dt;
-irf = interp(irfStruc.irf(:,120),UpFactor);
+irf = interp(irfStruc.irf(:,200),UpFactor);
+% irf = circshift(irf,266-155);
 [~,irfMaxIdx] = max(irf);
 tLength = tWindow/dt;
-startIdx = round(irfMaxIdx-0.1*tLength);
+startIdx = round(irfMaxIdx-0.2*tLength);
 if startIdx <=0
     startIdx = 1;
 end
@@ -53,6 +54,8 @@ irfT = irf(startIdx:startIdx+tLength-1);
 catch
     irfT = irf(startIdx:end);
 end
+[~,MaxIdx] = max(irfT);
+irfT = circshift(irfT,266-MaxIdx);
 figure
 plot(irfT)
 xlim([0 500])
@@ -64,19 +67,24 @@ spec = filter(irfT,1,decay);
 spec = spec./max(spec);
 ref = spec*0.000;
 ref = circshift(ref, 32/dt);
-SNR = 55; %in dB, SNR = 20log10(Max/noise)
+
+ref(641:end,:) = zeros(size(ref(641:end,:)));
+ref(1:539,:) = zeros(size(ref(1:539,:)));
+SNR = 49; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
     noise = randn(size(spec))*1/db2mag(SNR);
 end
+std(noise(:))
 DC = 1:size(spec,1);
 DC = DC';
 [~,MaxIdx] = max(spec);
 MaxIdx = mode(MaxIdx);
-DC(DC<MaxIdx)=0;
-DC(DC>=MaxIdx)=1;
-DC = DC*0.0000;
+% DC(DC<MaxIdx-20)=0;
+DC(DC>=1)=1;
+DC_value = 0.0002;
+DC = DC*DC_value;
 spec = spec+noise+DC+ref;
 figure
 % plot(spec(:,17))
@@ -86,15 +94,15 @@ plot(spec(:,1:50:end))
 title('Simulation data with noise, SNR = 30')
 
 %% deconvolution
-alphaUpperLim=alpha_up(size(spec,1),12,[],[]);
+LagOrder = 12;
+alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 % alphaUpperLim=0.916;
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.9619; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
-LagOrder = 12;
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);
@@ -105,6 +113,17 @@ for i=1:numOfAlpha
 end
 fprintf('Finished\n')
 delete(f)
+%% plot fitting
+plotIdx = 500;
+fit = get(Laguerre_Struct,'fit');
+figure
+plot(spec(:,plotIdx),'.')
+hold on
+plot(fit(:,plotIdx),'r','LineWidth',1.2)
+plot(irfT,'g')
+hold off
+title(sprintf('Lifetime = %.4f',Laguerre_Struct.LTs(plotIdx)))
+legend('Simulated data','Fit','Irf')
 %% repopulate array for plotting
 XX = repmat(alphaVector,[N,1]); % alpha
 YY = repmat(trueLT,[1,numOfAlpha]); %$ true lifetime
@@ -154,7 +173,7 @@ xlim([0 20])
 ylim([0 20])
 xlabel('Ture lifetime (ns)')
 ylabel('Computed lifetime (ns)')
-title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end),SNR))
+title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d, DC = %4f',tWindow,alphaVector(end),SNR,DC_value))
 %% plot specific alpha
 
 figure('Position',[200 200 800 450]);
@@ -168,5 +187,5 @@ xlim([0 17])
 ylim([-1 1])
 xlabel('Ture lifetime (ns)')
 ylabel('Lifetime difference (ns)')
-title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d',tWindow,alphaVector(end),SNR))
+title(sprintf('Tuncation = %.2f, Alpha = %.4f, SNR = %d, DC = %4f',tWindow,alphaVector(end),SNR,DC_value))
 
