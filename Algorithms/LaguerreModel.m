@@ -66,7 +66,7 @@ classdef LaguerreModel < handle
             % within the parallel for loop if using "obj.channeldata.data".
             switch nargin
                 case 1
-                    shift_range= -50:50; %default shift range order
+                    shift_range= -20:20; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 2
                     shift_range = varargin{1};
