@@ -112,8 +112,10 @@ classdef ChannelDataAPD < handle
             obj.dtUp = obj.dtRaw/obj.upSampleFactor; % compute new time resolution
             %-------------------------upsample waveforms-------------------
             WFUpsampled = zeros(obj.wfLenght*obj.upSampleFactor,obj.numOfWFs);
-            for i = 1:obj.numOfWFs
-                WFUpsampled(:,i) = interp(obj.rawDataDCRemoved(:,i),obj.upSampleFactor);
+            temp = obj.rawDataDCRemoved;
+            upsamplefactor = obj.upSampleFactor;
+            parfor i = 1:obj.numOfWFs
+                WFUpsampled(:,i) = interp(temp(:,i),upsamplefactor);
             end
             obj.rawDataUpsampled = WFUpsampled;
             obj.preProcessedData = WFUpsampled;
