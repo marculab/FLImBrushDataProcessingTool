@@ -61,7 +61,7 @@ risingEdge = dataSum(minIdx:maxIdx,:);
 % zeroCrossingIdxMin = zeroCrossingIdxMin';
 shift = mode(zeroCrossingIdxMin)-zeroCrossingIdxMin; % calculate shift
 data_out = data_in_raw;
-for i = 1:length(shift) %loop through all columns
+parfor i = 1:length(shift) %loop through all columns
     data_out(:,i) = circshift(data_in_raw(:,i),shift(i));
 end
 %data_out = downsample(data_out,5); 
