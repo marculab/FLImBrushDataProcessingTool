@@ -401,6 +401,16 @@ classdef ChannelDataAPD < handle
                         warning('Deconvolution result not available, run deconvolution before accessing fitted curve!')
                         result = [];
                     end
+                    %-------------------------------------upsample data----------------------------------------------------------
+                case 'rawDataUpsampled'
+                    WFUpsampled = zeros(obj.wfLenght*obj.upSampleFactor,obj.numOfWFs);
+                    temp = obj.rawDataDCRemoved;
+                    upsamplefactor = obj.upSampleFactor;
+                    parfor i = 1:obj.numOfWFs
+                        WFUpsampled(:,i) = interp(temp(:,i),upsamplefactor);
+                    end
+                    result = WFUpsampled;
+                
                 otherwise
                     warning('unknown option!')
                     result = [];
