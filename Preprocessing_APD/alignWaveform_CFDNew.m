@@ -1,4 +1,4 @@
-function [data_out] = alignWaveform_CFDNew(data_in,t_rising, dt,f)
+function [data_out] = alignWaveform_CFDNew(data_in,t_rising, dt,f_in)
 % in-input matrix with waveform as columns
 % f is fraction
 % t_rising is the rising time of the signal
@@ -8,7 +8,7 @@ switch nargin
     case 3
         f = 0.5;
     case 4
-        
+        f = f_in;
     otherwise
         error('Wrong number of Inputs')
 end
