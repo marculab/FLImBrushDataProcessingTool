@@ -117,7 +117,7 @@ classdef ChannelDataAPD < handle
             parfor i = 1:obj.numOfWFs
                 WFUpsampled(:,i) = interp(temp(:,i),upsamplefactor);
             end
-            obj.rawDataUpsampled = WFUpsampled;
+%             obj.rawDataUpsampled = WFUpsampled;
             obj.preProcessedData = WFUpsampled;
             %             figure; plot(WFUpsampled)
             %--------------------------------------------------------------
@@ -126,7 +126,7 @@ classdef ChannelDataAPD < handle
         function alignWF_CFD(obj, f) % constant factor alginment of waveforms, each channel has a different factor
             % f is factor
             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f);
-            obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
+%             obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
         end
         
         function [totalNumOfWf, goodNumOfWf, badNumOfWf]=removeSaturation(obj, low, high)
