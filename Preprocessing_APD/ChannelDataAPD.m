@@ -190,7 +190,7 @@ classdef ChannelDataAPD < handle
             obj.bgDcRemoved = obj.bg - bgDC;
             
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
-            dataBGAUC(dataBGAUC<2) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
+            dataBGAUC(dataBGAUC<3) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bgDcRemoved(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
@@ -237,10 +237,13 @@ classdef ChannelDataAPD < handle
                 temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
                 obj.dataT = temp;
             end
- 
-            %---------------------------------------------------------------------------------------------------------------------------------------
+            %------------------------------------------------------find max idx of truncated data-----------------------------------------------------
+%             [~,dataMaxIT] = max(obj.dataT);
+%             dataMaxIT = mode(dataMaxIT);
+            %----------------------------------------------truncate irf---------------------------------------------------------------------
             iRFLength = dataLength; % use short irf 1000 points
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
+            irfMaxI = mode(irfMaxI);
             irf_start_idx = irfMaxI-round(0.2*iRFLength);
             if irf_start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:irf_start_idx+iRFLength-1,:);
@@ -251,10 +254,10 @@ classdef ChannelDataAPD < handle
             irfRealLength = 1000; % real irf length
             obj.APDObj.irfTNorm(irfRealLength:end,:) = zeros(size(obj.APDObj.irfTNorm(irfRealLength:end,:)));
             %----------------------------------- pre shift irf so the max align with data----------------------------------------------------------
-            [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
-            for i = 1:length(irfTMaxIdx)
-                obj.APDObj.irfDecon(:,i) = circshift(obj.APDObj.irfDecon(:,i),dataMaxI-irfTMaxIdx(i)); 
-            end
+%             [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
+%             for i = 1:length(irfTMaxIdx)
+%                 obj.APDObj.irfTNorm(:,i) = circshift(obj.APDObj.irfTNorm(:,i),-dataMaxIT+irfTMaxIdx(i)); 
+%             end
             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by AUC
             %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm);  % normalize by peak value
             %try CFD alignment
