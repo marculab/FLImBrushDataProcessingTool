@@ -100,10 +100,10 @@ classdef LaguerreModel < handle
             l1=H_chol*vv';
             lam=zeros(size(D,1),size(spec,2));
             %             options = optimset('Display','notify','TolX',10*eps);
-            exitflag = zeros(size(spec,2),1);
+%             exitflag = zeros(size(spec,2),1);
             parfor i=1:size(spec,2)
                 d=l1*spec(:,i);
-                [lam(:,i),~,~,exitflag(i),~,~]=lsqnonneg(C,d);
+                [lam(:,i)]=lsqnonneg(C,d);
             end
             obj.LCs=(vv'*vv)\(vv'*spec-D'*lam);
             %             fit_all = obj.get('fit');
