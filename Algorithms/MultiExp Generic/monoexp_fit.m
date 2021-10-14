@@ -1,20 +1,25 @@
-function [A,T,avglife,intensity,fitt,raw,h]=monoexp_fit(spec,dt,laser)
+function [A,T,avglife,intensity,fitt,raw,h]=monoexp_fit(spec,dt,laser,taus)
 A =[];T=[];h =[];fitt=[];raw=[];
 %figure
+if isempty(taus) % if taus is empty, use defaut
+    lower = [0 0.01];
+    upper = [Inf 25];
+else % if taus is not empty, fix tau
+    lower = [0 taus(1)];
+    upper = [Inf taus(1)];
+end
+
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii);
-        lower = [0 0.01];
-        upper = [1 25];
-        %lower = [0 0 eps eps];
-        %upper = [1 1 Inf Inf];
+        
         [~,b] = max(Y);
         ynew = Y(b:end);
         if length(ynew)>3
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
-%             fitWeights = ynew>0.2; %set weights of the fitting to 0 for tails
+            %             fitWeights = ynew>0.2; %set weights of the fitting to 0 for tails
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
-%             op.Weights = fitWeights;
+            %             op.Weights = fitWeights;
             ft2 = fittype('monoexp_model_init(x,a,t)','options',op);
             %ft2 = fittype('biexp_model_init2(x,a1,a2,t1,t2)','options',op);
             
@@ -44,16 +49,16 @@ parfor ii = 1:size(spec,2)
         
         decay = f.a.*exp(-x./f.t);
         %decay = f.a1.*exp(-x./f.t1)+(f.a2).*exp(-x./f.t2);
-%         factor = sum((spec(:,ii)))/sum(decay);
-%         decay = decay*factor;
+        %         factor = sum((spec(:,ii)))/sum(decay);
+        %         decay = decay*factor;
         y = filter(laser,1,decay);% fitting
         fff = y;
         yyy = Y;
         %plot normalized fitting result
-%         plot(x, yy, 'LineWidth', 2)
-%         hold on
-%         plot(x, spec(:,ii), 'r-'),legend('fit','raw'), title([num2str(ii) ' and ' num2str(f.t)]),hold off
-%         pause(.1)
+        %         plot(x, yy, 'LineWidth', 2)
+        %         hold on
+        %         plot(x, spec(:,ii), 'r-'),legend('fit','raw'), title([num2str(ii) ' and ' num2str(f.t)]),hold off
+        %         pause(.1)
         
         A = [A f.a];
         %A2 = [A2 f.a2];

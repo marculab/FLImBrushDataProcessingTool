@@ -1,13 +1,19 @@
-function [A1,A2,A3,A4,T1,T2,T3,T4,avglife,intensity,fitt,raw,h]=quadriexp_fit(spec,dt,laser)
+function [A1,A2,A3,A4,T1,T2,T3,T4,avglife,intensity,fitt,raw,h]=quadriexp_fit(spec,dt,laser,taus)
 A1 =[];A2=[];A3=[];A4=[];T1=[];T2=[];T3=[];T4=[];h =[];fitt=[];raw=[];
-%figure
+
+if isempty(taus) % if taus is empty, use defaut
+    lower = [0 0 0 0 0.01 0.01 0.01 0.01];
+    upper = [Inf Inf Inf Inf 25 25 25 25];
+else % if taus is not empty, fix tau
+    lower = [0 0 0 0 taus(1) taus(2) taus(3) taus(4)];
+    upper = [Inf Inf Inf Inf taus(1) taus(2) taus(3) taus(4)];
+end
+
+
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii);
-        lower = [0 0 0 0 0.01 0.01 0.01 0.01];
-        upper = [1 1 1 1 25 25 25 25];
-        %lower = [0 0 eps eps];
-        %upper = [1 1 Inf Inf];
+      
         [~,b] = max(Y);
         ynew = Y(b:end);
         %     if ~any(isnan(ynew(:)))

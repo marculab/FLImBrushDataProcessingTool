@@ -1,13 +1,17 @@
-function [A1,A2,A3,T1,T2,T3,avglife,intensity,fitt,raw,h]=triexp_fit(spec,dt,laser)
+function [A1,A2,A3,T1,T2,T3,avglife,intensity,fitt,raw,h]=triexp_fit(spec,dt,laser,taus)
 A1 =[];A2=[];A3=[];T1=[];T2=[];T3=[];h =[];fitt=[];raw=[];
-%figure
+if isempty(taus) % if taus is empty, use defaut
+    lower = [0 0 0 0.01 0.01 0.01 ];
+    upper = [Inf Inf Inf 25 25 25];
+else % if taus is not empty, fix tau
+    lower = [0 0 0 taus(1) taus(2) taus(3)];
+    upper = [Inf Inf Inf taus(1) taus(2) taus(3)];
+end
+
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii);
-        lower = [0 0 0 0.01 0.01 0.01 ];
-        upper = [1 1 1 25 25 25];
-        %lower = [0 0 eps eps];
-        %upper = [1 1 Inf Inf];
+        
         [~,b] = max(Y);
         ynew = Y(b:end);
         %     if ~any(isnan(ynew(:)))
@@ -36,11 +40,11 @@ parfor ii = 1:size(spec,2)
         %ft = fittype('biexp_model3(x,a1,a2,t1,t2,L)','problem','L','options',op);
         [f,gof,gg] = fit(x',Y,ft,'problem',laser);
         decay = f.a1.*exp(-x./f.t1)+f.a2.*exp(-x./f.t2)+f.a3.*exp(-x./f.t3);
-%         factor = sum((spec(:,ii)))/sum(decay);
-%         decay = decay*factor;
+        %         factor = sum((spec(:,ii)))/sum(decay);
+        %         decay = decay*factor;
         %decay = f.a1.*exp(-x./f.t1)+(f.a2).*exp(-x./f.t2);
         y = filter(laser,1,decay);
-%         y = y./max(y);
+        %         y = y./max(y);
         fff = y;
         yyy = Y;
         %     plot(x, y(1:length(x)), 'LineWidth', 2)

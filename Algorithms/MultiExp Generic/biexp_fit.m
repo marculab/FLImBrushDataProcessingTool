@@ -1,23 +1,25 @@
-function [A1,A2,T1,T2,avglife,intensity,fitt,raw,h]=biexp_fit(spec,dt,laser)
+function [A1,A2,T1,T2,avglife,intensity,fitt,raw,h]=biexp_fit(spec,dt,laser,taus)
 A1 =[];A2=[];T1=[];T2=[];h =[];fitt=[];raw=[];
-%figure
-% hh=figure;
-% MaxData = ones(1,size(spec,2));
+
+if isempty(taus) % if taus is empty, use defaut
+    lower = [0 0 0.01 0.01];
+    upper = [Inf Inf 25 25];
+else % if taus is not empty, fix tau
+    lower = [0 0 taus(1) taus(2)];
+    upper = [Inf Inf taus(1) taus(2)];
+end
 
 parfor ii = 1:size(spec,2)
     if any((spec(:,ii))>0)
         Y = spec(:,ii);% ./max(spec(:,ii));
-        lower = [0 0.01 0.01];
-        upper = [1 25 25];
-        %lower = [0 0 eps eps];
-        %upper = [1 1 Inf Inf];
+        
         [~,b] = max(Y);
         ynew = Y(b:end);
-%         Y=ynew;
+        %         Y=ynew;
         if length(ynew)>3
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
-            ft2 = fittype('biexp_model_init(x,a1,t1,t2)','options',op);
+            ft2 = fittype('biexp_model_init(x,a1,a2,t1,t2)','options',op);
             %ft2 = fittype('biexp_model_init2(x,a1,a2,t1,t2)','options',op);
             
             % suppress warning of no start point
@@ -29,30 +31,30 @@ parfor ii = 1:size(spec,2)
             %     hold on
             %     plot(decay,'r'), legend('raw','fit'), title('initial fit')
             %     hold off
-            start = [ff.a1 ff.t1 ff.t2];
-%             start = [0.5 1 1];
+            start = [ff.a1 ff.a2 ff.t1 ff.t2];
+            %             start = [0.5 1 1];
         else
-            start = [0.5 2 2]; % starting points
+            start = [0.5 0.5 2 2]; % starting points
         end
         x = linspace(0,length(Y)-1,length(Y))*dt; % time in ns
         op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper,'StartPoint',start);
-        ft = fittype('biexp_model(x,a1,t1,t2,L)','problem','L','options',op);
+        ft = fittype('biexp_model(x,a1,a2,t1,t2,L)','problem','L','options',op);
         %ft = fittype('biexp_model3(x,a1,a2,t1,t2,L)','problem','L','options',op);
         [f,gof,gg] = fit(x',Y,ft,'problem',laser);
         
-%         plot(x',Y);
-%         hold on
-        decay = f.a1.*exp(-x./f.t1)+(1-f.a1).*exp(-x./f.t2);
+        %         plot(x',Y);
+        %         hold on
+        decay = f.a1.*exp(-x./f.t1)+f.a2.*exp(-x./f.t2);
         %decay = f.a1.*exp(-x./f.t1)+(f.a2).*exp(-x./f.t2);
         % correct for intensity
-%         factor = sum((spec(:,ii)))/sum(decay);
-%         decay = decay*factor;
+        %         factor = sum((spec(:,ii)))/sum(decay);
+        %         decay = decay*factor;
         y = filter(laser,1,decay);
-%         y = y./max(y);
+        %         y = y./max(y);
         fff = y;
         yyy = Y;
-%         plot(x,fff);
-%         legend('off');
+        %         plot(x,fff);
+        %         legend('off');
         
         %     plot(x, y(1:length(x)), 'LineWidth', 2)
         %     hold on
@@ -60,7 +62,7 @@ parfor ii = 1:size(spec,2)
         %     pause(.1)
         
         A1 = [A1 f.a1];T1=[T1 f.t1];T2=[T2 f.t2];
-        A2 = [A2 1-f.a1];
+        A2 = [A2 f.a2];
         %A2 = [A2 f.a2];
         h = [h,decay'];
         fitt = [fitt,fff'];
