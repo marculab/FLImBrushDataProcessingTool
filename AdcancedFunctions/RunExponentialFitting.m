@@ -1,13 +1,13 @@
 % code to run multiexpoential fit to FLImBRUSH output
 
 %%
-clear all
+clear 
 close all
 clc
 
 %% add path
 % addpath(genpath('./MultiExp Generic')) %add path to exponential code
-addpath(genpath('C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTool'))
+addpath(genpath('..'))
 
 %% load file
 root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811';
