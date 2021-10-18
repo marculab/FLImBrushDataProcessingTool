@@ -16,7 +16,11 @@ root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811';
 %% load in file
 P = fullfile(DeConpath,DeConfile);
 load(P)
+
+%% processing setup
 dataObj = Ch2DataObj; %% set your channel here
+order = 3; % set your order here
+
 %% get Laguerre result
 WFAligned = get(dataObj,'wf_aligned');
 LagFitting = get(dataObj,'fit');
@@ -29,13 +33,13 @@ LagResAll = zeros(size(LagRes,1),numOfWF);
 WFALignedAll(:,deconIdx) = WFAligned;
 LagFittingAll(:,deconIdx) = LagFitting;
 LagResAll(:,deconIdx) = LagRes;
+LagSE = sum(LagResAll.^2);
 LTLag = dataObj.LTsAll;
 irf = dataObj.APDObj.irfTNorm;
 
 %% exponential fit 
 tic
 
-order = 3; % set your order here
 numOfDeconWF =  length(deconIdx);
 ATemp = zeros(numOfDeconWF,order);
 TauTemp = zeros(numOfDeconWF,order);
@@ -75,6 +79,7 @@ fit1(:,deconIdx) = fit1Temp;
 decay1(:,deconIdx) = decay1Temp;
 res1(:,deconIdx) = res1Temp;
 
+res1SE = sum(res1.^2);
 LTexp1Decay = h_lifet(decay1,dataObj.dtUp);
 
 ExpResult1.A = A1;
@@ -128,6 +133,7 @@ fit2(:,deconIdx) = fit2Temp;
 decay2(:,deconIdx) = decay2Temp;
 res2(:,deconIdx) = res2Temp;
 
+res2SE = sum(res2.^2);
 LTexp2Decay = h_lifet(decay2,dataObj.dtUp);
 
 
@@ -157,6 +163,7 @@ plot(LagFittingAll(:,idx),'r-','LineWidth',1)
 plot(LagResAll(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(LagSE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -174,6 +181,7 @@ plot(fit1(:,idx),'r-','LineWidth',1)
 plot(res1(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(res1SE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -193,6 +201,7 @@ plot(fit2(:,idx),'r-','LineWidth',1)
 plot(res2(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(res2SE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -202,4 +211,19 @@ ylim([-0.2 1])
 legend('raw data', 'fitting', 'residue')
 title(sprintf('Exponential fitting (fixed taus), order = %d, WF index %d,\n lifetime = %.3f(formula), lifetime = %.3f(decay) \n a1=%.3f, a2=%.3f, a3=%.3f, tau1=%.3f, tau2=%.3f, tau3=%.3f', ...
     order,idx, LTexp2(idx), LTexp2Decay(idx), W2(idx,1), W2(idx,2), W2(idx,3), Tau2(idx,1), Tau2(idx,2),Tau2(idx,3)))
+
+%% plot square error
+figure
+plot(LagSE,'.','Color','#0072BD')
+hold on
+plot(res1SE,'.','Color','#D95319')
+plot(res2SE,'.','Color','#77AC30')
+set(gca, 'YScale', 'log')
+axis tight
+grid on
+grid minor
+% ylim([0 0.05])
+legend('Laguerre','exp','Fixed tau exp')
+xlabel('Waveform index')
+ylabel('Square Error')
 

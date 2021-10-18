@@ -16,7 +16,9 @@ root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811';
 %% load in file
 P = fullfile(DeConpath,DeConfile);
 load(P)
-dataObj = Ch2DataObj;
+
+%% set up channel
+dataObj = Ch2DataObj; %% set up your channel here
 %% get Laguerre result
 WFAligned = get(dataObj,'wf_aligned');
 LagFitting = get(dataObj,'fit');
@@ -29,31 +31,9 @@ LagResAll = zeros(size(LagRes,1),numOfWF);
 WFALignedAll(:,deconIdx) = WFAligned;
 LagFittingAll(:,deconIdx) = LagFitting;
 LagResAll(:,deconIdx) = LagRes;
+LagSE = sum(LagResAll.^2);
 LTLag = dataObj.LTsAll;
 irf = dataObj.APDObj.irfTNorm;
-
-
-
-%% plot Laguerre
-% idx = round(rand*numOfWF);
-% 
-% figure('Position',[300 300 1200 400])
-% tiledlayout(1,3)
-% nexttile
-% plot(WFAligned(:,idx),'b.','MarkerSize',10)
-% hold on
-% plot(LagFitting(:,idx),'r-','LineWidth',1)
-% plot(LagRes(:,idx)-0.1,'m.')
-% yline(-0.1+0.025,'r--','res=0.025')
-% yline(-0.1-0.025,'r--')
-% yticks((-0.2:0.1:1))
-% yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
-% grid on
-% grid minor
-% axis tight
-% ylim([-0.2 1])
-% legend('raw data', 'fitting', 'residue')
-% title(sprintf('Laguerre fitting, WF index %d',idx))
 
 %% bi-exponential fit
 order1 = 2;
@@ -88,9 +68,6 @@ fit1 = zeros(size(fit1Temp,1),numOfWF);
 decay1 = zeros(size(decay1Temp,1),numOfWF);
 res1 = zeros(size(decay1Temp,1),numOfWF);
 
-LTexp1Decay = h_lifet(decay1,dataObj.dtUp);
-
-
 A1(deconIdx,:) = ATemp;
 Tau1(deconIdx,:) = TauTemp;
 W1(deconIdx,:) = WTemp;
@@ -98,6 +75,9 @@ LTexp1(deconIdx) = LTexpTemp;
 fit1(:,deconIdx) = fit1Temp;
 decay1(:,deconIdx) = decay1Temp;
 res1(:,deconIdx) = res1Temp;
+
+res1SE = sum(res1.^2);
+LTexp1Decay = h_lifet(decay1,dataObj.dtUp);
 
 ExpResult1.A = A1;
 ExpResult1.Tau = Tau1;
@@ -148,6 +128,7 @@ fit2(:,deconIdx) = fit2Temp;
 decay2(:,deconIdx) = decay2Temp;
 res2(:,deconIdx) = res2Temp;
 
+res2SE = sum(res2.^2);
 LTexp2Decay = h_lifet(decay2,dataObj.dtUp);
 
 
@@ -200,6 +181,7 @@ fit4(:,deconIdx) = fit4Temp;
 decay4(:,deconIdx) = decay4Temp;
 res4(:,deconIdx) = res4Temp;
 
+res4SE = sum(res4.^2);
 LTexp4Decay = h_lifet(decay4,dataObj.dtUp);
 
 ExpResult4.A = A4;
@@ -224,6 +206,7 @@ plot(LagFittingAll(:,idx),'r-','LineWidth',1)
 plot(LagResAll(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(LagSE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -241,6 +224,7 @@ plot(fit1(:,idx),'r-','LineWidth',1)
 plot(res1(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(res1SE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -259,6 +243,7 @@ plot(fit2(:,idx),'r-','LineWidth',1)
 plot(res2(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(res2SE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -277,6 +262,7 @@ plot(fit4(:,idx),'r-','LineWidth',1)
 plot(res4(:,idx)-0.1,'m.')
 yline(-0.1+0.025,'r--','res=0.025')
 yline(-0.1-0.025,'r--')
+text(150, -0.15, ['\Sigma res = ', num2str(res4SE(idx))])
 yticks((-0.2:0.1:1))
 yticklabels({'','res=0','0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0',})
 grid on
@@ -286,3 +272,19 @@ ylim([-0.2 1])
 legend('raw data', 'fitting', 'residue')
 title(sprintf('Exponential fitting, order = %d, WF index %d,\n lifetime = %.3f(formula), lifetime = %.3f(decay) \n a1=%.3f, a2=%.3f, a3=%.3f, a4=%.3f, tau1=%.3f, tau2=%.3f, tau3=%.3f, tau4=%.3f', ...
     order4,idx, LTexp4(idx), LTexp4Decay(idx), W4(idx,1), W4(idx,2), W4(idx,3), W4(idx,4), Tau4(idx,1), Tau4(idx,2), Tau4(idx,3), Tau4(idx,4)))
+
+%% plot square error
+figure
+plot(LagSE,'.','Color','#0072BD')
+hold on
+plot(res1SE,'.','Color','#D95319')
+plot(res2SE,'.','Color','#77AC30')
+plot(res4SE,'.','Color','#A2142F')
+set(gca, 'YScale', 'log')
+axis tight
+grid on
+grid minor
+% ylim([0 0.05])
+legend('Laguerre','exp 2','exp 3','exp 4')
+xlabel('Waveform index')
+ylabel('Square Error')
