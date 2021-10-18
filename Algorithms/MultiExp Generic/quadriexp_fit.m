@@ -81,7 +81,9 @@ for k =1: size(I,2)
 end
 T1 = TF(1,:);T2=TF(2,:);T3 = TF(3,:);T4 = TF(4,:);A1=AF(1,:);A2=AF(2,:);A3=AF(3,:);A4=AF(4,:);
 % average lifetime from decay
-[avglife,intensity]=h_lifet(h,dt,'average');
+% [avglife,intensity]=h_lifet(h,dt,'average');
+intensity = sum(h);
+avglife = (A1.*T1.^2+A2.*T2.^2+A3.*T3.^2+A4.*T4.^2)./(A1.*T1+A2.*T2+A3.*T3+A4.*T4);
 
 % re-enable the warning
 warning('on','curvefit:fit:noStartPoint')
