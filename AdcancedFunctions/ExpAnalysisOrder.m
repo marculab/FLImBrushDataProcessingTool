@@ -10,7 +10,7 @@ clc
 addpath(genpath('../Algorithms'))
 
 %% select file
-root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811';
+root = 'W:\V2 Sacramento Database\Brain Necrosis\2021_FLImBrush\RawData\Subject034_20211006\FLIm\Processed';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
 %% load in file

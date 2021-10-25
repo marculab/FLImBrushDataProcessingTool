@@ -7,9 +7,9 @@ clc
 addpath(genpath(pwd))
 addpath(genpath('..'))
 %% load in data
-root = 'D:\LoaclData\5ALAFLImTest\Subject031_20210804'; % defaut folder for file selection
+root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811'; % defaut folder for file selection
 %% set save path
-savePath = 'C:\Users\Xiangnan\Desktop\OverlayTest';
+savePath = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811\_OverlayVideoL';
 
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
@@ -106,7 +106,7 @@ FrameIdxData = round(FrameIdxData);
 %% loop through all frames and creat overlay image
 dataToPlot = Ch3LT;
 % scale = [floor(quantile(dataToPlot,0.1)) ceil(quantile(dataToPlot,0.9))];
-scale = [0 12];
+scale = [0 20];
 radius = 7.5;
 alpha = 0.5;
 numOfFrames = v.NumFrames;
@@ -198,7 +198,7 @@ for i = 1:plotStep:numOfFrames
     writeVideo(w,frame);
     
 end
-overlayTemp = overlayAll{1701};
+% overlayTemp = overlayAll{1701};
 BW = sum(overlayTemp,3);
 mask= cat(3,BW,BW,BW);
 augmentedFMImgCh1LT = FM;

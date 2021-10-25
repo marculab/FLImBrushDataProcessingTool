@@ -7,9 +7,9 @@ clc
 addpath(genpath(pwd))
 % addpath(genpagenpth('..\'))
 %% load in data
-root = 'D:\LoaclData\5ALAFLImTest\Subject031_20210804'; % defaut folder for file selection
+root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811'; % defaut folder for file selection
 %% set save path
-savePath = 'C:\Users\Xiangnan\Desktop\OverlayTest';
+savePath = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811\_OverlayVideoL';
 
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
@@ -55,6 +55,8 @@ xq = (0:1.35:sx-1.35)';
 yq = (0:1.35:sy-1.35)';
 zq = (1:sz)';
 FM = uint8(F({xq,yq,zq}));
+figure;imshow(FM);
+
 %% calculate num of data points
 % shift = length(Ch1LT)-(MetaData(end,9)-MetaData(1,9))/1000*120/4;
 % shift = round(shift);
@@ -178,7 +180,7 @@ scale2 = [floor(quantile(Ch2LT,0.1)) ceil(quantile(Ch2LT,0.9))];
 [overlayCh2,overlayCh2All] = getOverlay(size(im), posData, Ch2LT, scale2, radius);
 
 % scale3 = [floor(quantile(Ch3LT,0.1)) ceil(quantile(Ch3LT,0.9))];
-scale3 = [0 12];
+scale3 = [0 20];
 [overlayCh3,overlayCh3All] = getOverlay(size(im), posData, Ch3LT, scale3, radius);
 
 ROI_x = 1:size(im,1);
@@ -351,6 +353,7 @@ h0.Label.String = 'Lifetime (ns)';
 set(gca,'FontSize',12)
 set(gca,'LooseInset',get(gca,'TightInset'))
 frame = getframe(gcf);
+writeVideo(w,frame);
 writeVideo(w,frame);
 close(w)
 end
