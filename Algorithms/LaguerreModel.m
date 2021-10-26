@@ -64,12 +64,16 @@ classdef LaguerreModel < handle
         function estimate_laguerre(obj,varargin)
             % data duplicated here, since communication overhead may incur
             % within the parallel for loop if using "obj.channeldata.data".
+            ignore_bump = 1; % default ignore data bump for APD system
             switch nargin
                 case 1
                     shift_range= -20:20; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 2
                     shift_range = varargin{1};
+                case 3
+                    shift_range = varargin{1};
+                    ignore_bump = varargin{2};
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
@@ -88,7 +92,9 @@ classdef LaguerreModel < handle
             end
             
             vv=filter(obj.channeldata.iIRF,1,LaguerreBasisS);
+            if ignore_bump % if ignore bump, set part of vv to 0
             vv(540:640,:) = zeros(size(vv(540:640,:))); % ignore data in range 540-640
+            end
             D_mat=conv2(eye(size(spec,1)),[1,-3,3,-1],'valid')'*LaguerreBasisS;
 %             D_mat(581:585,:) = zeros(size(D_mat(581:585,:)));
             % third order forward finite difference derivative  matrix
