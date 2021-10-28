@@ -16,7 +16,7 @@ parfor ii = 1:size(spec,2)
         [~,b] = max(Y);
         ynew = Y(b:end);
         %         Y=ynew;
-        if length(ynew)>3
+        if length(ynew)>4
             tt = linspace(0,length(ynew)-1,length(ynew))*dt;
             op = fitoptions('Method', 'NonlinearLeastSquares','Lower',lower,'Upper',upper);
             ft2 = fittype('biexp_model_init(x,a1,a2,t1,t2)','options',op);
