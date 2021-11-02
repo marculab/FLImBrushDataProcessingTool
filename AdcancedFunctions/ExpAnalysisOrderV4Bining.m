@@ -44,7 +44,7 @@ for k = 1:numOfFiles
     figure('units','pixels','outerposition',[100 100 1920 1080])
     tiledlayout(3,3)
     
-    for c = 0%:n_max
+    for c = 0:n_max
         % get Laguerre result
         wfAvg = power(2,c);
         numOfAveWf = size(WFAligned,2)/wfAvg;
@@ -87,14 +87,15 @@ for k = 1:numOfFiles
         scatter(FC3(2,:),T3(2,:),'g+','LineWidth',2)
         scatter(FC3(3,:),T3(3,:),SNR_new,'rs','LineWidth',2)
         hold off
+        set(gca, 'YScale', 'log')
         legend('exp1','exp2','exp3')
         xlabel('Fractional Contribution')
         ylabel('Lifetime (ns)')
         xlim([0 1])
-        ylim([0 25])
+        ylim([0.01 50])
         grid on
         grid minor
-        title(sprintf('Averaging = %d',2^c));
+        title(sprintf('Averaging = %d, # of wavefroms = %d',2^c,numOfAveWf));
         
         
         % idx = 1;
@@ -160,4 +161,4 @@ for k = 1:numOfFiles
     
     exportgraphics(gcf,fullfile(DeConpath,[name,'Ch2.tiff']),'Resolution',600)
 end
-% close all
+close all

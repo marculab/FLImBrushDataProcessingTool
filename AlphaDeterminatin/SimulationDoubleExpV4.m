@@ -9,15 +9,15 @@ addpath(genpath('C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTo
 N = 10000;
 % trueLT = rand(N,1);
 tau1Low = 0.3;
-tau1High = 3;
+tau1High = 4;
 tau2 = 6;
 tau1 = tau1Low+rand(N,1)*(tau1High-tau1Low);
 
 k=9; % photon ratio
 
 %% get decays
-dt = 0.08;
-tWindow = 54.4; % ns same for V4 nad V5
+dt = 0.1;
+tWindow = 75; % ns same for V4 nad V5
 trueLTC = zeros(size(tau1));
 t = 0:dt:tWindow-dt;
 decay = zeros(round(tWindow/dt),N);
@@ -88,7 +88,7 @@ alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.910; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
