@@ -9,15 +9,15 @@ addpath(genpath('C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTo
 N = 5000;
 % trueLT = rand(N,1);
 tau1Low = 0.3;
-tau1High = 6;
+tau1High = 10;
 tau2 = 10;
 tau1 = tau1Low+rand(N,1)*(tau1High-tau1Low);
 
 k=9; % photon ratio
 
 %% get decays
-dt = 0.05;
-tWindow = 54.4; % ns same for V4 nad V5
+dt = 0.1;
+tWindow = 154; % ns same for V4 nad V5
 trueLTC = zeros(size(tau1));
 t = 0:dt:tWindow-dt;
 decay = zeros(round(tWindow/dt),N);
@@ -73,7 +73,7 @@ ref = spec*0;
 ref = circshift(ref, 32/dt);
 ref(701:end,:) = zeros(size(ref(701:end,:)));
 ref(1:539,:) = zeros(size(ref(1:539,:)));
-SNR = 50; %in dB, SNR = 20log10(Max/noise)
+SNR = 55; %in dB, SNR = 20log10(Max/noise)
 if SNR==0
     noise = zeros(size(spec));
 else
@@ -96,12 +96,12 @@ title('Simulation data and irf')
 
 %% deconvolution
 LagOrder = 12;
-alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
+alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[])
 % alphaUpperLim=0.916;
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.9677; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
