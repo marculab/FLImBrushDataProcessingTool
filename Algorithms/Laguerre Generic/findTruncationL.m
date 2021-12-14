@@ -8,7 +8,7 @@ if ~exist('init','var')||isempty(init)
 end
 
 if ~exist('eps','var')||isempty(eps)
-    eps=0.0001;
+    eps=0.01;
 end
 
 trunL = round(init*0.50):round(init*10);
