@@ -88,6 +88,7 @@ classdef ChannelDataAPD < handle
             DC = zeros(1,numOfWF);
             WFWindow = 500; % WF window to average DC
             gainWindow = 5; % gain window to average DC
+            satIndex = find(max(obj.rawData)>1.6); % saturated waveform index
             for i = 1:numOfWF %loop thorugh all data and find DC
                 G = obj.rawGain(i);
                 timeIdx1 = i-WFWindow;
@@ -99,9 +100,11 @@ classdef ChannelDataAPD < handle
                     timeIdx2 = numOfWF;
                 end
                 timeIdx =  timeIdx1:timeIdx2; % idx of data point inside time window
+                Acommon = intersect(timeIdx,satIndex); % find saturated index if it is in time window
+                timeIdx = setxor(timeIdx,Acommon); % remove sturated waveform index
                 GTemp = obj.rawGain(timeIdx); % gain of data inside time window
                 timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
-                DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal
+                DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal
                 DC(i) = mean(DCAllWF(:)); % average all DC data
             end
             obj.rawDataDCRemoved = obj.rawData-DC; % store data 
