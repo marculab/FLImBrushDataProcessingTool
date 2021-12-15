@@ -8,7 +8,7 @@ addpath(genpath('C:\Users\Xiangnan\Documents\MyGitRepo\FLImBrushDataProcessingTo
 %% get random lifetime
 N = 5000;
 % trueLT = rand(N,1);
-tau1Low = 0.3;
+tau1Low = 0.5;
 tau1High = 10;
 tau2 = 10;
 tau1 = tau1Low+rand(N,1)*(tau1High-tau1Low);
@@ -101,7 +101,7 @@ alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[])
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.9677; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
