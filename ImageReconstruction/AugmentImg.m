@@ -4,7 +4,7 @@ fprintf('Radius = %f, Alpha = %f\n', radius, alpha);
 
 % setup video
 %set(gcf,'Visible', 'off');
-jet_cmap =  jet(256);
+jet_cmap =  parula(256);
 %ssx = vr.Width;
 %ssy = vr.Height;
 ssx = size(im, 2);
@@ -48,8 +48,9 @@ for i = 1:numOfFrames
     end
 end
     delete(f);
-    augmentedImg = im;
-    augmentedImg(~(overlay(:,:,:) == 0)) = alpha*overlay(~(overlay(:,:,:) == 0) ) + (1-alpha)*augmentedImg( ~(overlay(:,:,:) == 0) );
-    
+    augmentedImg = im;  
+    mask2D = ~(sum(overlay,3) == 0);
+    mask = cat(3,mask2D,mask2D,mask2D); 
+    augmentedImg(mask) = alpha*overlay(mask) + (1-alpha)*augmentedImg(mask); 
 end
 
