@@ -15,7 +15,7 @@ BW = poly2mask(r*cos(t)+c(1), r*sin(t)+c(2), imgH, imgW);
 
 if vls>0
     %val_field(BW) = ((val_field(BW)./max(uint8(BW(BW)),accum(BW)) ) + vls)./(accum(BW)+1);
-    val_field(BW) = ((val_field(BW).*accum(BW) ) + vls)./(accum(BW)+1); % averaging index valuese
+    val_field(BW) = ((val_field(BW).*accum(BW) ) + vls)./(accum(BW)+1); % averaging index values
     accum(BW) = accum(BW)+1;
 end
 
