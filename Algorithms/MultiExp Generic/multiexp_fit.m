@@ -1,4 +1,9 @@
 function [A, T, avglife, intensity, fitt, raw, decay] = multiexp_fit(spec,dt,laser,orders,taus)
+% spec is waveform
+% dt is time resolution
+% laser is irf
+% orders is number of exponentials
+% taus are fixed tau values, leave empty '[]' if using auto tau, range of tau is [0.01 25] ns
 
 if ~isempty(taus) % if taus are specified
     if length(taus)~=orders % if taus do not match orders, throw error
