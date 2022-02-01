@@ -1,4 +1,4 @@
-function [out1,out2]=h_lifet(h,dt,type,p)
+function [LT,INT]=h_lifet(h,dt,type,p)
 % dt - time resolution
 % type - {'average','1/e','quantile'}
 % p - (1) type=='1/e', p is the 1/e location
@@ -56,5 +56,5 @@ switch type
         
 end
 
-out1=lifet_sampl*dt;
-out2=sum(h);
+LT=lifet_sampl*dt;
+INT=sum(h);
