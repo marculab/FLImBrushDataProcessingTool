@@ -6,6 +6,7 @@ function [LT,INT]=h_lifet(h,dt,type,p)
 
 t_bin=0:size(h,1)-1;
 
+
 if ~exist('type','var')||isempty(type)
     
     type='average';
@@ -17,6 +18,7 @@ switch type
     case 'average'
         
         lifet_sampl=(0.5+t_bin)*h./sum(h);%mean
+        lifet_sampl = lifet_sampl';
         
     case '1/e'
         
