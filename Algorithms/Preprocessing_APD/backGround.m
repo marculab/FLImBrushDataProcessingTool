@@ -81,6 +81,11 @@ classdef backGround < handle
                 bg1 = mean(obj.bgCh1Aligned,2);
                 bg2 = mean(obj.bgCh2Aligned,2);
                 bg3 = mean(obj.bgCh3Aligned,2);
+                %-----------------------------------------------remove DC-----------------------------------------------------------------------------
+                bg1 = bg1-mean(bg1(1:250));
+                bg2 = bg2-mean(bg2(1:250));
+                bg3 = bg3-mean(bg3(1:250));
+                
                 obj.bgCh1 = bg1;
                 obj.bgCh2 = bg2;
                 obj.bgCh3 = bg3;
