@@ -4,8 +4,7 @@ classdef ChannelDataAPD < handle
         alpha % alpha value
         APDObj % apd detector class obj, contain gain and iRF information
         badDataIdx % raw waveform bad data index, result of saturation filtering
-        bg % channel background
-        bgDcRemoved % DC removed bg
+        bg % channel background, DC removed
         bgLow; % BG removal index low
         bgHigh; % BG removal index low
         bw = 400 % MHz detector bandwidth
@@ -54,6 +53,9 @@ classdef ChannelDataAPD < handle
         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
         upSampleFactor; % upsample factor
         wfLenght % length of each waveform
+        exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
+        expDeconObj  % exponential decon object, does not include data that is filtered
+       
         %         spec_aligned % aligned WF with iRF
         %         fit % fitting result
         %         res % residue
@@ -120,7 +122,7 @@ classdef ChannelDataAPD < handle
             parfor i = 1:obj.numOfWFs
                 WFUpsampled(:,i) = interp(temp(:,i),upsamplefactor);
             end
-%             obj.rawDataUpsampled = WFUpsampled;
+            obj.rawDataUpsampled = WFUpsampled;
             obj.preProcessedData = WFUpsampled;
             %             figure; plot(WFUpsampled)
             %--------------------------------------------------------------
@@ -182,24 +184,19 @@ classdef ChannelDataAPD < handle
             sortedTruncatedData = obj.dataT(:,I);
         end
         
-        function removeDCBG(obj,dcLowIn, dcHighIn, bgLowIn, bgHighIn)
-            obj.dcLow = dcLowIn;
-            obj.dcHigh = dcHighIn;
+        function removeDCBG(obj, bgLowIn, bgHighIn)
             obj.bgLow = bgLowIn;
             obj.bgHigh = bgHighIn;
             
 %             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
 %             obj.preProcessedData = obj.preProcessedData-DC;
-            
-            bgDC = mean(obj.bg(dcLowIn:dcHighIn)); % compute BG DC using all BG data, BG is 1D vector
-            obj.bgDcRemoved = obj.bg - bgDC;
-            
+
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
             dataBGAUC(dataBGAUC<3) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
-            bgAUC = sum(obj.bgDcRemoved(bgLowIn:bgHighIn));
+            bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
-            obj.preProcessedData = obj.preProcessedData-obj.bgDcRemoved*bgScaleFactor;
+            obj.preProcessedData = obj.preProcessedData-obj.bg*bgScaleFactor;
         end
         
         
@@ -274,17 +271,18 @@ classdef ChannelDataAPD < handle
             %             hold off
         end
         
-        function runDecon(obj, varargin)
+        function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
             %---------------generate laguerre functions------------------------
             obj.M = size(obj.dataT,1);
+            obj.exclude = exclude_in;
             switch nargin
-                case 1
+                case 2
                     obj.K = 12; %default Laguerre order
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 2 % runDecon(obj, order)
+                case 3 % runDecon(obj, order)
                     obj.K = varargin{1};
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 3 % runDecon(obj, order, alpha)
+                case 4 % runDecon(obj, order, alpha)
                     obj.K = varargin{1};
                     obj.alpha = varargin{2};
                 otherwise
@@ -324,7 +322,7 @@ classdef ChannelDataAPD < handle
                     obj.irfIdx(idx) = i; %  store irf index
                     channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gainDecon(idx));
                     laguerreObj = LaguerreModel(channelDataStruct,obj.K, obj.alpha);
-                    laguerreObj.estimate_laguerre();
+                    laguerreObj.estimate_laguerre(obj.exclude);
                     obj.LCs(:,idx) = laguerreObj.LCs;
                     obj.LTs(idx) = laguerreObj.LTs;
                     obj.INTs(idx) = laguerreObj.INTs;
@@ -342,6 +340,34 @@ classdef ChannelDataAPD < handle
             obj.INTsAllGainCorrected(obj.deconIdx) = obj.INTsGainCorrected;
             obj.LTsAll(obj.LTsAll==0)=NaN;
             obj.INTsAllGainCorrected(obj.INTsAllGainCorrected==0)=NaN;
+        end
+        
+        function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
+            wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
+            wf_aligned(:,obj.deconIdx) = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
+            irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
+            irf(:,obj.deconIdx) = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
+            obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
+            runDecon(obj.expDeconObj);
+            %------------------create result structure---------------------
+%             obj.expDeconResult.numOfExp = numOfExp;
+%             obj.expDeconResult.A = zeros(obj.numOfAvgWFs,numOfExp); % pre-exponential factoes
+%             obj.expDeconResult.Tau = zeros(obj.numOfAvgWFs,numOfExp); % pre-exponential factoes
+%             obj.expDeconResult.LTs_decay = zeros(obj.numOfAvgWFs,1);
+%             obj.expDeconResult.LTs_formula = zeros(obj.numOfAvgWFs,1);
+%             obj.expDeconResult.INTs_uncorrected = zeros(obj.numOfAvgWFs,1);
+%             obj.expDeconResult.A(obj.deconIdx,:) = obj.expDeconObj.A;
+%             obj.expDeconResult.Tau(obj.deconIdx,:) = obj.expDeconObj.Tau;
+%             obj.expDeconResult.LTs_decay(obj.deconIdx) = obj.expDeconObj.LTs_decay;
+%             obj.expDeconResult.LTs_formula(obj.deconIdx) = obj.expDeconObj.LTs_formula;
+%             obj.expDeconResult.INTs_uncorrected(obj.deconIdx) = obj.expDeconObj.INTs;
+%             %-----------------------set 0 to NaN
+%             obj.expDeconResult.A(obj.expDeconResult.A==0)=NaN;
+%             obj.expDeconResult.Tau(obj.expDeconResult.Tau==0)=NaN;
+%             obj.expDeconResult.LTs_decay(obj.expDeconResult.LTs_decay==0)=NaN;
+%             obj.expDeconResult.LTs_formula(obj.expDeconResult.LTs_formula==0)=NaN;
+%             obj.expDeconResult.INTs_uncorrected(obj.expDeconResult.INTs_uncorrected==0)=NaN;
+
         end
         
         % method to get properties
@@ -383,7 +409,7 @@ classdef ChannelDataAPD < handle
                                 result = circshift(obj.dataT(:,idx),obj.shift(idx));
                         end
                     else
-                        warning('Deconvolution result not available, run deconvolution before accessing fitted curve!')
+                        warning('Deconvolution result not available, run deconvolution before accessing aligned wavefrom!')
                         result = [];
                     end
                     %---------------------------residue----------------------------------------
