@@ -25,6 +25,7 @@ classdef LaguerreModel < handle
         channeldata % all relevent parameters and data
         shift % WF shift amount
         spec_aligned % aligned WF with iRF
+        exclude % index of data excluded from decon
     end
     
     methods
@@ -61,25 +62,23 @@ classdef LaguerreModel < handle
         %             obj.channeldata.iIRF = circshift(obj.channeldata.iIRF,[obj.shift,0]);
         %         end
         % do deconvolution
-        function estimate_laguerre(obj,varargin)
+        function estimate_laguerre(obj, exclude_in, varargin)
+            % exclude_in: A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
             % data duplicated here, since communication overhead may incur
             % within the parallel for loop if using "obj.channeldata.data".
-            ignore_bump = 1; % default ignore data bump for APD system
+            obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
-                case 1
+                case 2
                     shift_range= -20:20; %default shift range order
                     %                     shift_range= 0; %default shift range order
-                case 2
-                    shift_range = varargin{1};
                 case 3
                     shift_range = varargin{1};
-                    ignore_bump = varargin{2};
+                
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
             spec_raw = obj.channeldata.data;
             spec = spec_raw;
-%             spec(585:750,:) = zeros(size(spec(585:750,:))); % remove blip from data
             LaguerreBasisS = obj.LaguerreBasis;
             wfLength = size(spec,1);
             %             spec = spec./max(spec);
@@ -92,8 +91,8 @@ classdef LaguerreModel < handle
             end
             
             vv=filter(obj.channeldata.iIRF,1,LaguerreBasisS);
-            if ignore_bump % if ignore bump, set part of vv to 0
-            vv(540:640,:) = zeros(size(vv(540:640,:))); % ignore data in range 540-640
+            if ~isempty(obj.exclude) % if exlude is not empty
+            vv(obj.exclude,:) = zeros(size(vv(obj.exclude,:))); % ignore data in range 540-640
             end
             D_mat=conv2(eye(size(spec,1)),[1,-3,3,-1],'valid')'*LaguerreBasisS;
 %             D_mat(581:585,:) = zeros(size(D_mat(581:585,:)));
