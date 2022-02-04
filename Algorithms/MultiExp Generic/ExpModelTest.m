@@ -5,16 +5,22 @@ clc
 %% 
 load('..\..\TestData\ExpTestData.mat')
 %% 
-O = ExpModel(4, specTempCh1,laser, 0.2, '', '', '');
+specTempCh1(:,2) = zeros(size(specTempCh1(:,2)));
+laser_m = repmat(laser,1, size(specTempCh1,2));
+laser_m(:,2) = zeros(size(laser_m(:,2)));
+O = ExpModel(3, specTempCh1,laser, 0.2, '', '', '',[450:500]);
 %%
 runDecon(O)
+idx = 20
 
-fit = get(O,'fit');
+fit = get(O,'fit',idx);
 
 %%
-idx = 20
 figure
 plot(specTempCh1(:,idx))
 hold on
-plot(fit(:,idx))
+plot(fit)
 hold off
+
+figure
+scatter(O.LTs_formula,O.LTs_formula-O.LTs_decay);
