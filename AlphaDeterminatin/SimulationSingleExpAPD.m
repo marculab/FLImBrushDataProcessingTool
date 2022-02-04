@@ -21,7 +21,7 @@ ylabel('Count')
 
 %% get decays
 dt = 0.1;
-tWindow = 54.4; % ns same for V4 nad V5
+tWindow = 154; % ns same for V4 nad V5
 
 t = 0:dt:tWindow-dt;
 decay = zeros(round(tWindow/dt),N);
@@ -65,9 +65,8 @@ title('irf')
 %%
 spec = filter(irfT,1,decay);
 spec = spec./max(spec);
-ref = spec*0.000;
+ref = spec*0.1;
 ref = circshift(ref, 32/dt);
-
 ref(641:end,:) = zeros(size(ref(641:end,:)));
 ref(1:539,:) = zeros(size(ref(1:539,:)));
 SNR = 49; %in dB, SNR = 20log10(Max/noise)
@@ -83,7 +82,7 @@ DC = DC';
 MaxIdx = mode(MaxIdx);
 % DC(DC<MaxIdx-20)=0;
 DC(DC>=1)=1;
-DC_value = 0.0002;
+DC_value = 0.000;
 DC = DC*DC_value;
 spec = spec+noise+DC+ref;
 figure
@@ -100,14 +99,14 @@ alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.9619; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.965; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
     alphaTemp = alphaVector(i);
     channelDataStruct = ChannelData(spec,irfT,dt,1.5,1:size(spec,2),[],1800);
     Laguerre_Struct = LaguerreModel(channelDataStruct,LagOrder,alphaTemp);
-    Laguerre_Struct.estimate_laguerre(0);
+    Laguerre_Struct.estimate_laguerre([540:640],0);
     LTArray(:,i) = Laguerre_Struct.LTs;
     waitbar(i/numOfAlpha,f,sprintf('Progress: %d %%',round(i/numOfAlpha*100)));
 end
