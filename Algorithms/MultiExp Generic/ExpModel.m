@@ -75,7 +75,7 @@ classdef ExpModel < handle
             t =t'; % covert to column vector
             obj.t = t;
             % creat fitting object and fit option
-            FMax = 10; % pre-exponential factor max
+            FMax = max(sum(WF_in)); % pre-exponential factor max
             switch obj.order
                 case 1
                     lower = [0 obj.tauLowerLim];
