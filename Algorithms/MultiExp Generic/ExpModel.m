@@ -163,7 +163,7 @@ classdef ExpModel < handle
                             TT(i,:) = ff.t;
                         case 2
                             AA(i,:) = [ff.a1 ff.a2];
-                            TT(i,:) = [ff.t1 ff.a2];
+                            TT(i,:) = [ff.t1 ff.t2];
                         case 3
                             AA(i,:) = [ff.a1 ff.a2 ff.a3];
                             TT(i,:) = [ff.t1 ff.t2 ff.t3];
