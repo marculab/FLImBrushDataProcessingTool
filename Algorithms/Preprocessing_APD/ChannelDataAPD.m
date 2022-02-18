@@ -85,12 +85,18 @@ classdef ChannelDataAPD < handle
             obj.upSampleFactor = 4;
             % calculate SNR
         end
-        function removeDCData(obj)
+        function removeDCData(obj,varargin)
+            switch nargin
+                case 1
+                    WF_max_threshold = 1.6;
+                case 2
+                    WF_max_threshold = varargin{1};
+            end
             numOfWF = size(obj.preProcessedData,2);
             DC = zeros(1,numOfWF);
             WFWindow = 500; % WF window to average DC
             gainWindow = 5; % gain window to average DC
-            satIndex = find(max(obj.rawData)>1.6); % saturated waveform index
+            satIndex = find(max(obj.rawData)>WF_max_threshold); % saturated waveform index, 
             for i = 1:numOfWF %loop thorugh all data and find DC
                 G = obj.rawGain(i);
                 timeIdx1 = i-WFWindow;
@@ -192,7 +198,7 @@ classdef ChannelDataAPD < handle
 %             obj.preProcessedData = obj.preProcessedData-DC;
 
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
-            dataBGAUC(dataBGAUC<3) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
+            dataBGAUC(dataBGAUC<0.05) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
