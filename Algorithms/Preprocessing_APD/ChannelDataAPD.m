@@ -9,34 +9,28 @@ classdef ChannelDataAPD < handle
         bgHigh; % BG removal index low
         bw = 400 % MHz detector bandwidth
         CtrlV % APD control voltage
-        CtrlVDecon % decon data ctrl v
         dtRaw % raw data dt
         dtUp % upsampled data dt
         dataAveragingLV % maximum number of WF to average
         dataAveraging % data averaging used for processing
         dataLow; % data amplitude threshold low
         dataHigh; % data amplitude threshold high
-        dcLow; % DC removal index low
-        dcHigh; % DC removal index low
-        deconIdx; % deconvolution index of preprocessed data
+%         dcLow; % DC removal index low
+%         dcHigh; % DC removal index low
         dataT % truncated data
         goodDataIdx % raw waveform good data index, result of saturation filtering
         gain % gain lise 1D vector
-        gainDecon % Decon data point gain
         irfIdx % 1 by (number of data points) index of correponding irf in the APD Obj
-        INTs % intensities
-        INTsAllGainCorrected % all intensity including non-decon data
-        INTsGainCorrected % intensities
+        Lg_INTs % intensities
+        Lg_INTsGainCorrected % intensities
         K % Laguerre order
         LaguerreBasis = []; % Laguerre base funciton
-        LCs %Laguerre coefficient
-        LTs %lifetimes
-        LTsAll % all lifetims including non-decon data
+        Lg_LCs %Laguerre coefficient
+        Lg_LTs %lifetimes
         laserRepRate % laser rep rate
         M % truncated data length
         numOfWFs % number of waveforms
         numOfAvgWFs % number of waforms after averaging
-        nonDeconIdx; % non deconvolution index of processed data
         noise % data noise
         outlierFlag % 1D column vector
         preProcessedData % final preprocessed data
@@ -49,16 +43,21 @@ classdef ChannelDataAPD < handle
         stat_test % statistic test
         shift % WF shift amount
         truncationLength % data truncation length
-        timeStamp % time stamp of averaged data used for image reconstruction
-        timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
+%         timeStamp % time stamp of averaged data used for image reconstruction
+%         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
         upSampleFactor; % upsample factor
         wfLenght % length of each waveform
         exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
         expDeconObj  % exponential decon object, does not include data that is filtered
-       
-        %         spec_aligned % aligned WF with iRF
-        %         fit % fitting result
-        %         res % residue
+%         mExp_a1 % multi-exponential fit result
+%         mExp_a2 % multi-exponential fit result
+%         mExp_a3 % multi-exponential fit result
+%         mExp_tau1 % multi-exponential fit result
+%         mExp_tau2 % multi-exponential fit result
+%         mExp_tau3 % multi-exponential fit result
+%         mExp_LT_dacay % multi-exponential fit result
+%         mExp_LT_formula % multi-exponential fit result
+%         mExp_INT % multi-exponential fit result
     end
     methods
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
@@ -165,13 +164,13 @@ classdef ChannelDataAPD < handle
             [obj.preProcessedData, obj.outlierFlag] = averageWF(obj.preProcessedData, avgIn); % NaN will presist, will not be removed
             obj.averagedData = obj.preProcessedData;
             % record deconIdx
-            nanCol = isnan(sum(obj.preProcessedData));
-            obj.nonDeconIdx = find(nanCol);
-            obj.deconIdx = find(~nanCol);
-            obj.CtrlVDecon = obj.CtrlV(obj.deconIdx);
-            obj.gainDecon = obj.gain(obj.deconIdx);
+%             nanCol = isnan(sum(obj.preProcessedData));
+%             obj.nonDeconIdx = find(nanCol);
+%             obj.deconIdx = find(~nanCol);
+%             obj.CtrlVDecon = obj.CtrlV(obj.deconIdx);
+%             obj.gainDecon = obj.gain(obj.deconIdx);
             %             sum(isnan(sum(obj.preProcessedData)))
-            obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
+%             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
             obj.noise = std(obj.averagedData(end-200:end,:),1); % use last 200 points since data is upsampled
             WFMax = max(obj.averagedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
@@ -296,10 +295,10 @@ classdef ChannelDataAPD < handle
             end
             obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
             %------------------Initilize result matrix---------------------
-            numOfDataPoints = length(obj.deconIdx);
-            obj.LCs = zeros(obj.K,numOfDataPoints);
-            obj.LTs = zeros(numOfDataPoints,1);
-            obj.INTs = zeros(numOfDataPoints,1);
+            numOfDataPoints = obj.numOfAvgWFs;
+            obj.Lg_LCs = zeros(obj.K,numOfDataPoints);
+            obj.Lg_LTs = zeros(numOfDataPoints,1);
+            obj.Lg_INTs = zeros(numOfDataPoints,1);
             obj.shift = zeros(numOfDataPoints,1);
             %             obj.spec_aligned = zeros(size(obj.dataT));
             %             obj.fit = zeros(size(obj.dataT));
@@ -321,17 +320,17 @@ classdef ChannelDataAPD < handle
                 else
                     vHigh = obj.APDObj.irfV(i);
                 end
-                idx = find(obj.CtrlVDecon>=vLow & obj.CtrlVDecon< vHigh);
+                idx = find(obj.CtrlV>=vLow & obj.CtrlV< vHigh);
                 if ~isempty(idx)
                     spec = obj.dataT(:,idx); % get waveforms
                     irf = obj.APDObj.irfTNorm(:,i); % get irf
                     obj.irfIdx(idx) = i; %  store irf index
-                    channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gainDecon(idx));
+                    channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gain(idx));
                     laguerreObj = LaguerreModel(channelDataStruct,obj.K, obj.alpha);
                     laguerreObj.estimate_laguerre(obj.exclude);
-                    obj.LCs(:,idx) = laguerreObj.LCs;
-                    obj.LTs(idx) = laguerreObj.LTs;
-                    obj.INTs(idx) = laguerreObj.INTs;
+                    obj.Lg_LCs(:,idx) = laguerreObj.LCs;
+                    obj.Lg_LTs(idx) = laguerreObj.LTs;
+                    obj.Lg_INTs(idx) = laguerreObj.INTs;
                     obj.shift(idx) = laguerreObj.shift;
                     %                     obj.fit(:,idx) = get(laguerreObj,'fit');
                     %                     obj.res(:,idx) = get(laguerreObj,'res');
@@ -339,20 +338,14 @@ classdef ChannelDataAPD < handle
                 end
             end
             %             obj.stat_test = test_stats(obj.spec_aligned,obj.fit, obj.dtUp, obj.bw);
-            obj.INTsGainCorrected = obj.INTs./obj.gainDecon;
-            obj.LTsAll = zeros(size(obj.averagedData,2),1);
-            obj.LTsAll(obj.deconIdx) = obj.LTs;
-            obj.INTsAllGainCorrected = zeros(size(obj.averagedData,2),1);
-            obj.INTsAllGainCorrected(obj.deconIdx) = obj.INTsGainCorrected;
-            obj.LTsAll(obj.LTsAll==0)=NaN;
-            obj.INTsAllGainCorrected(obj.INTsAllGainCorrected==0)=NaN;
+            obj.Lg_INTsGainCorrected = obj.Lg_INTs./obj.gain;
         end
         
         function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
-            wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
-            wf_aligned(:,obj.deconIdx) = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
-            irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
-            irf(:,obj.deconIdx) = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
+%             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
+            wf_aligned = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
+%             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
+            irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
             obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
             runDecon(obj.expDeconObj);
             %------------------create result structure---------------------
@@ -384,18 +377,18 @@ classdef ChannelDataAPD < handle
             switch option % check option
                 %---------------------------------get fitting-----------------------------
                 case 'fit'
-                    if ~isempty(obj.LCs) % check laguerre coefficient, if empty, run decon
+                    if ~isempty(obj.Lg_LCs) % check laguerre coefficient, if empty, run decon
                         switch nargin % check number of function input
                             case 2
-                                result = zeros(obj.truncationLength,length(obj.deconIdx));
-                                for i = 1:length(obj.deconIdx)
+                                result = obj.dataT;
+                                for i = 1:obj.numOfAvgWFs
                                     irfTemp = obj.APDObj.irfTNorm(:,obj.irfIdx(i));
-                                    result(:,i) = filter(irfTemp,1,obj.LaguerreBasis)*obj.LCs(:,i);
+                                    result(:,i) = filter(irfTemp,1,obj.LaguerreBasis)*obj.Lg_LCs(:,i);
                                 end
                             case 3
                                 idx = varargin{1};
                                 irfTemp = obj.APDObj.irfTNorm(:,obj.irfIdx(idx));
-                                result = filter(irfTemp,1,obj.LaguerreBasis)*obj.LCs(:,idx);
+                                result = filter(irfTemp,1,obj.LaguerreBasis)*obj.Lg_LCs(:,idx);
                         end
                     else
                         warning('Deconvolution result not available, run deconvolution before accessing fitted curve!')
@@ -403,11 +396,11 @@ classdef ChannelDataAPD < handle
                     end
                     %-----------------------------aligned waveform-----------------------------
                 case 'wf_aligned'
-                    if ~isempty(obj.LCs)
+                    if ~isempty(obj.Lg_LCs)
                         switch nargin % check number of function input
                             case 2
-                                result = zeros(obj.truncationLength,length(obj.deconIdx));
-                                for i = 1:length(obj.deconIdx)
+                                result = obj.dataT;
+                                for i = 1:obj.numOfAvgWFs
                                     result(:,i) = circshift(obj.dataT(:,i),obj.shift(i));
                                 end
                             case 3
@@ -420,7 +413,7 @@ classdef ChannelDataAPD < handle
                     end
                     %---------------------------residue----------------------------------------
                 case 'res'
-                    if ~isempty(obj.LCs)
+                    if ~isempty(obj.Lg_LCs)
                         switch nargin % check number of function input
                             case 2
                                 fitting = get(obj,'fit');
