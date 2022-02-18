@@ -5,23 +5,30 @@ clc
 %% 
 load('..\..\TestData\ExpTestData.mat')
 %% 
-specTempCh1(:,2) = zeros(size(specTempCh1(:,2)));
-laser_m = repmat(laser,1, size(specTempCh1,2));
-laser_m(:,2) = zeros(size(laser_m(:,2)));
-O = ExpModel(3, specTempCh1,laser, 0.2, '', '', '',[]);
+N = 1000;
+tau1 = rand(N,1)*4;
+tau2 = rand(N,1)*4+4;
+t = 0:1:length(laser)-1;
+t = t*0.1;
+decay = zeros(length(laser),N);
+for i = 1:N
+decay(:,i) = 0.5*exp(-t/tau1(i))+0.5*exp(-t/tau2(i));
+end
+figure;plot(decay)
+WF = filter(laser,1,decay);
+figure;plot(WF)
+
+O = ExpModel(2, WF,laser, 0.1, '', '', '',[]);
 %%
 runDecon(O)
 %%
-idx = 10
-
+idx = ceil(rand*N)
 fit = get(O,'fit',idx);
-
-%%
 figure
-plot(specTempCh1(:,idx))
+plot(WF(:,idx))
 hold on
 plot(fit)
 hold off
-
+%%
 figure
 scatter(O.LTs_formula,O.LTs_formula-O.LTs_decay);
