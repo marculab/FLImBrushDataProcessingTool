@@ -59,4 +59,4 @@ switch type
 end
 
 LT=lifet_sampl*dt;
-INT=sum(h);
+INT=sum(h)';
