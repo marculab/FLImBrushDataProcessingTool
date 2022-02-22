@@ -49,6 +49,14 @@ classdef ChannelDataAPD < handle
         wfLenght % length of each waveform
         exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
         expDeconObj  % exponential decon object, does not include data that is filtered
+        Ph_H1S % phasor result harmonics 1
+        Ph_H1G % phasor result harmonics 1
+        Ph_H2S % phasor result harmonics 2
+        Ph_H2G % phasor result harmonics 2
+        Ph_H3S % phasor result harmonics 3
+        Ph_H3G % phasor result harmonics 3
+        Ph_H4S % phasor result harmonics 4
+        Ph_H4G % phasor result harmonics 4
 %         mExp_a1 % multi-exponential fit result
 %         mExp_a2 % multi-exponential fit result
 %         mExp_a3 % multi-exponential fit result
@@ -348,25 +356,31 @@ classdef ChannelDataAPD < handle
             irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
             obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
             runDecon(obj.expDeconObj);
-            %------------------create result structure---------------------
-%             obj.expDeconResult.numOfExp = numOfExp;
-%             obj.expDeconResult.A = zeros(obj.numOfAvgWFs,numOfExp); % pre-exponential factoes
-%             obj.expDeconResult.Tau = zeros(obj.numOfAvgWFs,numOfExp); % pre-exponential factoes
-%             obj.expDeconResult.LTs_decay = zeros(obj.numOfAvgWFs,1);
-%             obj.expDeconResult.LTs_formula = zeros(obj.numOfAvgWFs,1);
-%             obj.expDeconResult.INTs_uncorrected = zeros(obj.numOfAvgWFs,1);
-%             obj.expDeconResult.A(obj.deconIdx,:) = obj.expDeconObj.A;
-%             obj.expDeconResult.Tau(obj.deconIdx,:) = obj.expDeconObj.Tau;
-%             obj.expDeconResult.LTs_decay(obj.deconIdx) = obj.expDeconObj.LTs_decay;
-%             obj.expDeconResult.LTs_formula(obj.deconIdx) = obj.expDeconObj.LTs_formula;
-%             obj.expDeconResult.INTs_uncorrected(obj.deconIdx) = obj.expDeconObj.INTs;
-%             %-----------------------set 0 to NaN
-%             obj.expDeconResult.A(obj.expDeconResult.A==0)=NaN;
-%             obj.expDeconResult.Tau(obj.expDeconResult.Tau==0)=NaN;
-%             obj.expDeconResult.LTs_decay(obj.expDeconResult.LTs_decay==0)=NaN;
-%             obj.expDeconResult.LTs_formula(obj.expDeconResult.LTs_formula==0)=NaN;
-%             obj.expDeconResult.INTs_uncorrected(obj.expDeconResult.INTs_uncorrected==0)=NaN;
-
+        end
+        
+        function runPhasor(obj, Harmonics)
+            wf_aligned = get(obj,'wf_aligned');
+            irf = obj.APDObj.irfTNorm(:,obj.irfIdx);
+            phasorOut = zeros(obj.numOfAvgWFs,1);
+            parfor i = 1:obj.numOfAvgWFs
+                S = wf_aligned(:,i);
+                Ir = irf(:,i);
+                phasorOut(i)=ComputePhasor(S,Ir,Harmonics,1);
+            end
+            switch Harmonics
+                case 1
+                    obj.Ph_H1G = real(phasorOut);
+                    obj.Ph_H1S = imag(phasorOut);
+                case 2
+                    obj.Ph_H2G = real(phasorOut);
+                    obj.Ph_H2S = imag(phasorOut);
+                case 3
+                    obj.Ph_H3G = real(phasorOut);
+                    obj.Ph_H3S = imag(phasorOut);
+                case 4
+                    obj.Ph_H4G = real(phasorOut);
+                    obj.Ph_H4S = imag(phasorOut);
+            end
         end
         
         % method to get properties
@@ -438,6 +452,9 @@ classdef ChannelDataAPD < handle
                         WFUpsampled(:,i) = interp(temp(:,i),upsamplefactor);
                     end
                     result = WFUpsampled;
+                    
+                case 'GainCorrectedWF'
+                    result = obj.dataT./obj.gain';
                 
                 otherwise
                     warning('unknown option!')
