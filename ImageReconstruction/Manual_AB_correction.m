@@ -64,9 +64,9 @@ close(fig2)
 pos_new=[X Y];
 
 
-%% remove points out of ROI
-pos_new = cat(2,zeros(size(pos_new,1),6),pos_new);
-save(fullfile(vidPath,'pos_corrected'),'pos_new')
+%% save new result
+pos = cat(2,zeros(size(pos_new,1),6),pos_new);
+save(fullfile(vidPath,'pos_corrected'),'pos')
 
 
 
