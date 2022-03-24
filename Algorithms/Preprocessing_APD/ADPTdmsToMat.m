@@ -37,8 +37,17 @@ for n = 1: numOfFiles
     irfRawdt = output.iRF.Props.dt;
     iRFName = fieldnames(output.iRFRaw);
     numOfIrf = length(iRFName)-2;
+    try 
     lengthOfIRF = output.iRFRaw.Props.WFLength;
+    catch
+        lengthOfIRF = 800;
+    end
+    
+    try
     numOfiRFPerV = output.iRFRaw.Props.NumOfWFsPerV;
+    catch
+        numOfiRFPerV = output.iRFRaw.Props.DataLength/lengthOfIRF;
+    end
     iRF = zeros(lengthOfIRF,numOfIrf);
     iRFUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfIrf);
     iRFV = zeros(numOfIrf,1);
@@ -47,20 +56,22 @@ for n = 1: numOfFiles
     iRFName(cellfun('isempty', find_c)) = [];
     iRFNameNumOnly = erase(iRFName,'_');
     iRFRawtemp = zeros(lengthOfIRF,numOfiRFPerV);
-    iRFRawtempUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfiRFPerV);
+    
     irfdt = irfRawdt/upSampleFactor;
     for i = 1:numOfIrf
+        iRFRawtempUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfiRFPerV);
         iRFV(i) = sscanf(iRFNameNumOnly{i},'c%d')*0.01;
         iRFTemp = getfield(output.iRFRaw,iRFName{i});
         iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,numOfiRFPerV);
-        for m = 1:numOfiRFPerV % upsample rawa data
+        iRFRawtemp(:,sum(iRFRawtemp)==0) = [];
+        for m = 1:min(numOfiRFPerV,size(iRFRawtemp,2)) % upsample rawa data
             iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),upSampleFactor);
         end
         %                 figure; plot(iRFRawtemp);title('Before alignment');xlim([200 230])
-        iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 2.8, irfRawdt,0.5);
+        iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 3, irfRawdt,0.5);
         iRF(:,i) = mean(iRFRawtemp,2);
-                
-        iRFRawtempUpSampledAligned = alignWaveform_CFDNew(iRFRawtempUpSampled, 2.8, irfdt, 0.5); % CFD alignment
+        iRFRawtempUpSampled(:,sum(iRFRawtempUpSampled)==0) = [];
+        iRFRawtempUpSampledAligned = alignWaveform_CFDNew(iRFRawtempUpSampled, 3, irfdt, 0.5); % CFD alignment
         %         xlim([400 460])
 %                 if i==225
 %                    figure;tiledlayout(1,2);nexttile;plot(iRFRawtempUpSampled);
@@ -86,12 +97,12 @@ for n = 1: numOfFiles
 end
 %% plot result
 figure
-idx = 100;
+idx = 170;
 x = 0:size(irf,1)-1;
 plot(x,irf(:,idx));
 hold on
 xx = 0:1/upSampleFactor:size(irf,1)-1/upSampleFactor;
 plot(xx,irfUpSampled(:,idx));
 hold off
-xlim([100 600])
+% xlim([100 600])
 
