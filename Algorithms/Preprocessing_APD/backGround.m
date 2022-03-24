@@ -33,8 +33,10 @@ classdef backGround < handle
             obj.upSampleFactor = 4;
             try
                 %---------------------------------------get raw waveforms-----------------------------------------------
-                obj.numOfWF = length(output.Channel_1.CtrlV.data); % get number of waveforms
-                obj.wfLength = length(output.Channel_1.AvgBgData.data); % get waveform length
+%                 obj.numOfWF = length(output.Channel_1.CtrlV.data); % get number of waveforms
+                obj.numOfWF = output.Channel_1.Props.NumOfWFs;
+%                 obj.wfLength = length(output.Channel_1.AvgBgData.data); % get waveform length
+                obj.wfLength = output.Channel_1.Props.WFLength;
                 obj.bgCh1Raw = reshape(output.Channel_1.RawBgData.data,obj.wfLength,obj.numOfWF); % get raw waveforms
                 obj.bgCh2Raw = reshape(output.Channel_2.RawBgData.data,obj.wfLength,obj.numOfWF); % get raw waveforms
                 obj.bgCh3Raw = reshape(output.Channel_3.RawBgData.data,obj.wfLength,obj.numOfWF); % get raw waveforms
