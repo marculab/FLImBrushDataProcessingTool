@@ -443,6 +443,13 @@ classdef ChannelDataAPD < handle
                         warning('Deconvolution result not available, run deconvolution before accessing fitted curve!')
                         result = [];
                     end
+                case 'decay'
+                    if ~isempty(obj.Lg_LCs)
+                        result = obj.LaguerreBasis*obj.Lg_LCs;
+                    else
+                        warning('use estimate_laguerre before accessing fitted decay!')
+                        result = [];
+                    end
                     %-------------------------------------upsample data----------------------------------------------------------
                 case 'rawDataUpsampled'
                     WFUpsampled = zeros(obj.wfLenght*obj.upSampleFactor,obj.numOfWFs);
