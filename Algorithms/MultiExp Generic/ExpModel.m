@@ -62,14 +62,16 @@ classdef ExpModel < handle
                 obj.tauUpperLim = 25;
             end
             
-            obj.A = zeros(obj.N,obj.order);
-            obj.Tau = zeros(obj.N,obj.order);
-            obj.INTs = zeros(obj.N,1);
+            obj.A = NaN(obj.N,obj.order);
+            obj.Tau = NaN(obj.N,obj.order);
+            obj.INTs = NaN(obj.N,1);
+            obj.LTs_decay = NaN(obj.N,1);
+            obj.LTs_formula = NaN(obj.N,1);
             
-            obj.rSquare = zeros(obj.N,1);
-            obj.rMSE = zeros(obj.N,1);
-            obj.exitFlag = zeros(obj.N,1);
-            obj.numOfIteratoin = zeros(obj.N,1);
+            obj.rSquare = NaN(obj.N,1);
+            obj.rMSE = NaN(obj.N,1);
+            obj.exitFlag = NaN(obj.N,1);
+            obj.numOfIteratoin = NaN(obj.N,1);
             
             t = linspace(0,obj.L-1,obj.L)*obj.dt;
             t =t'; % covert to column vector
@@ -111,6 +113,7 @@ classdef ExpModel < handle
             M = max(wfALL); % find maximum of each waveform
             % if no waveform has peak value higher than 0.1, skip decon and return
             if ~any(M>0.1)
+                msgbox('None of the wavefroms has a peak value higher than 0.1V, exponential fitting skipped!','No data for mExp decon!')
                 return
             end
             tt =  obj.t;
