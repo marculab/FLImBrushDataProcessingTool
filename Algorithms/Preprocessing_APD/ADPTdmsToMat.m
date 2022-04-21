@@ -1,6 +1,6 @@
 % covert APD detector tdms file to .mat file
 %%
-clear all
+clear 
 close all
 clc
 %% select tdms file
@@ -62,7 +62,8 @@ for n = 1: numOfFiles
         iRFRawtempUpSampled = zeros(lengthOfIRF*upSampleFactor,numOfiRFPerV);
         iRFV(i) = sscanf(iRFNameNumOnly{i},'c%d')*0.01;
         iRFTemp = getfield(output.iRFRaw,iRFName{i});
-        iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,numOfiRFPerV);
+%         iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,numOfiRFPerV);
+        iRFRawtemp = reshape(iRFTemp.data,lengthOfIRF,[]);
         iRFRawtemp(:,sum(iRFRawtemp)==0) = [];
         for m = 1:min(numOfiRFPerV,size(iRFRawtemp,2)) % upsample rawa data
             iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),upSampleFactor);
@@ -95,6 +96,7 @@ for n = 1: numOfFiles
     saveName = [saveName '.mat'];
     save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
 end
+f = msgbox('Data Processing Completed');
 %% plot result
 figure
 idx = 170;

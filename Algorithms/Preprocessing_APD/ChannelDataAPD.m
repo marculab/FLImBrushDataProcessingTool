@@ -34,6 +34,7 @@ classdef ChannelDataAPD < handle
         noise % data noise
         outlierFlag % 1D column vector
         preProcessedData % final preprocessed data
+        prePeakFactor = 0.1; % percentage of data before peak
         rawData % raw data
         rawDataDCRemoved % raw data DC removed
         rawDataUpsampled % upsampled raw data after DC removal
@@ -197,23 +198,30 @@ classdef ChannelDataAPD < handle
             sortedTruncatedData = obj.dataT(:,I);
         end
         
-        function removeDCBG(obj, bgLowIn, bgHighIn)
+        function removeDCBG(obj, bgLowIn, bgHighIn, varargin)
+            switch nargin
+                case 3
+                    threshold = 0.05;
+                case 4
+                    threshold = varargin{1};
+            end
             obj.bgLow = bgLowIn;
             obj.bgHigh = bgHighIn;
-            
 %             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
 %             obj.preProcessedData = obj.preProcessedData-DC;
-
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
-            dataBGAUC(dataBGAUC<0.05) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
+            dataBGAUC(dataBGAUC<threshold*(bgHighIn-bgLowIn+1)) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
+%             bgScaleFactor(bgScaleFactor<5) = 0;
+            bgScaleFactor(isnan(bgScaleFactor)) = 0;
             obj.preProcessedData = obj.preProcessedData-obj.bg*bgScaleFactor;
         end
         
         
         function truncateData(obj, timeWindowIn)
+            obj.prePeakFactor = 0.1;
             %----------------------------------------resampleing irf to match data--------------------------------------------------------------------
             if (obj.APDObj.irfUpSampleddt~=obj.dtUp) % if dt not match, resample irf
                 downFactor = obj.dtUp/obj.APDObj.irfUpSampleddt;
@@ -239,7 +247,7 @@ classdef ChannelDataAPD < handle
             dataLength = round(timeWindowIn/obj.dtUp);
             obj.truncationLength = dataLength;
             %--------------------------------------------truncate data--------------------------------------------------------------------
-            start_idx = dataMaxI-round(0.2*dataLength);
+            start_idx = dataMaxI-round(obj.prePeakFactor*dataLength);
             if start_idx<1
                 start_idx=1;
             end
@@ -259,7 +267,7 @@ classdef ChannelDataAPD < handle
             iRFLength = dataLength; % use short irf 1000 points
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
             irfMaxI = mode(irfMaxI);
-            irf_start_idx = irfMaxI-round(0.2*iRFLength);
+            irf_start_idx = irfMaxI-round(obj.prePeakFactor*iRFLength);
             if irf_start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:irf_start_idx+iRFLength-1,:);
             else
