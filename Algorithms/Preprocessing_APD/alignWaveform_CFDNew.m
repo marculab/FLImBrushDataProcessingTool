@@ -1,14 +1,19 @@
-function [data_out] = alignWaveform_CFDNew(data_in,t_rising, dt,f_in)
+function [data_out] = alignWaveform_CFDNew(data_in, t_rising, dt, f_in, range_in)
 % in-input matrix with waveform as columns
 % f is fraction
 % t_rising is the rising time of the signal
 % dt is sampling interval
-% data with peak aligned
+% range is the range of data used for alignment
 switch nargin
     case 3
         f = 0.5;
+        range = 1:size(data_in,1);
     case 4
         f = f_in;
+        range = 1:size(data_in,1);
+    case 5
+        f = f_in;
+        range = range_in;
     otherwise
         error('Wrong number of Inputs')
 end
@@ -17,10 +22,12 @@ data_in_raw = data_in; % make copy of raw data
 data_in(isnan(data_in)) = eps;
 
 % remove signal DC value
-DC = mean(mean(data_in(1:75,:)));
+DC_range = round(size(data_in,1)*0.1);
+DC = mean(mean(data_in(1:DC_range,:)));
 data_in = data_in-DC;
 % figure;plot(data_in(:,1:50:end));
-
+%---------------truncate data----------------------
+data_in = data_in(range,:);
 % delay positive part
 t_d = ceil(t_rising/dt*0.5);
 dataDelayed = circshift(data_in,t_d,1);
