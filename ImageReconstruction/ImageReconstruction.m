@@ -7,7 +7,7 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\FLImBrush\20210505_neuro024';
+root = '';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
 [Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
@@ -31,18 +31,18 @@ output.img = im;
 % shift = round(shift);
 shift=0; %shift need to be 0!
 
-Ch1INTCorr = circshift(Ch1DataObj.INTsAllGainCorrected,shift);
-Ch1LT = circshift(Ch1DataObj.LTsAll,shift);
+Ch1INTCorr = circshift(Ch1DataObj.Lg_INTsGainCorrected,shift);
+Ch1LT = circshift(Ch1DataObj.Lg_LTs,shift);
 Ch1SNR = circshift(Ch1DataObj.SNR,shift)';
 G1 = circshift(Ch1DataObj.gain,shift);
 
-Ch2INTCorr = circshift(Ch2DataObj.INTsAllGainCorrected,shift);
-Ch2LT = circshift(Ch2DataObj.LTsAll,shift);
+Ch2INTCorr = circshift(Ch2DataObj.Lg_INTsGainCorrected,shift);
+Ch2LT = circshift(Ch2DataObj.Lg_LTs,shift);
 Ch2SNR = circshift(Ch2DataObj.SNR,shift)';
 G2 = circshift(Ch2DataObj.gain,shift);
 
-Ch3INTCorr = circshift(Ch3DataObj.INTsAllGainCorrected,shift);
-Ch3LT = circshift(Ch3DataObj.LTsAll,shift);
+Ch3INTCorr = circshift(Ch3DataObj.Lg_INTsGainCorrected,shift);
+Ch3LT = circshift(Ch3DataObj.Lg_LTs,shift);
 Ch3SNR = circshift(Ch3DataObj.SNR,shift)';
 G3 = circshift(Ch3DataObj.gain,shift);
 
