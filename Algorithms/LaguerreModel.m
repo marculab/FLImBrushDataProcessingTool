@@ -1,31 +1,25 @@
 classdef LaguerreModel < handle
+    % LaguerreModel class, used for Laguerre deconvolution
     % specification for channeldata and iIRF:
     % 1. channeldata was background & DC subtracted, truncated and gain
     % corrected
     % 2. iIRF is unit-integral scaled, truncated to proper length
     % * 10-90 percent before-after peak positioning is suggested for both
     % channeldata and iIRF
-    properties (Access = protected)
-        %raw data
-    end
-    
-    properties (Access = private)
-        
-    end
     
     properties
         LaguerreBasis = []; % Laguerre base funciton
         M %lenght of data
         K % Laguerre Order
-        alpha % Alpha value
+        alpha % Alpha value of Laguerre base functions
         LCs %Laguerre coefficient
         LTs %lifetimes
         INTs % intensities
         stat_test % statistic test
-        channeldata % all relevent parameters and data
-        shift % WF shift amount
-        spec_aligned % aligned WF with iRF
-        exclude % index of data excluded from decon
+        channeldata % channeldata class containing raw data and all relevent parameters
+        shift % number of data points waveform has to shift to match iRF
+        spec_aligned % aligned waveform
+        exclude % index of data excluded from decon due to either saturation or low signal
     end
     
     methods

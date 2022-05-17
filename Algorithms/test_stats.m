@@ -1,4 +1,8 @@
 function stats = test_stats(spec,spec_fitted,dt,bw,varargin)
+% test_stats(raw waveform, fitted wavefrom, time resolution, bandwidth)
+% function to evaluate goodness of fit of deconvolution
+% (Laguerre, multi-exponential or any other fitting algorithm)
+% to 
 
 threshold = 2/sqrt(size(spec,1));% threshod for auto-correlaton
 if nargin > 4
@@ -26,12 +30,9 @@ n_1=quantile(n_1,0.95)+size(res,1)*0.05;
 if n_1>size(res,1)-n_t*20
     n_1=1;
 end
+
 res=res(n_1:n_t:end,:);
-
-
 
 % [stats.lbq.h,stats.lbq.pvalue,stats.lbq.stat,stats.lbq.cvalue]=lbqtest(res,param{1});
 % [stats.chi2.h,stats.chi2.pvalue,stats.chi2.stat,stats.chi2.cvalue]=chi2test(res,param{2});
-
-
 end
