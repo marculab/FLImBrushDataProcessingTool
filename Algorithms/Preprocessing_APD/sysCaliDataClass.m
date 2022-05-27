@@ -17,12 +17,13 @@ classdef sysCaliDataClass < handle
     end
     
     methods
-        % contructor
         function obj = sysCaliDataClass(pathToFile)
+            % contructor, create object that contains system clibration data.
             obj.filePath = pathToFile;
         end
         
         function load(obj)
+            % load function to load data from .tdms into object
             [output,~] = TDMS_getStruct(obj.filePath);
             fileInfo = dir(obj.filePath);
             obj.SystemID = output.Props.SystemID;

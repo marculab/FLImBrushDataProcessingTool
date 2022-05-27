@@ -1,25 +1,28 @@
 classdef FLImDataClass < handle
+    % Create object to read FLImBRUSH .tdms files
     
     properties (Access = public)
-        filePath; % path to data file
-        numOfPoints; % number of raw data points
-        WFLength; %waveform length
-        ch1RawWF; % channel 1 raw data
-        ch2RawWF; % channel 2 raw data
-        ch3RawWF; % channel 3 raw data
+        filePath; % absolute or relative path to data .tdms file
+        numOfPoints; % number of raw waveforms before averaging
+        WFLength; % waveform length in points
+        ch1RawWF; % channel 1 raw waveform data, 2D matrix
+        ch2RawWF; % channel 2 raw waveform data, 2D matrix
+        ch3RawWF; % channel 3 raw waveform data, 2D matrix
         V1; % channel 1 raw control V, 1D column vector
         V2; % channel 2 raw control V, 1D column vector
         V3; % channel 3 raw control V, 1D column vector
-        dataAvg; % number of waveforms to average
-        laserRepRate; % laser rep rate
+        dataAvg; % number of waveforms to average used in LabView control software
+        laserRepRate; % 355nm laser rep rate
     end
     
     methods (Access = public)
         function FLImDataObj = FLImDataClass(pathToTdmsFile)
+            % constructor, create empty object with path to tdms file
             FLImDataObj.filePath = pathToTdmsFile;
         end
         
         function loadFromfile(FLImDataObj)
+            % function to load data into the object from the tdms file 
             [output,~] = TDMS_getStruct(FLImDataObj.filePath);
             FLImDataObj.numOfPoints = output.Channel1.Props.Num_of_points;
             try

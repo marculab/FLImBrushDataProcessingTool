@@ -1,32 +1,37 @@
 classdef LaguerreModel < handle
-    % LaguerreModel class, used for Laguerre deconvolution
-    % specification for channeldata and iIRF:
-    % 1. channeldata was background & DC subtracted, truncated and gain
-    % corrected
-    % 2. iIRF is unit-integral scaled, truncated to proper length
-    % * 10-90 percent before-after peak positioning is suggested for both
-    % channeldata and iIRF
+    % LaguerreModel class, top level object used for Laguerre deconvolution
     
     properties
-        LaguerreBasis = []; % Laguerre base funciton
-        M %lenght of data
+        LaguerreBasis = []; % Laguerre base funciton, 2D matrix
+        M % lenght of data
         K % Laguerre Order
         alpha % Alpha value of Laguerre base functions
-        LCs %Laguerre coefficient
-        LTs %lifetimes
-        INTs % intensities
+        LCs % Laguerre coefficient, 2D matrix
+        LTs % Lifetimes, 1D vector
+        INTs % Intensities, 1D vector
         stat_test % statistic test
-        channeldata % channeldata class containing raw data and all relevent parameters
+        channeldataObj % channeldata class object containing raw data and other parameters
         shift % number of data points waveform has to shift to match iRF
         spec_aligned % aligned waveform
-        exclude % index of data excluded from decon due to either saturation or low signal
+        exclude % index of data excluded from decon due to artifact in the data
     end
     
-    methods
-        % constructor
+    methods (Access = public)
+        
         function obj = LaguerreModel(channeldata,varargin)
-            % argument in: channeldata class, alpha
-            obj.channeldata = channeldata;
+            % constructor,  create object to run Laguerre deconvolution.
+            % Syntax:
+            % 1. obj = LaguerreModel(channeldata): create object using Laguerre order = 12, and auto-adjust alpha so that the conditional number of
+            % Laguerre base functions are 1.01.
+            %
+            % 2. obj = LaguerreModel(channeldata, order_in): create object using Laguerre order = order_in, and auto-adjust alpha so that the
+            % conditional number of Laguerre base functions are 1.01.
+            %
+            % 3. obj = LaguerreModel(channeldata, order_in, alpha_in): create object using Laguerre order = order_in, and auto-adjust alpha so that
+            % the conditional number of Laguerre base functions are 1.01.
+            %
+            % See also CHANNELDATA.
+            obj.channeldataObj = channeldata;
             obj.M = size(channeldata.data,1);
             % use switch if more arguments were needed in future
             switch nargin
@@ -44,22 +49,21 @@ classdef LaguerreModel < handle
             end
             obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
         end
-        % align iIRF
-        %         function iIRF_align(obj,varargin)
-        %             switch nargin
-        %                 case 1
-        %                     n_align = ceil(0.25*size(obj.channeldata.data,2));
-        %                     obj.shift = spec_laser_align(obj.channeldata.data,obj.channeldata.iIRF,12,500,10,[],[]);  %shift iRF
-        %                 case 2
-        %                     obj.shift = varargin{1};
-        %             end
-        %             obj.channeldata.iIRF = circshift(obj.channeldata.iIRF,[obj.shift,0]);
-        %         end
-        % do deconvolution
-        function estimate_laguerre(obj, exclude_in, varargin)
+        
+        function obj_out = estimate_laguerre(obj, exclude_in, varargin)
+            % run Laguerre deconvolution to estimate Laguerre coefficients
+            % syntax:
+            % 1. estimate_laguerre(obj) or obj.estimate_laguerre: run Laguerre deconvolution using all data point and default shift range of -20 to 20
+            % points.
+            %
+            % 2. estimate_laguerre(obj, exclude_in): run Laguerre deconvolution with part of the data excluded and default shift range of -20 to 20
+            % points.
             % exclude_in: A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
-            % data duplicated here, since communication overhead may incur
-            % within the parallel for loop if using "obj.channeldata.data".
+            %
+            % 3. estimate_laguerre(obj, exclude_in, shift_range): run Laguerre deconvolution with part of the data excluded and specified shift range.
+            % exclude_in: A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
+            % shift_range: A vector of integers specifing the shift range, for example: shift_range= -20:20;
+            
             obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
                 case 2
@@ -67,11 +71,11 @@ classdef LaguerreModel < handle
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
-                
+                    
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
-            spec_raw = obj.channeldata.data;
+            spec_raw = obj.channeldataObj.data;
             spec = spec_raw;
             LaguerreBasisS = obj.LaguerreBasis;
             wfLength = size(spec,1);
@@ -84,12 +88,12 @@ classdef LaguerreModel < handle
                 spec(:,ii) = circshift(spec(:,ii),shift_v(ii));
             end
             
-            vv=filter(obj.channeldata.iIRF,1,LaguerreBasisS);
+            vv=filter(obj.channeldataObj.iIRF,1,LaguerreBasisS);
             if ~isempty(obj.exclude) % if exlude is not empty
-            vv(obj.exclude,:) = zeros(size(vv(obj.exclude,:))); % ignore data in range 540-640
+                vv(obj.exclude,:) = zeros(size(vv(obj.exclude,:))); % ignore data in range 540-640
             end
             D_mat=conv2(eye(size(spec,1)),[1,-3,3,-1],'valid')'*LaguerreBasisS;
-%             D_mat(581:585,:) = zeros(size(D_mat(581:585,:)));
+            %             D_mat(581:585,:) = zeros(size(D_mat(581:585,:)));
             % third order forward finite difference derivative  matrix
             % times laguerre basis, accuracy is only 1st order
             D=D_mat;
@@ -99,14 +103,14 @@ classdef LaguerreModel < handle
             l1=H_chol*vv';
             lam=zeros(size(D,1),size(spec,2));
             %             options = optimset('Display','notify','TolX',10*eps);
-%             exitflag = zeros(size(spec,2),1);
+            %             exitflag = zeros(size(spec,2),1);
             parfor i=1:size(spec,2)
                 d=l1*spec(:,i);
                 [lam(:,i)]=lsqnonneg(C,d);
             end
             obj.LCs=(vv'*vv)\(vv'*spec-D'*lam);
             %             fit_all = obj.get('fit');
-            fit_all = filter(obj.channeldata.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
+            fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
             res = spec-fit_all;
             %             ind1 = sub2ind([length(shift_range),size(spec_raw,2)],14,25);
             %             ind2 = sub2ind([length(shift_range),size(spec_raw,2)],15,25);
@@ -138,19 +142,32 @@ classdef LaguerreModel < handle
             %             figure;plot(decays);
             %             figure;plot(decays(:,[1,3]))
             %             figure;plot(decays./max(decays));
-%             fit = filter(obj.channeldata.iIRF,1,LaguerreBasisS)*obj.LCs;
-%             figure;plot(spec(:,600));hold on;plot(fit(:,600))
-            [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldata.dt,'average');
-            %             LTe = h_lifet(decays,obj.channeldata.dt,'1/e');
-            %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldata.dt, obj.channeldata.bw);
+            %             fit = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs;
+            %             figure;plot(spec(:,600));hold on;plot(fit(:,600))
+            [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
+            %             LTe = h_lifet(decays,obj.channeldataObj.dt,'1/e');
+            %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldataObj.dt, obj.channeldataObj.bw);
+            obj_out = obj;
         end
         
-        % get parameters
+        
         function result = get(obj,option)
+            % GET function to retrive object properties
+            %
+            % Syntax:
+            % out = GET(obj, option): get specified properties from object.
+            %
+            % option list:
+            % 'channeldata': retrive channeldataObj property
+            % 'fit': get fitting, same size as data
+            % 'decay': get fitted decay
+            % 'res': get fitting residual
+            % 'iRF': get instrument responsed function
+            
             switch option
                 case 'channeldata'
-                    if ~isempty(obj.channeldata)
-                        result = obj.channeldata;
+                    if ~isempty(obj.channeldataObj)
+                        result = obj.channeldataObj;
                     else
                         warning('No Channel!')
                         result = [];
@@ -158,7 +175,7 @@ classdef LaguerreModel < handle
                     
                 case 'fit'
                     if ~isempty(obj.LCs)
-                        result = filter(obj.channeldata.iIRF,1,obj.LaguerreBasis)*obj.LCs;
+                        result = filter(obj.channeldataObj.iIRF,1,obj.LaguerreBasis)*obj.LCs;
                     else
                         warning('use estimate_laguerre before accessing fitted curve!')
                         result = [];
@@ -186,18 +203,20 @@ classdef LaguerreModel < handle
                 case 'basis'
                     result = obj.LaguerreBasis;
                 case 'iRF'
-                    result = obj.channeldata.iIRF;
+                    result = obj.channeldataObj.iIRF;
                 otherwise
                     warning('unknown option!')
                     result = [];
             end
         end
-        % set parameters
-        function set(obj,option,value)
+        
+        function obj_out = set(obj,option,value)
+            % functions to set non-public parameters, depreciated
             switch option
                 case 'K'
                     obj.K = value;
                     obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
+                    obj_out = obj;
                 case 'alpha'
                     if isnumeric(value)
                         obj.alpha = value;
@@ -205,6 +224,7 @@ classdef LaguerreModel < handle
                         obj.alpha = alpha_up(obj.M,obj.K);
                     end
                     obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
+                    obj_out = obj;
                 otherwise
                     warning('unknown option!')
             end

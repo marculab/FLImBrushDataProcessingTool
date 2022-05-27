@@ -1,4 +1,7 @@
 classdef ChannelDataAPD < handle
+    % top level class for deconvolution (Laguerre, multi-exponential and phasor) of FLImBRUSH data
+    % See also APDCLASS, FLIMDATACLASS, SYSCALIDATACLASS.
+    
     properties
         averagedData % averaged data
         alpha % alpha value
