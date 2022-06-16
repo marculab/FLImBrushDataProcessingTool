@@ -18,8 +18,8 @@ classdef ChannelDataAPD < handle
         dataAveraging % data averaging used for processing
         dataLow; % data amplitude threshold low
         dataHigh; % data amplitude threshold high
-%         dcLow; % DC removal index low
-%         dcHigh; % DC removal index low
+        %         dcLow; % DC removal index low
+        %         dcHigh; % DC removal index low
         dataT % truncated data
         goodDataIdx % raw waveform good data index, result of saturation filtering
         gain % gain lise 1D vector
@@ -47,8 +47,8 @@ classdef ChannelDataAPD < handle
         stat_test % statistic test
         shift % WF shift amount
         truncationLength % data truncation length
-%         timeStamp % time stamp of averaged data used for image reconstruction
-%         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
+        %         timeStamp % time stamp of averaged data used for image reconstruction
+        %         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
         upSampleFactor; % upsample factor
         wfLenght % length of each waveform
         exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
@@ -61,15 +61,15 @@ classdef ChannelDataAPD < handle
         Ph_H3G % phasor result harmonics 3
         Ph_H4S % phasor result harmonics 4
         Ph_H4G % phasor result harmonics 4
-%         mExp_a1 % multi-exponential fit result
-%         mExp_a2 % multi-exponential fit result
-%         mExp_a3 % multi-exponential fit result
-%         mExp_tau1 % multi-exponential fit result
-%         mExp_tau2 % multi-exponential fit result
-%         mExp_tau3 % multi-exponential fit result
-%         mExp_LT_dacay % multi-exponential fit result
-%         mExp_LT_formula % multi-exponential fit result
-%         mExp_INT % multi-exponential fit result
+        %         mExp_a1 % multi-exponential fit result
+        %         mExp_a2 % multi-exponential fit result
+        %         mExp_a3 % multi-exponential fit result
+        %         mExp_tau1 % multi-exponential fit result
+        %         mExp_tau2 % multi-exponential fit result
+        %         mExp_tau3 % multi-exponential fit result
+        %         mExp_LT_dacay % multi-exponential fit result
+        %         mExp_LT_formula % multi-exponential fit result
+        %         mExp_INT % multi-exponential fit result
     end
     methods
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
@@ -79,9 +79,9 @@ classdef ChannelDataAPD < handle
             %             rawDataIn = alignWaveform_CFD(rawDataIn,2.8,obj.dtRaw); % old CFD alignment method
             %             figure;plot(rawDataIn(:,1:4));
             % flat blip
-%             for i = 1:size(rawDataIn,2)
-%             rawDataIn(305:350,i) = ones(350-305+1,1)*mean(rawDataIn(325:350,i));
-%             end
+            %             for i = 1:size(rawDataIn,2)
+            %             rawDataIn(305:350,i) = ones(350-305+1,1)*mean(rawDataIn(325:350,i));
+            %             end
             obj.rawData = rawDataIn;
             obj.preProcessedData = rawDataIn;
             obj.rawCtrlV = CtrlVIn;
@@ -107,7 +107,7 @@ classdef ChannelDataAPD < handle
             DC = zeros(1,numOfWF);
             WFWindow = 500; % WF window to average DC
             gainWindow = 5; % gain window to average DC
-            satIndex = find(max(obj.rawData)>WF_max_threshold); % saturated waveform index, 
+            satIndex = find(max(obj.rawData)>WF_max_threshold); % saturated waveform index,
             for i = 1:numOfWF %loop thorugh all data and find DC
                 G = obj.rawGain(i);
                 timeIdx1 = i-WFWindow;
@@ -126,7 +126,7 @@ classdef ChannelDataAPD < handle
                 DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal
                 DC(i) = mean(DCAllWF(:)); % average all DC data
             end
-            obj.rawDataDCRemoved = obj.rawData-DC; % store data 
+            obj.rawDataDCRemoved = obj.rawData-DC; % store data
             obj.preProcessedData = obj.rawData-DC; % store data
             
         end
@@ -145,10 +145,19 @@ classdef ChannelDataAPD < handle
             %--------------------------------------------------------------
         end
         
-        function alignWF_CFD(obj, f) % constant factor alginment of waveforms, each channel has a different factor
+        function alignWF_CFD(obj, f, range_in) % constant factor alginment of waveforms, each channel has a different factor
             % f is factor
-            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f);
-%             obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
+            switch nargin
+                case 2 % if no range input, use whole length of data
+                    range = 1:size(obj.preProcessedData,1);
+                case 3 % if range is specified, use range
+                    range = range_in;
+                otherwise
+                    error('Wrong number of Inputs')
+            end
+            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f,range);
+            %             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f,680:size(obj.preProcessedData,1));
+            %             obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
         end
         
         function [totalNumOfWf, goodNumOfWf, badNumOfWf]=removeSaturation(obj, low, high)
@@ -176,13 +185,13 @@ classdef ChannelDataAPD < handle
             [obj.preProcessedData, obj.outlierFlag] = averageWF(obj.preProcessedData, avgIn); % NaN will presist, will not be removed
             obj.averagedData = obj.preProcessedData;
             % record deconIdx
-%             nanCol = isnan(sum(obj.preProcessedData));
-%             obj.nonDeconIdx = find(nanCol);
-%             obj.deconIdx = find(~nanCol);
-%             obj.CtrlVDecon = obj.CtrlV(obj.deconIdx);
-%             obj.gainDecon = obj.gain(obj.deconIdx);
+            %             nanCol = isnan(sum(obj.preProcessedData));
+            %             obj.nonDeconIdx = find(nanCol);
+            %             obj.deconIdx = find(~nanCol);
+            %             obj.CtrlVDecon = obj.CtrlV(obj.deconIdx);
+            %             obj.gainDecon = obj.gain(obj.deconIdx);
             %             sum(isnan(sum(obj.preProcessedData)))
-%             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
+            %             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
             obj.noise = std(obj.averagedData(end-200:end,:),1); % use last 200 points since data is upsampled
             WFMax = max(obj.averagedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
@@ -210,14 +219,14 @@ classdef ChannelDataAPD < handle
             end
             obj.bgLow = bgLowIn;
             obj.bgHigh = bgHighIn;
-%             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
-%             obj.preProcessedData = obj.preProcessedData-DC;
+            %             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
+            %             obj.preProcessedData = obj.preProcessedData-DC;
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
             dataBGAUC(dataBGAUC<threshold*(bgHighIn-bgLowIn+1)) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
-%             bgScaleFactor(bgScaleFactor<5) = 0;
+            %             bgScaleFactor(bgScaleFactor<5) = 0;
             bgScaleFactor(isnan(bgScaleFactor)) = 0;
             obj.preProcessedData = obj.preProcessedData-obj.bg*bgScaleFactor;
         end
@@ -264,8 +273,8 @@ classdef ChannelDataAPD < handle
                 obj.dataT = temp;
             end
             %------------------------------------------------------find max idx of truncated data-----------------------------------------------------
-%             [~,dataMaxIT] = max(obj.dataT);
-%             dataMaxIT = mode(dataMaxIT);
+            %             [~,dataMaxIT] = max(obj.dataT);
+            %             dataMaxIT = mode(dataMaxIT);
             %----------------------------------------------truncate irf---------------------------------------------------------------------
             iRFLength = dataLength; % use short irf 1000 points
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
@@ -280,10 +289,10 @@ classdef ChannelDataAPD < handle
             irfRealLength = 1000; % real irf length
             obj.APDObj.irfTNorm(irfRealLength:end,:) = zeros(size(obj.APDObj.irfTNorm(irfRealLength:end,:)));
             %----------------------------------- pre shift irf so the max align with data----------------------------------------------------------
-%             [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
-%             for i = 1:length(irfTMaxIdx)
-%                 obj.APDObj.irfTNorm(:,i) = circshift(obj.APDObj.irfTNorm(:,i),-dataMaxIT+irfTMaxIdx(i)); 
-%             end
+            %             [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
+            %             for i = 1:length(irfTMaxIdx)
+            %                 obj.APDObj.irfTNorm(:,i) = circshift(obj.APDObj.irfTNorm(:,i),-dataMaxIT+irfTMaxIdx(i));
+            %             end
             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by AUC
             %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm);  % normalize by peak value
             %try CFD alignment
@@ -361,9 +370,9 @@ classdef ChannelDataAPD < handle
         end
         
         function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
-%             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
+            %             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
             wf_aligned = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
-%             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
+            %             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
             irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
             obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
             runDecon(obj.expDeconObj);
@@ -473,7 +482,7 @@ classdef ChannelDataAPD < handle
                     
                 case 'GainCorrectedWF'
                     result = obj.dataT./obj.gain';
-                
+                    
                 otherwise
                     warning('unknown option!')
                     result = [];
