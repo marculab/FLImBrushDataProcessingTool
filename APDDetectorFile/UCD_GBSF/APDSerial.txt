@@ -1,0 +1,5 @@
+{
+    "Ch1APDSerial#":"M00570374",
+    "Ch2APDSerial#":"M00570375",
+    "Ch3APDSerial#":"M00570376"
+}
