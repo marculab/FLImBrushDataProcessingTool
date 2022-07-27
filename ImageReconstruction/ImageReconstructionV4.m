@@ -137,7 +137,7 @@ output.highVoltage1 = HV;
 %% set position daya
 posData.px = xx;
 posData.py = yy;
-posData.frames = frameIdx;
+% posData.frames = frameIdx;
 %%
 cd(savePath)
 % replotVideo(['videos\' videoName '.avi'], [name '_interp.mat'])
