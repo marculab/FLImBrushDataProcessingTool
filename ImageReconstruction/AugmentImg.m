@@ -1,10 +1,10 @@
-function [augmentedImg,scale] = AugmentImg(im, posData, dataToAugment, scale, radius, alpha)
+function [augmentedImg,scale] = AugmentImg(im, posData, dataToAugment, scale, radius, alpha, colormap_in)
 
 fprintf('Radius = %f, Alpha = %f\n', radius, alpha);
 
 % setup video
 %set(gcf,'Visible', 'off');
-jet_cmap =  parula(256);
+C_map =  colormap_in;
 %ssx = vr.Width;
 %ssy = vr.Height;
 ssx = size(im, 2);
@@ -41,7 +41,7 @@ for i = 1:numOfFrames
         current_value = scaleHigh;
     end
     ind1 = ceil((current_value-scaleLow)/(scaleHigh-scaleLow)*255)+1; % make sure index is between 1 to 256
-    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, ind1, val_field, accum, jet_cmap);
+    [overlay, val_field, accum] = drawCirc( [px,py], radius*0.7, overlay, ind1, val_field, accum, C_map);
     
     if mod(i,BarStep)
         waitbar(i/numOfFrames,f,sprintf('Processing %d %%', round(i/numOfFrames*100)));
