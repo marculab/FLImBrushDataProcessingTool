@@ -7,12 +7,12 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\V4\Subject024_20210505';
+root = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\V4\Subject024_20210505'; % this is the root folder of your FLIm data
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
-[Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
-[Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
-[videoName,videoPath] = uigetfile([root '\*.avi'],'Please select video file');
-savePath = 'C:\Users\Xiangnan\Box Sync\FLImBrush vs V4\20210505\V4\Subject024_20210505\AugmentedImages';
+[Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file'); % this is the txt file of the run that contains the time of each FLIm measnuremnet
+[Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file'); % this is the position file of each FLIm location
+[videoName,videoPath] = uigetfile([root '\*.avi'],'Please select video file'); % this is the video file
+savePath = ''; % path to safe the image
 
 %% open video and get the last image for augmentation
 v = VideoReader(fullfile(videoPath, videoName));
@@ -128,11 +128,11 @@ output.highVoltage1 = HV;
 % outputMat((xx+yy)==0,:)=[]; % remove bad data points
 
 %% save data
-cd(DeConpath)
-[filepath,name,ext] = fileparts(videoName);
-save([name '_ImgRecon.mat'],'output')
-disp('Reconstructed image .mat file saved successfully!')
-close all
+% cd(DeConpath)
+% [filepath,name,ext] = fileparts(videoName);
+% save([name '_ImgRecon.mat'],'output')
+% disp('Reconstructed image .mat file saved successfully!')
+% close all
 
 %% set position daya
 posData.px = xx;
@@ -141,7 +141,7 @@ posData.frames = frameIdx;
 %%
 cd(savePath)
 % replotVideo(['videos\' videoName '.avi'], [name '_interp.mat'])
-radius = 10;
+radius = 10; 
 alpha = 0.5;
 %-------------------------------------------Channel 1 lifetime----------------------------------------------------------
 figure('units','normalized','outerposition',[0 0 1 1])
@@ -149,7 +149,7 @@ tiledlayout(2,2)
 nexttile
 % scale = [floor(quantile(Ch1LT,0.1)) ceil(quantile(Ch1LT,0.9))];
 scale = [2 5];
-[augmentedImg,~] = AugmentImg(im, posData, Ch1LT, scale, radius, alpha);
+[augmentedImg,~] = AugmentImg(im, posData, Ch1LT, scale, radius, alpha, jet(256)); % generate augement image as RGB matrix
 % show image
 imshow(augmentedImg)
 title([name ' Channel 1 lifetime'],'Interpreter','none')
