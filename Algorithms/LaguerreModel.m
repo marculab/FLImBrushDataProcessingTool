@@ -104,6 +104,7 @@ classdef LaguerreModel < handle
             lam=zeros(size(D,1),size(spec,2));
             %             options = optimset('Display','notify','TolX',10*eps);
             %             exitflag = zeros(size(spec,2),1);
+%             options = optimset('TolX',eps);
             parfor i=1:size(spec,2)
                 d=l1*spec(:,i);
                 [lam(:,i)]=lsqnonneg(C,d);
