@@ -11,6 +11,7 @@ end
 
 if ~exist('eps','var')||isempty(eps)
     eps=1.01; % updated by Xiangnan 20210907
+%     eps=1.000000001; % updated by Xiangnan 20220829 for testing
 end
 
 L=@(alpha)Laguerre(M,K,alpha);
