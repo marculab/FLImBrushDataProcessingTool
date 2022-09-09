@@ -94,7 +94,7 @@ for n = 1: numOfFiles
     iRFUpSampled = iRFUpSampled-DCUp; % remove DC
     irfUpSampled = iRFUpSampled;
     saveName = [saveName '.mat'];
-    save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
+%     save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
 end
 f = msgbox('Data Processing Completed');
 %% plot result
