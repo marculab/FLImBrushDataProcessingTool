@@ -93,7 +93,7 @@ classdef ChannelDataAPD < handle
             obj.numOfWFs = size(rawDataIn,2);
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
-            obj.upSampleFactor = 4;
+            obj.upSampleFactor = 5; %updated 09/09/2022
             % calculate SNR
         end
         function removeDCData(obj,varargin)
@@ -236,17 +236,19 @@ classdef ChannelDataAPD < handle
             obj.prePeakFactor = 0.1;
             %----------------------------------------resampleing irf to match data--------------------------------------------------------------------
             if (obj.APDObj.irfUpSampleddt~=obj.dtUp) % if dt not match, resample irf
-                downFactor = obj.dtUp/obj.APDObj.irfUpSampleddt;
-                irfL = size(obj.APDObj.irfUpSampled,1);
-                irfTemp = zeros(irfL/downFactor,size(obj.APDObj.irfUpSampled,2)); % initialize irf with correct size
-                
-                for i = 1:size(obj.APDObj.irfUpSampled,2)
-                    [~,idx] = max(obj.APDObj.irfUpSampled(:,i));
-                    xIdx1 = [idx:-downFactor:1];
-                    xIdx2 = [idx+downFactor:downFactor:irfL];
-                    xIdx = sort([xIdx1 xIdx2],'ascend');
-                    irfTemp(:,i) = obj.APDObj.irfUpSampled(xIdx,i);
-                end
+%                 downFactor = obj.dtUp/obj.APDObj.irfUpSampleddt;
+%                 irfL = size(obj.APDObj.irfUpSampled,1);
+%                 irfTemp = zeros(irfL/downFactor,size(obj.APDObj.irfUpSampled,2)); % initialize irf with correct size
+%                 for i = 1:size(obj.APDObj.irfUpSampled,2)
+%                     [~,idx] = max(obj.APDObj.irfUpSampled(:,i));
+%                     xIdx1 = [idx:-downFactor:1];
+%                     xIdx2 = [idx+downFactor:downFactor:irfL];
+%                     xIdx = sort([xIdx1 xIdx2],'ascend');
+%                     irfTemp(:,i) = obj.APDObj.irfUpSampled(xIdx,i);
+%                 end
+                tIRF = (0:size(obj.APDObj.irfUpSampled,1)-1)*obj.APDObj.irfUpSampleddt; %time vector for irf
+                tData = (0:size(obj.preProcessedData,1)-1)*obj.dtUp; %time vector for data 
+                irfTemp = interp1(tIRF,obj.APDObj.irfUpSampled,tData); %interpolate irf
                 obj.APDObj.irfDecon = irfTemp;
                 obj.APDObj.irfdt = obj.dtUp;
             else % if dt match, do not resample use upsampled

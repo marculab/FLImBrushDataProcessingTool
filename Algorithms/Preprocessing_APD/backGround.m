@@ -30,7 +30,7 @@ classdef backGround < handle
         
         function loadBG(obj)
             [output,~] = TDMS_getStruct(obj.pathToBg);
-            obj.upSampleFactor = 4;
+            obj.upSampleFactor = 5;
             try
                 %---------------------------------------get raw waveforms-----------------------------------------------
 %                 obj.numOfWF = length(output.Channel_1.CtrlV.data); % get number of waveforms
@@ -49,9 +49,9 @@ classdef backGround < handle
                     bgCh2Temp(:,i) = interp(obj.bgCh2Raw(:,i),obj.upSampleFactor);
                     bgCh3Temp(:,i) = interp(obj.bgCh3Raw(:,i),obj.upSampleFactor);
                 end
-                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 1:680);
-                obj.bgCh2Aligned = alignWaveform_CFDNew(bgCh2Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 680:size(bgCh2Temp,1));
-                obj.bgCh3Aligned = alignWaveform_CFDNew(bgCh3Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 680:size(bgCh3Temp,1));
+                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 1:170*obj.upSampleFactor);
+                obj.bgCh2Aligned = alignWaveform_CFDNew(bgCh2Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 170*obj.upSampleFactor:size(bgCh2Temp,1));
+                obj.bgCh3Aligned = alignWaveform_CFDNew(bgCh3Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 170*obj.upSampleFactor:size(bgCh3Temp,1));
                 %--------------------------------------plot alignment result-------------------------------------------
 %                 figure;
 %                 tiledlayout(1,2)
