@@ -72,7 +72,7 @@ classdef ChannelDataAPD < handle
         %         mExp_INT % multi-exponential fit result
     end
     methods
-        function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn)
+        function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn, upSampleFactorIn) % constructor
             obj.dtRaw = dtIn;
             %             figure;plot(rawDataIn(:,1:4));
             %             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
@@ -93,9 +93,10 @@ classdef ChannelDataAPD < handle
             obj.numOfWFs = size(rawDataIn,2);
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
-            obj.upSampleFactor = 5; %updated 09/09/2022
+            obj.upSampleFactor = upSampleFactorIn; %updated 09/09/2022
             % calculate SNR
         end
+        
         function removeDCData(obj,varargin)
             switch nargin
                 case 1
