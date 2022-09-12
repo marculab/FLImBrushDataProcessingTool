@@ -28,9 +28,9 @@ classdef backGround < handle
             obj.pathToBg = pathToBgIn;
         end
         
-        function loadBG(obj)
+        function loadBG(obj,upSampleFactorIn)
             [output,~] = TDMS_getStruct(obj.pathToBg);
-            obj.upSampleFactor = 5;
+            obj.upSampleFactor = upSampleFactorIn;
             try
                 %---------------------------------------get raw waveforms-----------------------------------------------
 %                 obj.numOfWF = length(output.Channel_1.CtrlV.data); % get number of waveforms
