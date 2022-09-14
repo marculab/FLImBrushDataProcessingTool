@@ -42,9 +42,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         caliLoadedLamp                  matlab.ui.control.Lamp
         caliLoadButton                  matlab.ui.control.Button
         caliViewButton                  matlab.ui.control.Button
-        bg3UIAxes                       matlab.ui.control.UIAxes
-        bg2UIAxes                       matlab.ui.control.UIAxes
         bg1UIAxes                       matlab.ui.control.UIAxes
+        bg2UIAxes                       matlab.ui.control.UIAxes
+        bg3UIAxes                       matlab.ui.control.UIAxes
         DeConSettingTab                 matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
         LogScaleCheckBox                matlab.ui.control.CheckBox
@@ -99,12 +99,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         AverageDataButton               matlab.ui.control.Button
         TruncateButton                  matlab.ui.control.Button
         RemoveSaturationButton          matlab.ui.control.Button
-        UIAxes_ch3BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch2BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
-        UIAxes_ch1BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch2DataFig               matlab.ui.control.UIAxes
         UIAxes_ch1DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch2DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch1BgRemoveFig           matlab.ui.control.UIAxes
+        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch2BgRemoveFig           matlab.ui.control.UIAxes
+        UIAxes_ch3BgRemoveFig           matlab.ui.control.UIAxes
         FittingResultTab                matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
         PointEditField                  matlab.ui.control.NumericEditField
@@ -119,10 +119,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         PlotDropDown                    matlab.ui.control.DropDown
         channelLabel                    matlab.ui.control.Label
         channelDropDown                 matlab.ui.control.DropDown
-        UIAxesDeconResult               matlab.ui.control.UIAxes
-        UIAxesResidue                   matlab.ui.control.UIAxes
-        UIAxesAutoCo                    matlab.ui.control.UIAxes
         UIAxesFitting                   matlab.ui.control.UIAxes
+        UIAxesAutoCo                    matlab.ui.control.UIAxes
+        UIAxesResidue                   matlab.ui.control.UIAxes
+        UIAxesDeconResult               matlab.ui.control.UIAxes
         imagesReconstrctionTab          matlab.ui.container.Tab
         EditField                       matlab.ui.control.EditField
         EditFieldLabel                  matlab.ui.control.Label
@@ -147,6 +147,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
     end
 
     properties (Access = public)
+        upSampleFactor = 5;
         irfAlignFlag = 0; % irf alignment flag
         apd1LoadedFlag =0; % apd1 load flag
         apd2LoadedFlag =0; % apd2 load flag
@@ -1381,7 +1382,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 app.dataInfoObj.bgFileName = filename_BG;
                 app.dataInfoObj.bgFileFolder = foldername_BG;
                 app.bgObj = backGround(fullfile(foldername_BG,filename_BG));
-                loadBG(app.bgObj);
+                loadBG(app.bgObj,app.upSampleFactor);
                 app.bgObj.bgGain1 = interp1(app.apd1Obj.gainV,app.apd1Obj.apdGain,app.bgObj.CtrlV1,'spline');
                 app.bgObj.bgGain2 = interp1(app.apd2Obj.gainV,app.apd2Obj.apdGain,app.bgObj.CtrlV2,'spline');
                 app.bgObj.bgGain3 = interp1(app.apd3Obj.gainV,app.apd3Obj.apdGain,app.bgObj.CtrlV3,'spline');
@@ -1438,9 +1439,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.DataAverageDropDown.Items = AvgSelection;
             app.DataAverageDropDown.Value = AvgSelection{1};
             %---------------------------------creat channel data object---------------------------------------------------------
-            app.Ch1DataObj = ChannelDataAPD(app.FLImDataObj.ch1RawWF, app.FLImDataObj.V1, app.FLImDataObj.dataAvg, app.apd1Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh1, app.FLImDataObj.laserRepRate);
-            app.Ch2DataObj = ChannelDataAPD(app.FLImDataObj.ch2RawWF, app.FLImDataObj.V2, app.FLImDataObj.dataAvg, app.apd2Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh2, app.FLImDataObj.laserRepRate);
-            app.Ch3DataObj = ChannelDataAPD(app.FLImDataObj.ch3RawWF, app.FLImDataObj.V3, app.FLImDataObj.dataAvg, app.apd3Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh3, app.FLImDataObj.laserRepRate);
+            app.Ch1DataObj = ChannelDataAPD(app.FLImDataObj.ch1RawWF, app.FLImDataObj.V1, app.FLImDataObj.dataAvg, app.apd1Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh1, app.FLImDataObj.laserRepRate, app.upSampleFactor);
+            app.Ch2DataObj = ChannelDataAPD(app.FLImDataObj.ch2RawWF, app.FLImDataObj.V2, app.FLImDataObj.dataAvg, app.apd2Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh2, app.FLImDataObj.laserRepRate, app.upSampleFactor);
+            app.Ch3DataObj = ChannelDataAPD(app.FLImDataObj.ch3RawWF, app.FLImDataObj.V3, app.FLImDataObj.dataAvg, app.apd3Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh3, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             removeDCData(app.Ch1DataObj);
             removeDCData(app.Ch2DataObj);
             removeDCData(app.Ch3DataObj);
@@ -1928,7 +1929,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch1DataObj);
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
-            alignWF_CFD(app.Ch1DataObj, 1, 1:680)
+            alignWF_CFD(app.Ch1DataObj, 1, (50:170)*app.upSampleFactor)
             alignWF_CFD(app.Ch2DataObj, 0.5)
             alignWF_CFD(app.Ch3DataObj, 0.5)
             plotUpsampledData(app)
@@ -2038,13 +2039,13 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout.RowSpacing = 6.55555555555556;
             app.GridLayout.Padding = [10 6.55555555555556 10 6.55555555555556];
 
-            % Create bg1UIAxes
-            app.bg1UIAxes = uiaxes(app.GridLayout);
-            title(app.bg1UIAxes, 'Ch1 background')
-            xlabel(app.bg1UIAxes, 'Points')
-            ylabel(app.bg1UIAxes, 'Voltage(V)')
-            app.bg1UIAxes.Layout.Row = 6;
-            app.bg1UIAxes.Layout.Column = [4 10];
+            % Create bg3UIAxes
+            app.bg3UIAxes = uiaxes(app.GridLayout);
+            title(app.bg3UIAxes, 'Ch3 background')
+            xlabel(app.bg3UIAxes, 'Points')
+            ylabel(app.bg3UIAxes, 'Voltage(V)')
+            app.bg3UIAxes.Layout.Row = 8;
+            app.bg3UIAxes.Layout.Column = [4 10];
 
             % Create bg2UIAxes
             app.bg2UIAxes = uiaxes(app.GridLayout);
@@ -2054,13 +2055,13 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.bg2UIAxes.Layout.Row = 7;
             app.bg2UIAxes.Layout.Column = [4 10];
 
-            % Create bg3UIAxes
-            app.bg3UIAxes = uiaxes(app.GridLayout);
-            title(app.bg3UIAxes, 'Ch3 background')
-            xlabel(app.bg3UIAxes, 'Points')
-            ylabel(app.bg3UIAxes, 'Voltage(V)')
-            app.bg3UIAxes.Layout.Row = 8;
-            app.bg3UIAxes.Layout.Column = [4 10];
+            % Create bg1UIAxes
+            app.bg1UIAxes = uiaxes(app.GridLayout);
+            title(app.bg1UIAxes, 'Ch1 background')
+            xlabel(app.bg1UIAxes, 'Points')
+            ylabel(app.bg1UIAxes, 'Voltage(V)')
+            app.bg1UIAxes.Layout.Row = 6;
+            app.bg1UIAxes.Layout.Column = [4 10];
 
             % Create caliViewButton
             app.caliViewButton = uibutton(app.GridLayout, 'push');
@@ -2294,49 +2295,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout2.Padding = [3.5 2 3.5 2];
             app.GridLayout2.BusyAction = 'cancel';
 
-            % Create UIAxes_ch1DataFig
-            app.UIAxes_ch1DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch1DataFig, 'Ch1')
-            xlabel(app.UIAxes_ch1DataFig, 'Points')
-            ylabel(app.UIAxes_ch1DataFig, 'Voltage')
-            app.UIAxes_ch1DataFig.XGrid = 'on';
-            app.UIAxes_ch1DataFig.YGrid = 'on';
-            app.UIAxes_ch1DataFig.Box = 'on';
-            app.UIAxes_ch1DataFig.Layout.Row = [2 9];
-            app.UIAxes_ch1DataFig.Layout.Column = [5 7];
-
-            % Create UIAxes_ch2DataFig
-            app.UIAxes_ch2DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch2DataFig, 'Ch2')
-            xlabel(app.UIAxes_ch2DataFig, 'Points')
-            ylabel(app.UIAxes_ch2DataFig, 'Voltage')
-            app.UIAxes_ch2DataFig.XGrid = 'on';
-            app.UIAxes_ch2DataFig.YGrid = 'on';
-            app.UIAxes_ch2DataFig.Box = 'on';
-            app.UIAxes_ch2DataFig.Layout.Row = [10 17];
-            app.UIAxes_ch2DataFig.Layout.Column = [5 7];
-
-            % Create UIAxes_ch1BgRemoveFig
-            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
-            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
-            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
-            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.Box = 'on';
-            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 9];
-            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
-
-            % Create UIAxes_ch3DataFig
-            app.UIAxes_ch3DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch3DataFig, 'Ch3')
-            xlabel(app.UIAxes_ch3DataFig, 'Points')
-            ylabel(app.UIAxes_ch3DataFig, 'Voltage')
-            app.UIAxes_ch3DataFig.XGrid = 'on';
-            app.UIAxes_ch3DataFig.YGrid = 'on';
-            app.UIAxes_ch3DataFig.Box = 'on';
-            app.UIAxes_ch3DataFig.Layout.Row = [18 25];
-            app.UIAxes_ch3DataFig.Layout.Column = [5 7];
+            % Create UIAxes_ch3BgRemoveFig
+            app.UIAxes_ch3BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch3BgRemoveFig, 'background removed ch3')
+            xlabel(app.UIAxes_ch3BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch3BgRemoveFig, 'Voltage')
+            app.UIAxes_ch3BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch3BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch3BgRemoveFig.Box = 'on';
+            app.UIAxes_ch3BgRemoveFig.Layout.Row = [18 25];
+            app.UIAxes_ch3BgRemoveFig.Layout.Column = [8 10];
 
             % Create UIAxes_ch2BgRemoveFig
             app.UIAxes_ch2BgRemoveFig = uiaxes(app.GridLayout2);
@@ -2349,16 +2317,49 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch2BgRemoveFig.Layout.Row = [10 17];
             app.UIAxes_ch2BgRemoveFig.Layout.Column = [8 10];
 
-            % Create UIAxes_ch3BgRemoveFig
-            app.UIAxes_ch3BgRemoveFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch3BgRemoveFig, 'background removed ch3')
-            xlabel(app.UIAxes_ch3BgRemoveFig, 'Points')
-            ylabel(app.UIAxes_ch3BgRemoveFig, 'Voltage')
-            app.UIAxes_ch3BgRemoveFig.XGrid = 'on';
-            app.UIAxes_ch3BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch3BgRemoveFig.Box = 'on';
-            app.UIAxes_ch3BgRemoveFig.Layout.Row = [18 25];
-            app.UIAxes_ch3BgRemoveFig.Layout.Column = [8 10];
+            % Create UIAxes_ch3DataFig
+            app.UIAxes_ch3DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch3DataFig, 'Ch3')
+            xlabel(app.UIAxes_ch3DataFig, 'Points')
+            ylabel(app.UIAxes_ch3DataFig, 'Voltage')
+            app.UIAxes_ch3DataFig.XGrid = 'on';
+            app.UIAxes_ch3DataFig.YGrid = 'on';
+            app.UIAxes_ch3DataFig.Box = 'on';
+            app.UIAxes_ch3DataFig.Layout.Row = [18 25];
+            app.UIAxes_ch3DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch1BgRemoveFig
+            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
+            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
+            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.Box = 'on';
+            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 9];
+            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
+
+            % Create UIAxes_ch2DataFig
+            app.UIAxes_ch2DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch2DataFig, 'Ch2')
+            xlabel(app.UIAxes_ch2DataFig, 'Points')
+            ylabel(app.UIAxes_ch2DataFig, 'Voltage')
+            app.UIAxes_ch2DataFig.XGrid = 'on';
+            app.UIAxes_ch2DataFig.YGrid = 'on';
+            app.UIAxes_ch2DataFig.Box = 'on';
+            app.UIAxes_ch2DataFig.Layout.Row = [10 17];
+            app.UIAxes_ch2DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch1DataFig
+            app.UIAxes_ch1DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch1DataFig, 'Ch1')
+            xlabel(app.UIAxes_ch1DataFig, 'Points')
+            ylabel(app.UIAxes_ch1DataFig, 'Voltage')
+            app.UIAxes_ch1DataFig.XGrid = 'on';
+            app.UIAxes_ch1DataFig.YGrid = 'on';
+            app.UIAxes_ch1DataFig.Box = 'on';
+            app.UIAxes_ch1DataFig.Layout.Row = [2 9];
+            app.UIAxes_ch1DataFig.Layout.Column = [5 7];
 
             % Create RemoveSaturationButton
             app.RemoveSaturationButton = uibutton(app.GridLayout2, 'push');
@@ -2825,26 +2826,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout3.RowSpacing = 2.75;
             app.GridLayout3.Padding = [10 2.75 10 2.75];
 
-            % Create UIAxesFitting
-            app.UIAxesFitting = uiaxes(app.GridLayout3);
-            title(app.UIAxesFitting, 'Fitting')
-            xlabel(app.UIAxesFitting, 'Time(ns)')
-            ylabel(app.UIAxesFitting, 'Y')
-            app.UIAxesFitting.XGrid = 'on';
-            app.UIAxesFitting.YGrid = 'on';
-            app.UIAxesFitting.Box = 'on';
-            app.UIAxesFitting.Layout.Row = 2;
-            app.UIAxesFitting.Layout.Column = [1 6];
-
-            % Create UIAxesAutoCo
-            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
-            title(app.UIAxesAutoCo, 'Auto Correlation')
-            ylabel(app.UIAxesAutoCo, 'Y')
-            app.UIAxesAutoCo.XGrid = 'on';
-            app.UIAxesAutoCo.YGrid = 'on';
-            app.UIAxesAutoCo.Box = 'on';
-            app.UIAxesAutoCo.Layout.Row = [4 5];
-            app.UIAxesAutoCo.Layout.Column = [1 6];
+            % Create UIAxesDeconResult
+            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
+            title(app.UIAxesDeconResult, 'Utility Plot')
+            xlabel(app.UIAxesDeconResult, 'Time(ns)')
+            ylabel(app.UIAxesDeconResult, 'Y')
+            app.UIAxesDeconResult.XGrid = 'on';
+            app.UIAxesDeconResult.YGrid = 'on';
+            app.UIAxesDeconResult.Box = 'on';
+            app.UIAxesDeconResult.Layout.Row = [2 3];
+            app.UIAxesDeconResult.Layout.Column = [7 12];
 
             % Create UIAxesResidue
             app.UIAxesResidue = uiaxes(app.GridLayout3);
@@ -2856,16 +2847,26 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxesResidue.Layout.Row = 3;
             app.UIAxesResidue.Layout.Column = [1 6];
 
-            % Create UIAxesDeconResult
-            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
-            title(app.UIAxesDeconResult, 'Utility Plot')
-            xlabel(app.UIAxesDeconResult, 'Time(ns)')
-            ylabel(app.UIAxesDeconResult, 'Y')
-            app.UIAxesDeconResult.XGrid = 'on';
-            app.UIAxesDeconResult.YGrid = 'on';
-            app.UIAxesDeconResult.Box = 'on';
-            app.UIAxesDeconResult.Layout.Row = [2 3];
-            app.UIAxesDeconResult.Layout.Column = [7 12];
+            % Create UIAxesAutoCo
+            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
+            title(app.UIAxesAutoCo, 'Auto Correlation')
+            ylabel(app.UIAxesAutoCo, 'Y')
+            app.UIAxesAutoCo.XGrid = 'on';
+            app.UIAxesAutoCo.YGrid = 'on';
+            app.UIAxesAutoCo.Box = 'on';
+            app.UIAxesAutoCo.Layout.Row = [4 5];
+            app.UIAxesAutoCo.Layout.Column = [1 6];
+
+            % Create UIAxesFitting
+            app.UIAxesFitting = uiaxes(app.GridLayout3);
+            title(app.UIAxesFitting, 'Fitting')
+            xlabel(app.UIAxesFitting, 'Time(ns)')
+            ylabel(app.UIAxesFitting, 'Y')
+            app.UIAxesFitting.XGrid = 'on';
+            app.UIAxesFitting.YGrid = 'on';
+            app.UIAxesFitting.Box = 'on';
+            app.UIAxesFitting.Layout.Row = 2;
+            app.UIAxesFitting.Layout.Column = [1 6];
 
             % Create channelDropDown
             app.channelDropDown = uidropdown(app.GridLayout3);
