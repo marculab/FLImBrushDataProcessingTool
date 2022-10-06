@@ -9,7 +9,7 @@ idx = (T.Instrument=='FLImBrush');
 fileNames = T.mat_file_adr;
 fileNames = fileNames(idx);
 
-for i=1:2
+for i=8:8
     
     temp = fileNames{i};
 %     temp(1) = 'W';
