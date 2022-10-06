@@ -1795,7 +1795,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             alpha2 = str2double(alpha2);
             alpha3 = str2double(alpha3);
             
-            alphaMax = alpha_up(app.channelWidthEditField.Value/0.1,laguerreOrder);
+            alphaMax = alpha_up(app.channelWidthEditField.Value/0.08,laguerreOrder)+0.1;
             if any(alphaMax<[alpha1 alpha2 alpha3])
                 msg1 = sprintf('Maxmum allowed alpha value for your truncation length is %.3f \n', alphaMax);
                 msg2 = 'Please reselect your alpha value!\n';
@@ -1929,9 +1929,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch1DataObj);
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
-            alignWF_CFD(app.Ch1DataObj, 1, (50:170)*app.upSampleFactor)
-            alignWF_CFD(app.Ch2DataObj, 0.5)
-            alignWF_CFD(app.Ch3DataObj, 0.5)
+            alignWF_CFD(app.Ch1DataObj, 1, (80:180)*app.upSampleFactor)
+            alignWF_CFD(app.Ch2DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
+            alignWF_CFD(app.Ch3DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
             plotUpsampledData(app)
             uiUpdate(app,'Upsampled')
             set(app.UIFigure,'pointer','arrow') % set cursor to spinning
