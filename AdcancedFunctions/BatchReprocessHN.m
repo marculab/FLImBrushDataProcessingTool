@@ -29,7 +29,7 @@ opts = setvaropts(opts, ["Deconvolution File", "Text File", "Video Path", "Non-M
 opts = setvaropts(opts, ["Scan Context", "Motion Correction Performed", "Anatomy", "MC Reference Frame", "Include in Analysis", "Deconvolution File", "Text File", "Video Path", "Non-MC Corrected Positions", "Refined Positions", "Annotation File", "Reference Frame WLI"], "EmptyFieldRule", "auto");
 
 % Import the data
-HN = readtable("C:\Users\Xiangnan\Desktop\H&N Aggregate Input Data - Run_Level.csv", opts);
+HN = readtable("H&N Aggregate Input Data - Run_Level.csv", opts);
 
 
 %% Clear temporary variables
@@ -40,7 +40,7 @@ T = HN(HN.Patients>100,:);
 root = 'N:\V2 Sacramento Database\Da Vinci Robot Study (100 patients)\Data_100_Patient_Study';
 
 %%
-for i=3
+for i=4
     
     temp = T.DeconvolutionFile{i};
     matName = fullfile(root,temp)
