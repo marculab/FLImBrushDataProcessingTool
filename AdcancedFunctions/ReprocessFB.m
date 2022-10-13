@@ -170,7 +170,7 @@ runDeconExp(Ch3DataObj,expOrder,[],[],[],exclude);
 
 %% save result
 saveName = fullfile(filepath,[name '_12.5GS.mat']);
-save(saveName,'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj')
+save(saveName,'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','-v7.3')
 
 close all
 
