@@ -7,9 +7,9 @@ clc
 addpath(genpath(pwd))
 addpath(genpath('..'))
 %% load in data
-root = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811'; % defaut folder for file selection
+root = 'F:\Subject027_20210617\FLImBrush'; % defaut folder for file selection
 %% set save path
-savePath = 'D:\LoaclData\5ALAFLImTest\Subject032_20210811\_OverlayVideoL';
+savePath = 'F:\Subject027_20210617\FLImBrush';
 
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
@@ -46,32 +46,32 @@ im = read(v,1);
 %% load in fluorescence PPIX image
 [fmFile,fmPath] = uigetfile([root '\*'],'Please select fluorescence microscope image.','MultiSelect','off');
 %%
-FMRaw = imread(fullfile(fmPath,fmFile));
-FMRaw = FMRaw(445:1092,:,:);
-figure;imshow(FMRaw);
-F = griddedInterpolant(double(FMRaw));
-[sx,sy,sz] = size(FMRaw);
-xq = (0:1.35:sx-1.35)';
-yq = (0:1.35:sy-1.35)';
-zq = (1:sz)';
-FM = uint8(F({xq,yq,zq}));
+% FMRaw = imread(fullfile(fmPath,fmFile));
+% FMRaw = FMRaw(445:1092,:,:);
+% figure;imshow(FMRaw);
+% F = griddedInterpolant(double(FMRaw));
+% [sx,sy,sz] = size(FMRaw);
+% xq = (0:1.35:sx-1.35)';
+% yq = (0:1.35:sy-1.35)';
+% zq = (1:sz)';
+% FM = uint8(F({xq,yq,zq}));
 %% calculate num of data points
 % shift = length(Ch1LT)-(MetaData(end,9)-MetaData(1,9))/1000*120/4;
 % shift = round(shift);
 shift=0; %shift need to be 0!
 
-Ch1INTCorr = circshift(Ch1DataObj.INTsAllGainCorrected,shift);
-Ch1LT = circshift(Ch1DataObj.LTsAll,shift);
+Ch1INTCorr = circshift(Ch1DataObj.Lg_INTsGainCorrected ,shift);
+Ch1LT = circshift(Ch1DataObj.Lg_LTs,shift);
 Ch1SNR = circshift(Ch1DataObj.SNR,shift)';
 G1 = circshift(Ch1DataObj.gain,shift);
 
-Ch2INTCorr = circshift(Ch2DataObj.INTsAllGainCorrected,shift);
-Ch2LT = circshift(Ch2DataObj.LTsAll,shift);
+Ch2INTCorr = circshift(Ch2DataObj.Lg_INTsGainCorrected,shift);
+Ch2LT = circshift(Ch2DataObj.Lg_LTs,shift);
 Ch2SNR = circshift(Ch2DataObj.SNR,shift)';
 G2 = circshift(Ch2DataObj.gain,shift);
 
-Ch3INTCorr = circshift(Ch3DataObj.INTsAllGainCorrected,shift);
-Ch3LT = circshift(Ch3DataObj.LTsAll,shift);
+Ch3INTCorr = circshift(Ch3DataObj.Lg_INTsGainCorrected,shift);
+Ch3LT = circshift(Ch3DataObj.Lg_LTs,shift);
 Ch3SNR = circshift(Ch3DataObj.SNR,shift)';
 G3 = circshift(Ch3DataObj.gain,shift);
 
@@ -106,7 +106,7 @@ FrameIdxData = round(FrameIdxData);
 %% loop through all frames and creat overlay image
 dataToPlot = Ch3LT;
 % scale = [floor(quantile(dataToPlot,0.1)) ceil(quantile(dataToPlot,0.9))];
-scale = [0 20];
+scale = [2 6];
 radius = 7.5;
 alpha = 0.5;
 numOfFrames = v.NumFrames;
@@ -155,12 +155,12 @@ posData.frameIdx = FrameIdxData;
 % imshow(overlay)
 overlayAll{i} = overlay;
 end
-%% loop through all frames
-cd(savePath)
-[filepath,name,ext] = fileparts(fileTemp);
-save([name '_MC_overlay_all.mat'],'overlayAll');
+%% save through all frames
+% cd(savePath)
+% [filepath,name,ext] = fileparts(fileTemp);
+% save([name '_MC_overlay_all.mat'],'overlayAll');
 %% make video
-frameRate = 60;
+frameRate = 30;
 w = VideoWriter([name '_MC_' num2str(frameRate) 'Hz.mp4'],'MPEG-4');
 w.FrameRate = frameRate;
 open(w)
@@ -199,23 +199,23 @@ for i = 1:plotStep:numOfFrames
     
 end
 % overlayTemp = overlayAll{1701};
-BW = sum(overlayTemp,3);
-mask= cat(3,BW,BW,BW);
-augmentedFMImgCh1LT = FM;
-augmentedFMImgCh1LT(~(mask == 0)) = alpha*overlayTemp(~(mask == 0) ) + (1-alpha)*augmentedFMImgCh1LT( ~(mask == 0) );
-augmentedFMImgCh1LT = augmentedFMImgCh1LT(ROI_x,ROI_y,:);
-% % show image
-imshow(augmentedFMImgCh1LT)
-%     title([name ' Channel 1 lifetime'],'Interpreter','none')
-colormap(jet);
-caxis(gca,scale);
-h0 = colorbar;
-% %     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
-h0.Label.String = 'Lifetime (ns)';
-set(gca,'FontSize',12)
-set(gca,'LooseInset',get(gca,'TightInset'))
-frame = getframe(gcf);
-writeVideo(w,frame);
+% BW = sum(overlayTemp,3);
+% mask= cat(3,BW,BW,BW);
+% augmentedFMImgCh1LT = FM;
+% augmentedFMImgCh1LT(~(mask == 0)) = alpha*overlayTemp(~(mask == 0) ) + (1-alpha)*augmentedFMImgCh1LT( ~(mask == 0) );
+% augmentedFMImgCh1LT = augmentedFMImgCh1LT(ROI_x,ROI_y,:);
+% % % show image
+% imshow(augmentedFMImgCh1LT)
+% %     title([name ' Channel 1 lifetime'],'Interpreter','none')
+% colormap(jet);
+% caxis(gca,scale);
+% h0 = colorbar;
+% % %     ylabel(h0, ['Lifetime CH', int2str(dest_channel),' (ns)'])
+% h0.Label.String = 'Lifetime (ns)';
+% set(gca,'FontSize',12)
+% set(gca,'LooseInset',get(gca,'TightInset'))
+% frame = getframe(gcf);
+% writeVideo(w,frame);
 close(w)
 
 %%
