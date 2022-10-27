@@ -7,9 +7,9 @@ clc
 addpath(genpath(pwd))
 addpath(genpath('C:\Users\Xiangnan\Documents\MyGitRepo\TRFS_TRIPLEX_GUI\Algorithms'))
 %% load in data
-root = 'W:\V2 Sacramento Database\Brain Necrosis\2019-FirstStudyDrBloch\RawData\Subject011-20200226'; % defaut folder for file selection
+root = 'F:\Subject027_20210617\V4'; % defaut folder for file selection
 %% set save path
-savePath = 'W:\V2 Sacramento Database\Brain Necrosis\2019-FirstStudyDrBloch\RawData\Subject011-20200226\MC Videos';
+savePath = 'F:\Subject027_20210617\V4';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
 fileTemp = DeConfile;
@@ -49,9 +49,9 @@ FrameIdxData = interp1(frameT,frameIdxVid,time);
 FrameIdxData = round(FrameIdxData);
 
 %% loop through all frames and creat overlay image
-dataToPlot = lifet_avg{2};
+dataToPlot = lifet_avg{1};
 % scale = [floor(quantile(dataToPlot,0.1)) ceil(quantile(dataToPlot,0.9))];
-scale = [6 9];
+scale = [2 6];
 radius = 12;
 alpha = 0.5;
 numOfFrames = v.NumFrames;
