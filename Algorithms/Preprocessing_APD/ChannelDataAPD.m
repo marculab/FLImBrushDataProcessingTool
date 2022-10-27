@@ -279,7 +279,8 @@ classdef ChannelDataAPD < handle
             %             [~,dataMaxIT] = max(obj.dataT);
             %             dataMaxIT = mode(dataMaxIT);
             %----------------------------------------------truncate irf---------------------------------------------------------------------
-            iRFLength = dataLength; % use short irf 1000 points
+%             iRFLength = dataLength; % use short irf 1000 points
+            iRFLength = 400; % same as V4
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
             irfMaxI = mode(irfMaxI);
             irf_start_idx = irfMaxI-round(obj.prePeakFactor*iRFLength);
@@ -289,7 +290,7 @@ classdef ChannelDataAPD < handle
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:end,:); % if not use all data points
             end
             %------------------------------------set tail of irf to be zero--------------------------------------------------------
-            irfRealLength = 1000; % real irf length
+            irfRealLength = dataLength; % real irf length
             obj.APDObj.irfTNorm(irfRealLength:end,:) = zeros(size(obj.APDObj.irfTNorm(irfRealLength:end,:)));
             %----------------------------------- pre shift irf so the max align with data----------------------------------------------------------
             %             [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
@@ -340,7 +341,7 @@ classdef ChannelDataAPD < handle
             numOfiRFV = length(obj.APDObj.irfV);
             
             % loop through all V and find corresponding data index
-            for i = 1:numOfiRFV % to account for out of range V
+            for i = 2:numOfiRFV % to account for out of range V
                 if i==1
                     vLow = 0;
                 else
