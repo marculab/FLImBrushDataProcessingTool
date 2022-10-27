@@ -168,6 +168,12 @@ runDeconLG(Ch3DataObj,exclude,LaguerreOrder,alpha);
 
 runDeconExp(Ch3DataObj,expOrder,[],[],[],exclude);
 
+
+for H = 1:4 % run phasor for harmonic of 1 to 4
+    runPhasor(Ch1DataObj, H);
+    runPhasor(Ch2DataObj, H);
+    runPhasor(Ch3DataObj, H);
+end
 %% save result
 saveName = fullfile(filepath,[name '_12.5GS.mat']);
 save(saveName,'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','-v7.3')
@@ -190,7 +196,7 @@ close all
 % irf = plotObj.APDObj.irfTNorm(:,irfIdx);
 % t = plotObj.dtUp*(1:length(rawDataToPlot))';
 % rawColor = [0 0 1 0.5];
-% 
+%
 % figure
 % plot(t,rawDataToPlot,'.-','Color', rawColor,'LineWidth', 1, 'MarkerSize',10)
 % hold on
@@ -204,7 +210,7 @@ close all
 % % title_temp = [1 title_temp];
 % title(title_temp)
 % % ylim([-0.2 Ch1DataObj.dataHigh+0.1])
-% 
+%
 % %%
 % LifetimeOld = Ch3DataObj.Lg_LTs;
 % Lifetime = Ch3DataObj_old.Lg_LTs;
