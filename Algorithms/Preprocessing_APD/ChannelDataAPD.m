@@ -335,18 +335,14 @@ classdef ChannelDataAPD < handle
             %             obj.spec_aligned = zeros(size(obj.dataT));
             %             obj.fit = zeros(size(obj.dataT));
             %             obj.res = zeros(size(obj.dataT));
-            obj.irfIdx = zeros(numOfDataPoints,1);
+            obj.irfIdx = ones(numOfDataPoints,1);
             %--------------------------------------------------------------
             
             numOfiRFV = length(obj.APDObj.irfV);
             
             % loop through all V and find corresponding data index
             for i = 2:numOfiRFV % to account for out of range V
-                if i==1
-                    vLow = 0;
-                else
-                    vLow = obj.APDObj.irfV(i-1);
-                end
+                vLow = obj.APDObj.irfV(i-1);
                 if i==numOfiRFV
                     vHigh = 5;
                 else
