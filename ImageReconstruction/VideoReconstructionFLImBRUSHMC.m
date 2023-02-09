@@ -6,10 +6,11 @@ clc
 
 addpath(genpath(pwd))
 addpath(genpath('..'))
+filePath = pwd;
 %% load in data
-root = 'F:\Subject027_20210617\FLImBrush'; % defaut folder for file selection
+root = 'N:\V2 Sacramento Database\Brain Necrosis\Data\Subject052_20220831\FLImBrush'; % defaut folder for file selection
 %% set save path
-savePath = 'F:\Subject027_20210617\FLImBrush';
+savePath = 'N:\V2 Sacramento Database\Brain Necrosis\Data\Subject052_20220831\FLImBrush';
 
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file','MultiSelect','off');
 
@@ -105,8 +106,8 @@ FrameIdxData = round(FrameIdxData);
 
 %% loop through all frames and creat overlay image
 dataToPlot = Ch3LT;
-% scale = [floor(quantile(dataToPlot,0.1)) ceil(quantile(dataToPlot,0.9))];
-scale = [2 6];
+scale = [floor(quantile(dataToPlot,0.05)) ceil(quantile(dataToPlot,0.95))];
+% scale = [3.5 4.5];
 radius = 7.5;
 alpha = 0.5;
 numOfFrames = v.NumFrames;
@@ -155,13 +156,15 @@ posData.frameIdx = FrameIdxData;
 % imshow(overlay)
 overlayAll{i} = overlay;
 end
-%% save through all frames
+% save through all frames
 % cd(savePath)
 % [filepath,name,ext] = fileparts(fileTemp);
 % save([name '_MC_overlay_all.mat'],'overlayAll');
-%% make video
+
+% make video
+cd(root)
 frameRate = 30;
-w = VideoWriter([name '_MC_' num2str(frameRate) 'Hz.mp4'],'MPEG-4');
+w = VideoWriter([runName '_MC_' num2str(frameRate) 'Hz.mp4'],'MPEG-4');
 w.FrameRate = frameRate;
 open(w)
 %---------------------------------------plot channel 1 video-------------------------------------------------------------------
@@ -217,6 +220,8 @@ end
 % frame = getframe(gcf);
 % writeVideo(w,frame);
 close(w)
-
+close all
+disp('Done')
+cd(filePath)
 %%
-cd(root)
+
