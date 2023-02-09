@@ -37,7 +37,7 @@ classdef ChannelDataAPD < handle
         noise % data noise
         outlierFlag % 1D column vector
         preProcessedData % final preprocessed data
-        prePeakFactor = 0.1; % percentage of data before peak
+        prePeakPoints = 200; % data points before peak
         rawData % raw data
         rawDataDCRemoved % raw data DC removed
         rawDataUpsampled % upsampled raw data after DC removal
@@ -124,7 +124,8 @@ classdef ChannelDataAPD < handle
                 timeIdx = setxor(timeIdx,Acommon); % remove sturated waveform index
                 GTemp = obj.rawGain(timeIdx); % gain of data inside time window
                 timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
-                DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal
+                DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal from tail
+%                 DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
                 DC(i) = mean(DCAllWF(:)); % average all DC data
             end
             obj.rawDataDCRemoved = obj.rawData-DC; % store data
@@ -214,7 +215,7 @@ classdef ChannelDataAPD < handle
         function removeDCBG(obj, bgLowIn, bgHighIn, varargin)
             switch nargin
                 case 3
-                    threshold = 0.05;
+                    threshold = 0.005;
                 case 4
                     threshold = varargin{1};
             end
@@ -234,7 +235,7 @@ classdef ChannelDataAPD < handle
         
         
         function truncateData(obj, timeWindowIn)
-            obj.prePeakFactor = 0.1;
+            obj.prePeakPoints = 200;
             %----------------------------------------resampleing irf to match data--------------------------------------------------------------------
             if (obj.APDObj.irfUpSampleddt~=obj.dtUp) % if dt not match, resample irf
 %                 downFactor = obj.dtUp/obj.APDObj.irfUpSampleddt;
@@ -262,7 +263,7 @@ classdef ChannelDataAPD < handle
             dataLength = round(timeWindowIn/obj.dtUp);
             obj.truncationLength = dataLength;
             %--------------------------------------------truncate data--------------------------------------------------------------------
-            start_idx = dataMaxI-round(obj.prePeakFactor*dataLength);
+            start_idx = dataMaxI-obj.prePeakPoints;
             if start_idx<1
                 start_idx=1;
             end
@@ -280,17 +281,21 @@ classdef ChannelDataAPD < handle
             %             dataMaxIT = mode(dataMaxIT);
             %----------------------------------------------truncate irf---------------------------------------------------------------------
 %             iRFLength = dataLength; % use short irf 1000 points
-            iRFLength = 400; % same as V4
+            iRFLength = 1000; % 
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
             irfMaxI = mode(irfMaxI);
-            irf_start_idx = irfMaxI-round(obj.prePeakFactor*iRFLength);
+%             plot(circshift(obj.APDObj.irfDecon,irfMaxI-mode(irfMaxI),1))
+            irf_start_idx = irfMaxI-obj.prePeakPoints;
+%             irf_start_idx = irfMaxI-50;
             if irf_start_idx+iRFLength-1 < size(obj.APDObj.irfDecon,1) % if enough data points
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:irf_start_idx+iRFLength-1,:);
             else
                 obj.APDObj.irfTNorm = obj.APDObj.irfDecon(irf_start_idx:end,:); % if not use all data points
             end
+            %-------------------------------------set front of rising edge to 0-----------------------------------------------------
+%             obj.APDObj.irfTNorm(1:380,:) = zeros(size(obj.APDObj.irfTNorm(1:380,:)));
             %------------------------------------set tail of irf to be zero--------------------------------------------------------
-            irfRealLength = dataLength; % real irf length
+            irfRealLength = iRFLength; % real irf length
             obj.APDObj.irfTNorm(irfRealLength:end,:) = zeros(size(obj.APDObj.irfTNorm(irfRealLength:end,:)));
             %----------------------------------- pre shift irf so the max align with data----------------------------------------------------------
             %             [~,irfTMaxIdx] = max(obj.APDObj.irfTNorm); % find irf max
@@ -298,6 +303,7 @@ classdef ChannelDataAPD < handle
             %                 obj.APDObj.irfTNorm(:,i) = circshift(obj.APDObj.irfTNorm(:,i),-dataMaxIT+irfTMaxIdx(i));
             %             end
             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./sum(obj.APDObj.irfTNorm); %normalize by AUC
+%             obj.APDObj.irfTNorm = circshift(obj.APDObj.irfTNorm,dataLength*obj.prePeakFactor-50);
             %             obj.APDObj.irfTNorm = obj.APDObj.irfTNorm./max(obj.APDObj.irfTNorm);  % normalize by peak value
             %try CFD alignment
             %             obj.dataT = alignWaveform_CFDNew(obj.dataT,0.26, obj.dtUp);
@@ -371,7 +377,7 @@ classdef ChannelDataAPD < handle
         
         function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
             %             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
-            wf_aligned = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
+            wf_aligned = get(obj,'wf_aligned'); % truncated and aligned wavefor10 for deconvolution
             %             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
             irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
             obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
