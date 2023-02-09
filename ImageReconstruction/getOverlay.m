@@ -1,13 +1,16 @@
-function [overlay,overlayAll] = getOverlay(imgSize, posData, dataToAugment, scale, radius)
+function [overlay,overlayAllFrame] = getOverlay(imgSize, posData, dataToAugment, scale, radius)
 % generate overlay data only
 % fprintf('Radius = %f', radius);
+% overlay is the final render
+% overlayAllFrame contains the rendering for each video frame
+
 frameIdx = posData.frameIdx;
 frameIdx(isnan(frameIdx)) = []; % remove NaN
 frameIdx = [frameIdx;frameIdx(end)+1]; % append one data to makes sure last frame is included
 
 frameIdxDiff = diff(frameIdx);
 frameChangeIdx = find(frameIdxDiff==1);
-overlayAll = cell(size(frameChangeIdx)); % cell array to store all overlay
+overlayAllFrame = cell(size(frameChangeIdx)); % cell array to store all overlay
 % setup video
 %set(gcf,'Visible', 'off');
 jet_cmap =  jet(256); % colormap
@@ -40,7 +43,7 @@ for i = 1:numOfPoints
         % save old overlay to cell if current data is not valid
         if sum(i==frameChangeIdx)
             frameTemp = frameIdx(i);
-            overlayAll{frameTemp} = overlay;
+            overlayAllFrame{frameTemp} = overlay;
         end
         continue
     end
@@ -56,7 +59,7 @@ for i = 1:numOfPoints
     % if last points for the frame save overlay to cell
     if sum(i==frameChangeIdx)
         frameTemp = frameIdx(i);
-        overlayAll{frameTemp} = overlay;
+        overlayAllFrame{frameTemp} = overlay;
     end
     % update progress bar
     if mod(i,BarStep)
