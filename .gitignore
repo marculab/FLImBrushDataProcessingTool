@@ -1,3 +1,5 @@
 *.asv
 TestData/
 .DS_Store
+
+*.ini
