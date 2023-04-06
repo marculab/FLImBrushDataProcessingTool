@@ -67,7 +67,7 @@ classdef LaguerreModel < handle
             obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
                 case 2
-                    shift_range= -20:20; %default shift range order
+                    shift_range=1:15; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
