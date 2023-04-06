@@ -20,8 +20,8 @@ xlabel('Lifetime (ns)')
 ylabel('Count')
 
 %% get decays
-dt = 0.08;
-tWindow = 60; % ns same for V4 nad V5
+dt = 0.16;
+tWindow = 500*0.16; % ns same for V4 nad V5
 
 t = 0:dt:tWindow-dt;
 decay = zeros(round(tWindow/dt),N);
@@ -39,7 +39,7 @@ ylabel('Amplitude')
 title(['Decay wiht lifetime ' num2str(trueLT(17))])
 
 %% load and truncate irf
-irfStruc = load('..\APDDetectorFile\M00549707_DCS.mat');
+irfStruc = load('..\APDDetectorFile\UCD_MC\M00549707_DCS.mat');
 UpFactor = irfStruc.irfRawdt/dt;
 UpFactor = round(UpFactor);
 irf = interp(irfStruc.irf(:,200),UpFactor);
@@ -100,7 +100,7 @@ alphaUpperLim=alpha_up(size(spec,1),LagOrder,[],[]);
 
 numOfAlpha = 1;
 % alphaVector = linspace(0.6,alphaUpperLim,numOfAlpha);
-alphaVector = 0.916; % 0.88 for 0.6-6, 0.95
+alphaVector = 0.825; % 0.88 for 0.6-6, 0.95
 LTArray = zeros(N,numOfAlpha);
 f = waitbar(0,'Starting');
 for i=1:numOfAlpha
