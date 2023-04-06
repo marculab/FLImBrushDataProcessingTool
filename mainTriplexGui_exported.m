@@ -42,11 +42,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         caliLoadedLamp                  matlab.ui.control.Lamp
         caliLoadButton                  matlab.ui.control.Button
         caliViewButton                  matlab.ui.control.Button
-        bg3UIAxes                       matlab.ui.control.UIAxes
-        bg2UIAxes                       matlab.ui.control.UIAxes
         bg1UIAxes                       matlab.ui.control.UIAxes
+        bg2UIAxes                       matlab.ui.control.UIAxes
+        bg3UIAxes                       matlab.ui.control.UIAxes
         DeConSettingTab                 matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
+        RunEXPCheckBox                  matlab.ui.control.CheckBox
         LogScaleCheckBox                matlab.ui.control.CheckBox
         TruncationPanel                 matlab.ui.container.Panel
         Ch3AlphaValueDropDown           matlab.ui.control.DropDown
@@ -99,12 +100,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         AverageDataButton               matlab.ui.control.Button
         TruncateButton                  matlab.ui.control.Button
         RemoveSaturationButton          matlab.ui.control.Button
-        UIAxes_ch3BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch2BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
-        UIAxes_ch1BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch2DataFig               matlab.ui.control.UIAxes
         UIAxes_ch1DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch2DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch1BgRemoveFig           matlab.ui.control.UIAxes
+        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch2BgRemoveFig           matlab.ui.control.UIAxes
+        UIAxes_ch3BgRemoveFig           matlab.ui.control.UIAxes
         FittingResultTab                matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
         PointEditField                  matlab.ui.control.NumericEditField
@@ -119,10 +120,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         PlotDropDown                    matlab.ui.control.DropDown
         channelLabel                    matlab.ui.control.Label
         channelDropDown                 matlab.ui.control.DropDown
-        UIAxesDeconResult               matlab.ui.control.UIAxes
-        UIAxesResidue                   matlab.ui.control.UIAxes
-        UIAxesAutoCo                    matlab.ui.control.UIAxes
         UIAxesFitting                   matlab.ui.control.UIAxes
+        UIAxesAutoCo                    matlab.ui.control.UIAxes
+        UIAxesResidue                   matlab.ui.control.UIAxes
+        UIAxesDeconResult               matlab.ui.control.UIAxes
         imagesReconstrctionTab          matlab.ui.container.Tab
         EditField                       matlab.ui.control.EditField
         EditFieldLabel                  matlab.ui.control.Label
@@ -154,6 +155,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         apd3LoadedFlag =0; % apd3 load flag
         bgLoadedFlag = 0; % bg load flag
         caliLoadedFlag = 0; % calibratin loaded flag
+        expDeconFlag = 0; % Multi-exp deconvolusion flag
         processedDataloadedFlag = 0; % Description
         rootFolder = fileparts(mfilename('fullpath')) % current working directory
         dataInfoObj = dataInfo('','','','','','','','','','','','');% Description
@@ -365,7 +367,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             ylim(app.UIAxes_ch1BgRemoveFig,[tempMin-0.1 2]);
             title(app.UIAxes_ch1BgRemoveFig,'Ch1 DC&BG removed waveforms (100 Waveform)');
             temp = sortData(app.Ch2DataObj, 'ascend');
-             tempMin = min(temp(:));
+            tempMin = min(temp(:));
             if isnan(tempMin)
                 tempMin=0;
             end
@@ -378,7 +380,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             ylim(app.UIAxes_ch2BgRemoveFig,[tempMin-0.1 2])
             title(app.UIAxes_ch2BgRemoveFig,'Ch2 DC&BG removed waveforms (100 Waveform)')
             temp = sortData(app.Ch3DataObj, 'ascend');
-             tempMin = min(temp(:));
+            tempMin = min(temp(:));
             if isnan(tempMin)
                 tempMin=0;
             end
@@ -504,9 +506,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             rawDataToPlot = get(plotObj,'wf_aligned',Idx);
             rawDataMax = max(rawDataToPlot);
             fitToPlotLG = get(plotObj,'fit',Idx);
-            fitToPlotExp = get(plotObj.expDeconObj,'fit',Idx);
             residueToPlotLG = rawDataToPlot-fitToPlotLG;
-            residueToPlotExp = rawDataToPlot-fitToPlotExp;
+            if app.expDeconFlag
+                fitToPlotExp = get(plotObj.expDeconObj,'fit',Idx);
+                residueToPlotExp = rawDataToPlot-fitToPlotExp;
+            else
+                fitToPlotExp = zeros(size(fitToPlotLG));
+                residueToPlotExp = zeros(size(residueToPlotLG));
+            end
+
             gain = plotObj.gain(Idx);
             CtrlV = plotObj.CtrlV(Idx);
             LT_LG =  plotObj.Lg_LTs(Idx);
@@ -719,44 +727,44 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.dataIgnoreLowEditField.Value = DeConSettings{14};
             app.dataIgnoreHighEditField.Value = DeConSettings{15};
         end
-        
+
         function save_LG_vs_mExp_lifetime_fig(app)
             channel = app.channelDropDown.Value;
-                    switch channel
-                        case 'Channel 1'
-                            plotObj = app.Ch1DataObj;
-                            %                             c = app.Ch1Color;
-                            tl = 'Channel 1';
-                        case 'Channel 2'
-                            plotObj = app.Ch2DataObj;
-                            %                             c = app.Ch2Color;
-                            tl = 'Channel 2';
-                        case 'Channel 3'
-                            plotObj = app.Ch3DataObj;
-                            %                             c = app.Ch3Color;
-                            tl = 'Channel 3';
-                    end
-                    lg = {'LG decay vs mExp decay','LG decay vs mExp formula','y=x'};
-                    LT_LG_decay = plotObj.Lg_LTs;
-                    LT_mExp_decay = plotObj.expDeconObj.LTs_decay;
-                    LT_mExp_formula = plotObj.expDeconObj.LTs_formula;
-                    f1 = figure('Position',[100 100 960 540]);
-                    ax = gca;
-                    scatter(ax,LT_LG_decay,LT_mExp_decay, [],'green','filled','o');
-                    hold(ax,'on');
-                    scatter(ax,LT_LG_decay,LT_mExp_formula, [],'m','filled','s');
-                    plot(ax,[0 20],[0 20],'r--','LineWidth',2)
-                    hold(ax,'off');
-                    %                     axis(app.UIAxesDeconResult,'tight')
-                    xlabel(ax,'Laguerre lifetimes (ns)')
-                    ylabel(ax,'Muti-exponential Lifetimes (ns)')
-                    title(ax,[tl ' Laguerre vs Multi-exponential lifetimes'])
-                    legend(ax,lg,'Location','northwest')
-                    xlim(ax,[mean(LT_LG_decay,'omitnan')-3*std(LT_LG_decay,'omitnan') mean(LT_LG_decay,'omitnan')+3*std(LT_LG_decay,'omitnan')])
-                    ylim(ax,[mean([LT_mExp_decay;LT_mExp_decay],'omitnan')-3*std([LT_mExp_decay;LT_mExp_decay],'omitnan') mean([LT_mExp_decay;LT_mExp_decay],'omitnan')+3*std([LT_mExp_decay;LT_mExp_decay],'omitnan')])
-                    filename = fullfile(app.dataFolder, app.saveFolderName,'LG_vs_mEXp_Lifetime.fig');
-                    saveas(f1,filename)
-                    close(f1)
+            switch channel
+                case 'Channel 1'
+                    plotObj = app.Ch1DataObj;
+                    %                             c = app.Ch1Color;
+                    tl = 'Channel 1';
+                case 'Channel 2'
+                    plotObj = app.Ch2DataObj;
+                    %                             c = app.Ch2Color;
+                    tl = 'Channel 2';
+                case 'Channel 3'
+                    plotObj = app.Ch3DataObj;
+                    %                             c = app.Ch3Color;
+                    tl = 'Channel 3';
+            end
+            lg = {'LG decay vs mExp decay','LG decay vs mExp formula','y=x'};
+            LT_LG_decay = plotObj.Lg_LTs;
+            LT_mExp_decay = plotObj.expDeconObj.LTs_decay;
+            LT_mExp_formula = plotObj.expDeconObj.LTs_formula;
+            f1 = figure('Position',[100 100 960 540]);
+            ax = gca;
+            scatter(ax,LT_LG_decay,LT_mExp_decay, [],'green','filled','o');
+            hold(ax,'on');
+            scatter(ax,LT_LG_decay,LT_mExp_formula, [],'m','filled','s');
+            plot(ax,[0 20],[0 20],'r--','LineWidth',2)
+            hold(ax,'off');
+            %                     axis(app.UIAxesDeconResult,'tight')
+            xlabel(ax,'Laguerre lifetimes (ns)')
+            ylabel(ax,'Muti-exponential Lifetimes (ns)')
+            title(ax,[tl ' Laguerre vs Multi-exponential lifetimes'])
+            legend(ax,lg,'Location','northwest')
+            xlim(ax,[mean(LT_LG_decay,'omitnan')-3*std(LT_LG_decay,'omitnan') mean(LT_LG_decay,'omitnan')+3*std(LT_LG_decay,'omitnan')])
+            ylim(ax,[mean([LT_mExp_decay;LT_mExp_decay],'omitnan')-3*std([LT_mExp_decay;LT_mExp_decay],'omitnan') mean([LT_mExp_decay;LT_mExp_decay],'omitnan')+3*std([LT_mExp_decay;LT_mExp_decay],'omitnan')])
+            filename = fullfile(app.dataFolder, app.saveFolderName,'LG_vs_mEXp_Lifetime.fig');
+            saveas(f1,filename)
+            close(f1)
         end
     end
 
@@ -789,6 +797,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.UpsampleButton.Enable = 0;
                     app.TruncateButton.Enable = 0;
                     app.DeconButton.Enable = 0;
+                    app.RunEXPCheckBox.Enable = 0;
                     app.exponentialsDropDown.Enable = 0;
                     % enable
                     app.LoadDataButton.Enable = 1;
@@ -956,7 +965,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.TruncateButton.Enable = 0;
                     app.DeconButton.Enable = 1;
                     app.DataAverageDropDown.Enable = 0;
-                    app.exponentialsDropDown.Enable = 1;
+                    app.RunEXPCheckBox.Enable = 1;
+                    app.exponentialsDropDown.Enable = 0;
                     app.LoadDataButton.Enable = 1;
 
             end
@@ -1029,7 +1039,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     plot(app.UIAxesDeconResult,plotObj.LaguerreBasis)
                     axis(app.UIAxesDeconResult,'tight')
                     title(app.UIAxesDeconResult,'Laguerre Basis')
-                    
+
                 case 'Raw Waveforms'
                     channel = app.channelDropDown.Value;
                     switch channel
@@ -1193,6 +1203,30 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     ylim(app.UIAxesDeconResult,[quantile(se_Exp,0.1) quantile(se_Exp,0.9)])
                     xlim(app.UIAxesDeconResult,[quantile(se_Lg,0.1) quantile(se_Lg,0.9)])
 
+                case 'Shift'
+                    channel = app.channelDropDown.Value;
+                    switch channel
+                        case 'Channel 1'
+                            plotObj = app.Ch1DataObj;
+                            c = app.Ch1Color;
+                            tl = 'Channel 1';
+                        case 'Channel 2'
+                            plotObj = app.Ch2DataObj;
+                            c = app.Ch2Color;
+                            tl = 'Channel 2';
+                        case 'Channel 3'
+                            plotObj = app.Ch3DataObj;
+                            c = app.Ch3Color;
+                            tl = 'Channel 3';
+                    end
+                    shift = plotObj.shift;
+                    plot(app.UIAxesDeconResult, shift, 'Marker',"*",'Color',c);
+                    ylim(app.UIAxesDeconResult,[min(shift)-5 max(shift)+5])
+                    %                     axis(app.UIAxesDeconResult,'tight')
+                    xlabel(app.UIAxesDeconResult,'Point #')
+                    ylabel(app.UIAxesDeconResult,'iRF shift (points)')
+                    title(app.UIAxesDeconResult,'optimal iRF shift')
+
             end
         end
 
@@ -1214,44 +1248,44 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             title(app.bg3UIAxes,sprintf('Channel 3 Background, CtrlV = %.3f, Gain = %.3f',app.bgObj.CtrlV3, app.bgObj.bgGain3));
             app.bg3UIAxes.YLim = [min(app.bgObj.bgCh3)-0.1 max(app.bgObj.bgCh3)+0.1];
         end
-        
-        
+
+
         function save_LG_vs_mExp_error_fig(app)
             channel = app.channelDropDown.Value;
-                    switch channel
-                        case 'Channel 1'
-                            plotObj = app.Ch1DataObj;
-                            %                             c = app.Ch1Color;
-                        case 'Channel 2'
-                            plotObj = app.Ch2DataObj;
-                            %                             c = app.Ch2Color;
-                        case 'Channel 3'
-                            plotObj = app.Ch3DataObj;
-                            %                             c = app.Ch3Color;
-                    end
-                    res_Lg = get(plotObj,'wf_aligned')-get(plotObj,'fit');
-                    se_Lg = sum(res_Lg.^2)';
-                    res_Exp = plotObj.expDeconObj.spec_aligned-get(plotObj.expDeconObj,'fit');
-                    se_Exp = sum(res_Exp.^2)';
-                    f2 = figure('Position',[100 100 960 540]);
-                    ax = gca;
-                    scatter(ax,se_Lg,se_Exp, [],'magenta','filled','o');
-                    hold(ax,'on');
-                    plot(ax,[0 max(se_Exp)],[0 max(se_Exp)],'g--','LineWidth',1.5)
-                    hold(ax,'off');
-                    xlabel(ax,'Laguerre Square Error')
-                    ylabel(ax,'Muti-exponential Square Error')
-%                     axis(ax,'tight')
-                    title(ax,'Square Error')
-                    lg = {'Laguerre vs Exponential','y=x'};
-                    legend(ax,lg,'Location','northwest')
-                    ylim(ax,[quantile(se_Exp,0.05) quantile(se_Exp,0.95)])
-                    xlim(ax,[quantile(se_Lg,0.05) quantile(se_Lg,0.95)])
-                    filename = fullfile(app.dataFolder, app.saveFolderName,'LG_vs_mEXp_SquareError.fig');
-                    saveas(f2,filename)
-                    close(f2)
+            switch channel
+                case 'Channel 1'
+                    plotObj = app.Ch1DataObj;
+                    %                             c = app.Ch1Color;
+                case 'Channel 2'
+                    plotObj = app.Ch2DataObj;
+                    %                             c = app.Ch2Color;
+                case 'Channel 3'
+                    plotObj = app.Ch3DataObj;
+                    %                             c = app.Ch3Color;
+            end
+            res_Lg = get(plotObj,'wf_aligned')-get(plotObj,'fit');
+            se_Lg = sum(res_Lg.^2)';
+            res_Exp = plotObj.expDeconObj.spec_aligned-get(plotObj.expDeconObj,'fit');
+            se_Exp = sum(res_Exp.^2)';
+            f2 = figure('Position',[100 100 960 540]);
+            ax = gca;
+            scatter(ax,se_Lg,se_Exp, [],'magenta','filled','o');
+            hold(ax,'on');
+            plot(ax,[0 max(se_Exp)],[0 max(se_Exp)],'g--','LineWidth',1.5)
+            hold(ax,'off');
+            xlabel(ax,'Laguerre Square Error')
+            ylabel(ax,'Muti-exponential Square Error')
+            %                     axis(ax,'tight')
+            title(ax,'Square Error')
+            lg = {'Laguerre vs Exponential','y=x'};
+            legend(ax,lg,'Location','northwest')
+            ylim(ax,[quantile(se_Exp,0.05) quantile(se_Exp,0.95)])
+            xlim(ax,[quantile(se_Lg,0.05) quantile(se_Lg,0.95)])
+            filename = fullfile(app.dataFolder, app.saveFolderName,'LG_vs_mEXp_SquareError.fig');
+            saveas(f2,filename)
+            close(f2)
         end
-        
+
         function loadSoftwareVersion(app)
             ini = IniConfig();
             ini.ReadFile('SoftwareVersion.ini');
@@ -1685,7 +1719,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             delete(app.apd1DialogApp);
             delete(app.apd2DialogApp);
             delete(app.apd3DialogApp);
-%             delete(app.poolobj); % delete pool object
+            %             delete(app.poolobj); % delete pool object
             delete(app);
 
         end
@@ -1794,87 +1828,94 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             alpha1 = str2double(alpha1);
             alpha2 = str2double(alpha2);
             alpha3 = str2double(alpha3);
-            
-%             alphaMax = alpha_up(app.channelWidthEditField.Value/0.08,laguerreOrder)+0.1;
+
+            %             alphaMax = alpha_up(app.channelWidthEditField.Value/0.08,laguerreOrder)+0.1;
             alphaMax = 1;
             if any(alphaMax<[alpha1 alpha2 alpha3])
                 msg1 = sprintf('Maxmum allowed alpha value for your truncation length is %.3f \n', alphaMax);
                 msg2 = 'Please reselect your alpha value!\n';
                 msgbox([msg1 msg2],'modal');
             else
-            
-            expOrder = app.exponentialsDropDown.Value;
-            expOrder = str2double(expOrder);
 
-            exclude = app.dataIgnoreLowEditField.Value:app.dataIgnoreHighEditField.Value;
-            if any(exclude < 1)
-                exclude = [];
-            end
+                exclude = app.dataIgnoreLowEditField.Value:app.dataIgnoreHighEditField.Value;
+                if any(exclude < 1)
+                    exclude = [];
+                end
 
-            set(app.UIFigure,'pointer','watch') % set cursor to spinning
-            drawnow
+                set(app.UIFigure,'pointer','watch') % set cursor to spinning
+                drawnow
 
-            f = waitbar(0,'Processing channel 1...');
+                f = waitbar(0,'Running Laguerre channel 1...');
+                runDeconLG(app.Ch1DataObj,exclude,laguerreOrder,alpha1);
 
-            runDeconLG(app.Ch1DataObj,exclude,laguerreOrder,alpha1);
-            runDeconExp(app.Ch1DataObj,expOrder,[],[],[],exclude);
+                waitbar(0.33,f,'Running Laguerre channel 2...');
+                runDeconLG(app.Ch2DataObj,exclude,laguerreOrder,alpha2);
 
-            waitbar(0.33,f,'Processing channel 2...');
-            runDeconLG(app.Ch2DataObj,exclude,laguerreOrder,alpha2);
-            runDeconExp(app.Ch2DataObj,expOrder,[],[],[],exclude);
-            %
-            waitbar(0.66,f,'Processing channel 3...');
-            runDeconLG(app.Ch3DataObj,exclude,laguerreOrder,alpha3);
-            runDeconExp(app.Ch3DataObj,expOrder,[],[],[],exclude);
-            
-            for H = 1:4 % run phasor for harmonic of 1 to 4
-            runPhasor(app.Ch1DataObj, H);
-            runPhasor(app.Ch2DataObj, H);
-            runPhasor(app.Ch3DataObj, H);
-            end
+                waitbar(0.66,f,'Running Laguerre channel 3...');
+                runDeconLG(app.Ch3DataObj,exclude,laguerreOrder,alpha3);
 
-            CH1WFGainCorr = get(app.Ch1DataObj,'GainCorrectedWF');
-            CH2WFGainCorr = get(app.Ch2DataObj,'GainCorrectedWF');
-            CH3WFGainCorr = get(app.Ch3DataObj,'GainCorrectedWF');
-            %-------------------------------------------compute extended phasor-----------------------------------------------------
-            WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr];
-            numOfWF = size(WFExtended,2);
-            EOP = zeros(numOfWF,1);
-            for i = 1:numOfWF
-            EOP(i) = ComputePhasor(WFExtended(:,i),0,1,0);
-            end
-            app.EOP_H1G = real(EOP);
-            app.EOP_H1S = imag(EOP);
-            %-------------------------------------------compute spectral phasor--------------------------------------------
-            Spectrum = zeros(numOfWF,3);
-            Spectrum(:,1) = sum(CH1WFGainCorr)';
-            Spectrum(:,2) = sum(CH2WFGainCorr)';
-            Spectrum(:,3) = sum(CH3WFGainCorr)';
-            SP = zeros(numOfWF,1);
-            for i = 1: numOfWF
-                SP(i) = (ComputePhasor(Spectrum(i,:),0,1,0)+(1+1i))/2;
-            end
-            app.SP_G = real(SP);
-            app.SP_S = imag(SP);
-            
-            waitbar(1,f,'Finished');
+                app.expDeconFlag = app.RunEXPCheckBox.Value;
 
-            close(f)
-            delete(f)
+                if app.expDeconFlag
+                    expOrder = app.exponentialsDropDown.Value;
+                    expOrder = str2double(expOrder);
+                    f = waitbar(0,'Running exponential channel 1...');
+                    runDeconExp(app.Ch1DataObj,expOrder,[],[],[],exclude);
+                    waitbar(0.33,f,'Running exponential channel 2...');
+                    runDeconExp(app.Ch2DataObj,expOrder,[],[],[],exclude);
+                    waitbar(0.66,f,'Running exponential channel 3...');
+                    runDeconExp(app.Ch3DataObj,expOrder,[],[],[],exclude);
+                end
 
-            set(app.UIFigure,'pointer','arrow') % set cursor to arrow
-            drawnow
+                %------------------run phasor for harmonic of 1 to 4-----------------------
+                for H = 1:4 % run phasor for harmonic of 1 to 4
+                    runPhasor(app.Ch1DataObj, H);
+                    runPhasor(app.Ch2DataObj, H);
+                    runPhasor(app.Ch3DataObj, H);
+                end
+
+                CH1WFGainCorr = get(app.Ch1DataObj,'GainCorrectedWF');
+                CH2WFGainCorr = get(app.Ch2DataObj,'GainCorrectedWF');
+                CH3WFGainCorr = get(app.Ch3DataObj,'GainCorrectedWF');
+                %-------------------------------------------compute extended phasor-----------------------------------------------------
+                WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr];
+                numOfWF = size(WFExtended,2);
+                EOP = zeros(numOfWF,1);
+                for i = 1:numOfWF
+                    EOP(i) = ComputePhasor(WFExtended(:,i),0,1,0);
+                end
+                app.EOP_H1G = real(EOP);
+                app.EOP_H1S = imag(EOP);
+                %-------------------------------------------compute spectral phasor--------------------------------------------
+                Spectrum = zeros(numOfWF,3);
+                Spectrum(:,1) = sum(CH1WFGainCorr)';
+                Spectrum(:,2) = sum(CH2WFGainCorr)';
+                Spectrum(:,3) = sum(CH3WFGainCorr)';
+                SP = zeros(numOfWF,1);
+                for i = 1: numOfWF
+                    SP(i) = (ComputePhasor(Spectrum(i,:),0,1,0)+(1+1i))/2;
+                end
+                app.SP_G = real(SP);
+                app.SP_S = imag(SP);
+
+                waitbar(1,f,'Finished');
+
+                close(f)
+                delete(f)
+
+                set(app.UIFigure,'pointer','arrow') % set cursor to arrow
+                drawnow
 
 
-            app.TabGroup.SelectedTab = app.FittingResultTab;
-            clearAllPreviewAxis(app)
-            app.LineSlider.Value = 1;
-            updateChannelDropDown(app)
-            plotDeconResult(app);
-            option = app.PlotDropDown.Value;
-            plotTrace(app,option)
-            
-            app.SaveDataButton.Enable = 1;
+                app.TabGroup.SelectedTab = app.FittingResultTab;
+                clearAllPreviewAxis(app)
+                app.LineSlider.Value = 1;
+                updateChannelDropDown(app)
+                plotDeconResult(app);
+                option = app.PlotDropDown.Value;
+                plotTrace(app,option)
+
+                app.SaveDataButton.Enable = 1;
             end
 
 
@@ -1904,16 +1945,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             SP_G = app.SP_G;
             SP_S = app.SP_S;
             calibrationObj =app.caliObj;
-            
+
             save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
-            
+
             %save Laguerre vs multi-exp square error
-            save_LG_vs_mExp_lifetime_fig(app)
-            save_LG_vs_mExp_error_fig(app)
-            
+            %             save_LG_vs_mExp_lifetime_fig(app)
+            %             save_LG_vs_mExp_error_fig(app)
+
             set(app.UIFigure,'pointer','arrow') % set cursor to arrow
             drawnow
-            
+
             msgbox('Data Successfully Saved!')
         end
 
@@ -1986,6 +2027,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         function SetRootPathMenuSelected(app, event)
             app.rootFolder = uigetdir;
         end
+
+        % Value changed function: RunEXPCheckBox
+        function RunEXPCheckBoxValueChanged(app, event)
+            value = app.RunEXPCheckBox.Value;
+            if value
+                app.exponentialsDropDown.Enable = 1;
+            else
+                app.exponentialsDropDown.Enable = 0;
+            end
+        end
     end
 
     % Component initialization
@@ -2040,16 +2091,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout.RowSpacing = 6.55555555555556;
             app.GridLayout.Padding = [10 6.55555555555556 10 6.55555555555556];
 
-            % Create bg1UIAxes
-            app.bg1UIAxes = uiaxes(app.GridLayout);
-            title(app.bg1UIAxes, 'Ch1 background')
-            xlabel(app.bg1UIAxes, 'Points')
-            ylabel(app.bg1UIAxes, 'Voltage(V)')
-            app.bg1UIAxes.XTickLabelRotation = 0;
-            app.bg1UIAxes.YTickLabelRotation = 0;
-            app.bg1UIAxes.ZTickLabelRotation = 0;
-            app.bg1UIAxes.Layout.Row = 6;
-            app.bg1UIAxes.Layout.Column = [4 10];
+            % Create bg3UIAxes
+            app.bg3UIAxes = uiaxes(app.GridLayout);
+            title(app.bg3UIAxes, 'Ch3 background')
+            xlabel(app.bg3UIAxes, 'Points')
+            ylabel(app.bg3UIAxes, 'Voltage(V)')
+            app.bg3UIAxes.XTickLabelRotation = 0;
+            app.bg3UIAxes.YTickLabelRotation = 0;
+            app.bg3UIAxes.ZTickLabelRotation = 0;
+            app.bg3UIAxes.Layout.Row = 8;
+            app.bg3UIAxes.Layout.Column = [4 10];
 
             % Create bg2UIAxes
             app.bg2UIAxes = uiaxes(app.GridLayout);
@@ -2062,16 +2113,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.bg2UIAxes.Layout.Row = 7;
             app.bg2UIAxes.Layout.Column = [4 10];
 
-            % Create bg3UIAxes
-            app.bg3UIAxes = uiaxes(app.GridLayout);
-            title(app.bg3UIAxes, 'Ch3 background')
-            xlabel(app.bg3UIAxes, 'Points')
-            ylabel(app.bg3UIAxes, 'Voltage(V)')
-            app.bg3UIAxes.XTickLabelRotation = 0;
-            app.bg3UIAxes.YTickLabelRotation = 0;
-            app.bg3UIAxes.ZTickLabelRotation = 0;
-            app.bg3UIAxes.Layout.Row = 8;
-            app.bg3UIAxes.Layout.Column = [4 10];
+            % Create bg1UIAxes
+            app.bg1UIAxes = uiaxes(app.GridLayout);
+            title(app.bg1UIAxes, 'Ch1 background')
+            xlabel(app.bg1UIAxes, 'Points')
+            ylabel(app.bg1UIAxes, 'Voltage(V)')
+            app.bg1UIAxes.XTickLabelRotation = 0;
+            app.bg1UIAxes.YTickLabelRotation = 0;
+            app.bg1UIAxes.ZTickLabelRotation = 0;
+            app.bg1UIAxes.Layout.Row = 6;
+            app.bg1UIAxes.Layout.Column = [4 10];
 
             % Create caliViewButton
             app.caliViewButton = uibutton(app.GridLayout, 'push');
@@ -2305,49 +2356,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout2.Padding = [3.5 2 3.5 2];
             app.GridLayout2.BusyAction = 'cancel';
 
-            % Create UIAxes_ch1DataFig
-            app.UIAxes_ch1DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch1DataFig, 'Ch1')
-            xlabel(app.UIAxes_ch1DataFig, 'Points')
-            ylabel(app.UIAxes_ch1DataFig, 'Voltage')
-            app.UIAxes_ch1DataFig.XGrid = 'on';
-            app.UIAxes_ch1DataFig.YGrid = 'on';
-            app.UIAxes_ch1DataFig.Box = 'on';
-            app.UIAxes_ch1DataFig.Layout.Row = [2 9];
-            app.UIAxes_ch1DataFig.Layout.Column = [5 7];
-
-            % Create UIAxes_ch2DataFig
-            app.UIAxes_ch2DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch2DataFig, 'Ch2')
-            xlabel(app.UIAxes_ch2DataFig, 'Points')
-            ylabel(app.UIAxes_ch2DataFig, 'Voltage')
-            app.UIAxes_ch2DataFig.XGrid = 'on';
-            app.UIAxes_ch2DataFig.YGrid = 'on';
-            app.UIAxes_ch2DataFig.Box = 'on';
-            app.UIAxes_ch2DataFig.Layout.Row = [10 17];
-            app.UIAxes_ch2DataFig.Layout.Column = [5 7];
-
-            % Create UIAxes_ch1BgRemoveFig
-            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
-            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
-            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
-            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.Box = 'on';
-            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 9];
-            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
-
-            % Create UIAxes_ch3DataFig
-            app.UIAxes_ch3DataFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch3DataFig, 'Ch3')
-            xlabel(app.UIAxes_ch3DataFig, 'Points')
-            ylabel(app.UIAxes_ch3DataFig, 'Voltage')
-            app.UIAxes_ch3DataFig.XGrid = 'on';
-            app.UIAxes_ch3DataFig.YGrid = 'on';
-            app.UIAxes_ch3DataFig.Box = 'on';
-            app.UIAxes_ch3DataFig.Layout.Row = [18 25];
-            app.UIAxes_ch3DataFig.Layout.Column = [5 7];
+            % Create UIAxes_ch3BgRemoveFig
+            app.UIAxes_ch3BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch3BgRemoveFig, 'background removed ch3')
+            xlabel(app.UIAxes_ch3BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch3BgRemoveFig, 'Voltage')
+            app.UIAxes_ch3BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch3BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch3BgRemoveFig.Box = 'on';
+            app.UIAxes_ch3BgRemoveFig.Layout.Row = [18 25];
+            app.UIAxes_ch3BgRemoveFig.Layout.Column = [8 10];
 
             % Create UIAxes_ch2BgRemoveFig
             app.UIAxes_ch2BgRemoveFig = uiaxes(app.GridLayout2);
@@ -2360,16 +2378,49 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch2BgRemoveFig.Layout.Row = [10 17];
             app.UIAxes_ch2BgRemoveFig.Layout.Column = [8 10];
 
-            % Create UIAxes_ch3BgRemoveFig
-            app.UIAxes_ch3BgRemoveFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch3BgRemoveFig, 'background removed ch3')
-            xlabel(app.UIAxes_ch3BgRemoveFig, 'Points')
-            ylabel(app.UIAxes_ch3BgRemoveFig, 'Voltage')
-            app.UIAxes_ch3BgRemoveFig.XGrid = 'on';
-            app.UIAxes_ch3BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch3BgRemoveFig.Box = 'on';
-            app.UIAxes_ch3BgRemoveFig.Layout.Row = [18 25];
-            app.UIAxes_ch3BgRemoveFig.Layout.Column = [8 10];
+            % Create UIAxes_ch3DataFig
+            app.UIAxes_ch3DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch3DataFig, 'Ch3')
+            xlabel(app.UIAxes_ch3DataFig, 'Points')
+            ylabel(app.UIAxes_ch3DataFig, 'Voltage')
+            app.UIAxes_ch3DataFig.XGrid = 'on';
+            app.UIAxes_ch3DataFig.YGrid = 'on';
+            app.UIAxes_ch3DataFig.Box = 'on';
+            app.UIAxes_ch3DataFig.Layout.Row = [18 25];
+            app.UIAxes_ch3DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch1BgRemoveFig
+            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
+            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
+            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.Box = 'on';
+            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 9];
+            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
+
+            % Create UIAxes_ch2DataFig
+            app.UIAxes_ch2DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch2DataFig, 'Ch2')
+            xlabel(app.UIAxes_ch2DataFig, 'Points')
+            ylabel(app.UIAxes_ch2DataFig, 'Voltage')
+            app.UIAxes_ch2DataFig.XGrid = 'on';
+            app.UIAxes_ch2DataFig.YGrid = 'on';
+            app.UIAxes_ch2DataFig.Box = 'on';
+            app.UIAxes_ch2DataFig.Layout.Row = [10 17];
+            app.UIAxes_ch2DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch1DataFig
+            app.UIAxes_ch1DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch1DataFig, 'Ch1')
+            xlabel(app.UIAxes_ch1DataFig, 'Points')
+            ylabel(app.UIAxes_ch1DataFig, 'Voltage')
+            app.UIAxes_ch1DataFig.XGrid = 'on';
+            app.UIAxes_ch1DataFig.YGrid = 'on';
+            app.UIAxes_ch1DataFig.Box = 'on';
+            app.UIAxes_ch1DataFig.Layout.Row = [2 9];
+            app.UIAxes_ch1DataFig.Layout.Column = [5 7];
 
             % Create RemoveSaturationButton
             app.RemoveSaturationButton = uibutton(app.GridLayout2, 'push');
@@ -2735,7 +2786,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.ofexponentialsDropDownLabel.HorizontalAlignment = 'right';
             app.ofexponentialsDropDownLabel.Enable = 'off';
             app.ofexponentialsDropDownLabel.Layout.Row = 24;
-            app.ofexponentialsDropDownLabel.Layout.Column = [1 2];
+            app.ofexponentialsDropDownLabel.Layout.Column = [2 3];
             app.ofexponentialsDropDownLabel.Text = '# of exponentials';
 
             % Create exponentialsDropDown
@@ -2743,7 +2794,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.exponentialsDropDown.Items = {'1', '2', '3', '4'};
             app.exponentialsDropDown.Enable = 'off';
             app.exponentialsDropDown.Layout.Row = 24;
-            app.exponentialsDropDown.Layout.Column = [3 4];
+            app.exponentialsDropDown.Layout.Column = 4;
             app.exponentialsDropDown.Value = '3';
 
             % Create LaguerreSettingPanel
@@ -2825,6 +2876,13 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.LogScaleCheckBox.Layout.Row = 1;
             app.LogScaleCheckBox.Layout.Column = 10;
 
+            % Create RunEXPCheckBox
+            app.RunEXPCheckBox = uicheckbox(app.GridLayout2);
+            app.RunEXPCheckBox.ValueChangedFcn = createCallbackFcn(app, @RunEXPCheckBoxValueChanged, true);
+            app.RunEXPCheckBox.Text = 'Run EXP';
+            app.RunEXPCheckBox.Layout.Row = 24;
+            app.RunEXPCheckBox.Layout.Column = 1;
+
             % Create FittingResultTab
             app.FittingResultTab = uitab(app.TabGroup);
             app.FittingResultTab.Title = 'Fitting Result';
@@ -2836,32 +2894,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout3.RowSpacing = 2.75;
             app.GridLayout3.Padding = [10 2.75 10 2.75];
 
-            % Create UIAxesFitting
-            app.UIAxesFitting = uiaxes(app.GridLayout3);
-            title(app.UIAxesFitting, 'Fitting')
-            xlabel(app.UIAxesFitting, 'Time(ns)')
-            ylabel(app.UIAxesFitting, 'Y')
-            app.UIAxesFitting.XTickLabelRotation = 0;
-            app.UIAxesFitting.YTickLabelRotation = 0;
-            app.UIAxesFitting.ZTickLabelRotation = 0;
-            app.UIAxesFitting.XGrid = 'on';
-            app.UIAxesFitting.YGrid = 'on';
-            app.UIAxesFitting.Box = 'on';
-            app.UIAxesFitting.Layout.Row = 2;
-            app.UIAxesFitting.Layout.Column = [1 6];
-
-            % Create UIAxesAutoCo
-            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
-            title(app.UIAxesAutoCo, 'Auto Correlation')
-            ylabel(app.UIAxesAutoCo, 'Y')
-            app.UIAxesAutoCo.XTickLabelRotation = 0;
-            app.UIAxesAutoCo.YTickLabelRotation = 0;
-            app.UIAxesAutoCo.ZTickLabelRotation = 0;
-            app.UIAxesAutoCo.XGrid = 'on';
-            app.UIAxesAutoCo.YGrid = 'on';
-            app.UIAxesAutoCo.Box = 'on';
-            app.UIAxesAutoCo.Layout.Row = [4 5];
-            app.UIAxesAutoCo.Layout.Column = [1 6];
+            % Create UIAxesDeconResult
+            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
+            title(app.UIAxesDeconResult, 'Utility Plot')
+            xlabel(app.UIAxesDeconResult, 'Time(ns)')
+            ylabel(app.UIAxesDeconResult, 'Y')
+            app.UIAxesDeconResult.XGrid = 'on';
+            app.UIAxesDeconResult.YGrid = 'on';
+            app.UIAxesDeconResult.Box = 'on';
+            app.UIAxesDeconResult.Layout.Row = [2 3];
+            app.UIAxesDeconResult.Layout.Column = [7 12];
 
             % Create UIAxesResidue
             app.UIAxesResidue = uiaxes(app.GridLayout3);
@@ -2876,16 +2918,32 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxesResidue.Layout.Row = 3;
             app.UIAxesResidue.Layout.Column = [1 6];
 
-            % Create UIAxesDeconResult
-            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
-            title(app.UIAxesDeconResult, 'Utility Plot')
-            xlabel(app.UIAxesDeconResult, 'Time(ns)')
-            ylabel(app.UIAxesDeconResult, 'Y')
-            app.UIAxesDeconResult.XGrid = 'on';
-            app.UIAxesDeconResult.YGrid = 'on';
-            app.UIAxesDeconResult.Box = 'on';
-            app.UIAxesDeconResult.Layout.Row = [2 3];
-            app.UIAxesDeconResult.Layout.Column = [7 12];
+            % Create UIAxesAutoCo
+            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
+            title(app.UIAxesAutoCo, 'Auto Correlation')
+            ylabel(app.UIAxesAutoCo, 'Y')
+            app.UIAxesAutoCo.XTickLabelRotation = 0;
+            app.UIAxesAutoCo.YTickLabelRotation = 0;
+            app.UIAxesAutoCo.ZTickLabelRotation = 0;
+            app.UIAxesAutoCo.XGrid = 'on';
+            app.UIAxesAutoCo.YGrid = 'on';
+            app.UIAxesAutoCo.Box = 'on';
+            app.UIAxesAutoCo.Layout.Row = [4 5];
+            app.UIAxesAutoCo.Layout.Column = [1 6];
+
+            % Create UIAxesFitting
+            app.UIAxesFitting = uiaxes(app.GridLayout3);
+            title(app.UIAxesFitting, 'Fitting')
+            xlabel(app.UIAxesFitting, 'Time(ns)')
+            ylabel(app.UIAxesFitting, 'Y')
+            app.UIAxesFitting.XTickLabelRotation = 0;
+            app.UIAxesFitting.YTickLabelRotation = 0;
+            app.UIAxesFitting.ZTickLabelRotation = 0;
+            app.UIAxesFitting.XGrid = 'on';
+            app.UIAxesFitting.YGrid = 'on';
+            app.UIAxesFitting.Box = 'on';
+            app.UIAxesFitting.Layout.Row = 2;
+            app.UIAxesFitting.Layout.Column = [1 6];
 
             % Create channelDropDown
             app.channelDropDown = uidropdown(app.GridLayout3);
@@ -2903,7 +2961,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             % Create PlotDropDown
             app.PlotDropDown = uidropdown(app.GridLayout3);
-            app.PlotDropDown.Items = {'Lifetime', 'Laguerre basis', 'Raw Intensity', 'Decon Intensity', 'Gain', 'Raw Waveforms', 'Residual Max', 'SNR', 'LG vs mExp', 'Square Error'};
+            app.PlotDropDown.Items = {'Lifetime', 'Laguerre basis', 'Raw Intensity', 'Decon Intensity', 'Gain', 'Raw Waveforms', 'Residual Max', 'SNR', 'LG vs mExp', 'Square Error', 'Shift'};
             app.PlotDropDown.ValueChangedFcn = createCallbackFcn(app, @PlotDropDownValueChanged, true);
             app.PlotDropDown.BackgroundColor = [1 1 1];
             app.PlotDropDown.Layout.Row = 1;
