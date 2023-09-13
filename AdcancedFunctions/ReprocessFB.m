@@ -74,7 +74,7 @@ title('Truncated Data')
 
 runDeconLG(Ch1DataObj,exclude,LaguerreOrder,alpha);
 
-runDeconExp(Ch1DataObj,expOrder,[],[],[],exclude);
+% runDeconExp(Ch1DataObj,expOrder,[],[],[],exclude);
 
 
 %% retrive nessesery Ch2 data for reprocessing
@@ -120,7 +120,7 @@ title('Truncated Data')
 
 runDeconLG(Ch2DataObj,exclude,LaguerreOrder,alpha);
 
-runDeconExp(Ch2DataObj,expOrder,[],[],[],exclude);
+% runDeconExp(Ch2DataObj,expOrder,[],[],[],exclude);
 
 
 %% retrive nessesery Ch3 data for reprocessing
@@ -166,7 +166,7 @@ title('Truncated Data')
 
 runDeconLG(Ch3DataObj,exclude,LaguerreOrder,alpha);
 
-runDeconExp(Ch3DataObj,expOrder,[],[],[],exclude);
+% runDeconExp(Ch3DataObj,expOrder,[],[],[],exclude);
 
 
 for H = 1:4 % run phasor for harmonic of 1 to 4
