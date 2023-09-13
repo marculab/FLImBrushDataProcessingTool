@@ -140,6 +140,7 @@ classdef LaguerreModel < handle
             %             figure;plot(obj.spec_aligned(:,1),'.-');hold on;plot(obj.spec_aligned(:,3),'+-');hold off
             %             figure;plot(spec_raw(:,1),'.-');hold on;plot(spec_raw(:,3),'+-');hold off
             decays = obj.LaguerreBasis*obj.LCs;
+            % decays(decays<0)=0; % added to fix negative decay
             %             figure;plot(decays);
             %             figure;plot(decays(:,[1,3]))
             %             figure;plot(decays./max(decays));
