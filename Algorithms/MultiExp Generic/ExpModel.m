@@ -53,7 +53,7 @@ classdef ExpModel < handle
             if ~isempty(tau_lower_lim) % if empty use defaut
                 obj.tauLowerLim = tau_lower_lim;
             else
-                obj.tauLowerLim = 0.1;
+                obj.tauLowerLim = 0.01;
             end
             
             if ~isempty(tau_upper_lim) % if empty use defaut
