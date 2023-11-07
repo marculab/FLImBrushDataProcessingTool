@@ -194,9 +194,6 @@ classdef ChannelDataAPD < handle
             %             obj.gainDecon = obj.gain(obj.deconIdx);
             %             sum(isnan(sum(obj.preProcessedData)))
             %             obj.preProcessedData(:,nanCol)=[]; % remove non-decon data
-            obj.noise = std(obj.averagedData(end-200:end,:),1); % use last 200 points since data is upsampled
-            WFMax = max(obj.averagedData);
-            obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
             obj.numOfAvgWFs = obj.numOfWFs/avgIn;
         end
         
@@ -231,6 +228,9 @@ classdef ChannelDataAPD < handle
             %             bgScaleFactor(bgScaleFactor<5) = 0;
             bgScaleFactor(isnan(bgScaleFactor)) = 0;
             obj.preProcessedData = obj.preProcessedData-obj.bg*bgScaleFactor;
+            obj.noise = std(obj.preProcessedData(end-200:end,:),1); % use last 200 points since data is upsampled
+            WFMax = max(obj.preProcessedData);
+            obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
         end
         
         
