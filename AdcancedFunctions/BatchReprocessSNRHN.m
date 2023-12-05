@@ -37,7 +37,7 @@ clear opts
 
 %%
 root = 'Y:\V2 Sacramento Database\Da Vinci Robot Study (100 patients)\Data_100_Patient_Study';
-for i=1:size(T,1)
+for i=313:size(T,1)
     i
     temp = T.DeconvolutionFile{i};
     if ~isempty(temp)
@@ -60,7 +60,36 @@ for i=1:size(T,1)
         WFMax = max(Ch3DataObj.preProcessedData);
         Ch3DataObj.SNR = 20*log10(WFMax./Ch3DataObj.noise)'; % covert to column vector
 
-        save(matName, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+        if ~exist('EOP_H1G','var')
+            CH1WFGainCorr = get(Ch1DataObj,'GainCorrectedWF');
+            CH2WFGainCorr = get(Ch2DataObj,'GainCorrectedWF');
+            CH3WFGainCorr = get(Ch3DataObj,'GainCorrectedWF');
+            %-------------------------------------------compute extended phasor-----------------------------------------------------
+            WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr];
+            numOfWF = size(WFExtended,2);
+            EOP = zeros(numOfWF,1);
+            for j = 1:numOfWF
+                EOP(i) = ComputePhasor(WFExtended(:,i),0,1,0);
+            end
+            EOP_H1G = real(EOP);
+            EOP_H1S = imag(EOP);
+            %-------------------------------------------compute spectral phasor--------------------------------------------
+            Spectrum = zeros(numOfWF,3);
+            Spectrum(:,1) = sum(CH1WFGainCorr)';
+            Spectrum(:,2) = sum(CH2WFGainCorr)';
+            Spectrum(:,3) = sum(CH3WFGainCorr)';
+            SP = zeros(numOfWF,1);
+            for j = 1: numOfWF
+                SP(i) = (ComputePhasor(Spectrum(i,:),0,1,0)+(1+1i))/2;
+            end
+            SP_G = real(SP);
+            SP_S = imag(SP);
+        end
+        [filepath,name,ext] = fileparts(matName);
+        newFileName = fullfile(filepath,[name '_new' ext]);
+        save(newFileName, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+        delete(matName)
+        status = movefile(newFileName,matName);
         saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,matName)
     end
 end
