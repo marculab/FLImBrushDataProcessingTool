@@ -38,7 +38,7 @@ for n = 1: numOfFiles
     iRFName = fieldnames(output.iRFRaw);
     numOfIrf = length(iRFName)-2;
     try
-        lengthOfIRF = output.iRFRaw.Props.WFLength;
+        lengthOfIRF = output.GainRaw.Props.WFLength;
     catch
         lengthOfIRF = 800;
     end
@@ -108,10 +108,17 @@ for n = 1: numOfFiles
 %     DCUp = mean(iRFUpSampled(end-100*upSampleFactor:end,:)); % compute DC
 %     iRFUpSampled = iRFUpSampled-DCUp; % remove DC
     irfUpSampled = iRFUpSampled;
-    saveName = [saveName ' DC front no CFD.mat'];
-    save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
+    % saveName = [saveName ' DC front no CFD.mat'];
+    % save(fullfile(path,saveName),'serialNumber','dateModified','user','gainV','gain','irfV','irf','irfUpSampled','irfRawdt','irfdt');
 end
 f = msgbox('Data Processing Completed');
+%% plot gain
+figure
+
+plot(gainV,gain);
+set(gca, 'YScale', 'log')
+
+
 %% plot result
 figure
 idx = 150;
@@ -124,11 +131,12 @@ hold off
 % xlim([100 600])
 %%
 irfN = irf./max(irf);
-StartIdx = 210;
+StartIdx = 150;
 figure
-plot(irfN(:,[StartIdx:StartIdx+10]))
+plot(irfN(:,[StartIdx:StartIdx+50]))
+% plot(irf(:,[StartIdx:StartIdx+20]))
 grid on
-xlim([180 500])
+xlim([180 1200])
 % title('Ch3 irf idx 150-160')
 irfV(StartIdx)
 interp1(gainV,gain,irfV(StartIdx))
