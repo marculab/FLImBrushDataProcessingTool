@@ -1,6 +1,6 @@
 function [augmentedImg,scale] = AugmentImg(im, posData, dataToAugment, scale, radius, alpha, colormap_in)
 
-fprintf('Radius = %f, Alpha = %f\n', radius, alpha);
+% fprintf('Radius = %f, Alpha = %f\n', radius, alpha);
 
 % setup video
 %set(gcf,'Visible', 'off');
