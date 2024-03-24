@@ -157,7 +157,7 @@ classdef ChannelDataAPD < handle
                 otherwise
                     error('Wrong number of Inputs')
             end
-            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.4, obj.dtUp,f,range);
+            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f,range);
             %             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.8, obj.dtUp,f,680:size(obj.preProcessedData,1));
             %             obj.rawDataUpsampled = alignWaveform_CFDNew(obj.rawDataUpsampled , 2.8, obj.dtUp,f);
         end
@@ -212,7 +212,7 @@ classdef ChannelDataAPD < handle
         function removeDCBG(obj, bgLowIn, bgHighIn, varargin)
             switch nargin
                 case 3
-                    threshold = 0.01;
+                    threshold = 0.005;
                 case 4
                     threshold = varargin{1};
             end
@@ -221,7 +221,7 @@ classdef ChannelDataAPD < handle
             %             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
             %             obj.preProcessedData = obj.preProcessedData-DC;
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
-            dataBGAUC(dataBGAUC<threshold*(bgHighIn-bgLowIn+1)) = 0; % if average BG less than 10 mV, do not do BG subtraction, set factor to 0
+            dataBGAUC(dataBGAUC<threshold*(bgHighIn-bgLowIn+1)) = 0; % if BG area AUC less than 0.05, do not do BG subtraction, set factor to 0
             bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
             
             bgScaleFactor = dataBGAUC./bgAUC;
@@ -235,7 +235,7 @@ classdef ChannelDataAPD < handle
         
         
         function truncateData(obj, timeWindowIn)
-            obj.prePeakPoints = 68;
+            obj.prePeakPoints = 200;
             %----------------------------------------resampleing irf to match data--------------------------------------------------------------------
             if (obj.APDObj.irfUpSampleddt~=obj.dtUp) % if dt not match, resample irf
 %                 downFactor = obj.dtUp/obj.APDObj.irfUpSampleddt;
@@ -257,16 +257,9 @@ classdef ChannelDataAPD < handle
                 obj.APDObj.irfDecon = obj.APDObj.irfUpSampled;
                 obj.APDObj.irfdt = obj.APDObj.irfUpSampleddt;
             end
-            [~,dataMaxIAll] = max(obj.preProcessedData);
-            dataMaxI = mode(dataMaxIAll);
-
-            % ------------------------peak alignment-----------------------
-            % MaxIDiff = dataMaxIAll-dataMaxI;
-            % for i = 1:size(obj.preProcessedData,2)
-            %     obj.preProcessedData(:,i) = circshift(obj.preProcessedData(:,i),-MaxIDiff(i));
-            % end
-            %--------------------------------------------------------------
-
+            [~,dataMaxI] = max(obj.preProcessedData);
+            dataMaxI = mode(dataMaxI);
+            
             dataLength = round(timeWindowIn/obj.dtUp);
             obj.truncationLength = dataLength;
             %--------------------------------------------truncate data--------------------------------------------------------------------
@@ -352,14 +345,11 @@ classdef ChannelDataAPD < handle
             %--------------------------------------------------------------
             
             numOfiRFV = length(obj.APDObj.irfV);
-
-            % obj.APDObj.irfTNorm(:,211) = obj.APDObj.irfTNorm(:,208);
-            % numOfiRFV = 80;
+            
             % loop through all V and find corresponding data index
-            for i = 2:1:numOfiRFV % to account for out of range V
+            for i = 2:numOfiRFV % to account for out of range V
                 vLow = obj.APDObj.irfV(i-1);
                 if i==numOfiRFV
-                % if i+10>numOfiRFV
                     vHigh = 5;
                 else
                     vHigh = obj.APDObj.irfV(i);

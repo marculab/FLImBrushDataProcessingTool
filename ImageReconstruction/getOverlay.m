@@ -27,10 +27,9 @@ accum = double(zeros(ssy,ssx,1)); % initilize
 numOfPoints = length(posData.px);
 scaleLow = scale(1);
 scaleHigh = scale(2);
-% f = waitbar(0,'Starting'); % creat waitbar
+f = waitbar(0,'Starting'); % creat waitbar
 BarStep = round(0.01*numOfPoints);
 for i = 1:numOfPoints
-    i
     % get current video frame
     %df1= vr.read(i);
     % get current segmentation position
@@ -63,10 +62,10 @@ for i = 1:numOfPoints
         overlayAllFrame{frameTemp} = overlay;
     end
     % update progress bar
-    % if mod(i,BarStep)
-    %     waitbar(i/numOfPoints,f,sprintf('Processing %d %%', round(i/numOfPoints*100)));
-    % end
+    if mod(i,BarStep)
+        waitbar(i/numOfPoints,f,sprintf('Processing %d %%', round(i/numOfPoints*100)));
+    end
 end
-% delete(f);
+delete(f);
 end
 
