@@ -12,7 +12,7 @@ else
 end
 
 res = spec - spec_fitted; %residue
-
+res(isnan(res))=0;
 lbq = struct('h',[],'pvalue',[],'stat',[],'cvalue',[]);
 chi2 = struct('h',[],'pvalue',[],'stat',[],'cvalue',[]);
 autoCorr = struct('h',[],'autoCorrCurve',[]);
@@ -33,6 +33,6 @@ end
 
 res=res(n_1:n_t:end,:);
 
-% [stats.lbq.h,stats.lbq.pvalue,stats.lbq.stat,stats.lbq.cvalue]=lbqtest(res,param{1});
-% [stats.chi2.h,stats.chi2.pvalue,stats.chi2.stat,stats.chi2.cvalue]=chi2test(res,param{2});
+[stats.lbq.h,stats.lbq.pvalue,stats.lbq.stat,stats.lbq.cvalue]=lbqtest(res,param{1});
+[stats.chi2.h,stats.chi2.pvalue,stats.chi2.stat,stats.chi2.cvalue]=chi2test(res,param{2});
 end
