@@ -8,6 +8,7 @@ classdef ChannelDataAPD < handle
         APDObj % apd detector class obj, contain gain and iRF information
         badDataIdx % raw waveform bad data index, result of saturation filtering
         bg % channel background, DC removed
+        bgAligned % channel background, DC removed, aligned with data
         bgLow; % BG removal index low
         bgHigh; % BG removal index low
         bw = 400 % MHz detector bandwidth
@@ -209,25 +210,39 @@ classdef ChannelDataAPD < handle
             sortedTruncatedData = obj.dataT(:,I);
         end
         
-        function removeDCBG(obj, bgLowIn, bgHighIn, varargin)
+        function removeDCBG(obj, bgLowIn, bgHighIn, channel, varargin)
             switch nargin
-                case 3
-                    threshold = 0.01;
                 case 4
+                    threshold = 0.01;
+                case 5
                     threshold = varargin{1};
+            end
+            if channel == 1
+                range = bgLowIn:bgHighIn;
+            else
+                range = bgHighIn:bgHighIn+680-1;
             end
             obj.bgLow = bgLowIn;
             obj.bgHigh = bgHighIn;
             %             DC = mean(obj.preProcessedData(dcLowIn:dcHighIn,:));
             %             obj.preProcessedData = obj.preProcessedData-DC;
             dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
+            idxTemp = find(dataBGAUC>threshold*(bgHighIn-bgLowIn+1)); % WF with BG platau
+            dataWithBG = obj.preProcessedData(:,idxTemp);
+            dataWithBG = [dataWithBG obj.bg];
+            dataWithBG = alignWaveform_CFDNew(dataWithBG, 2.4, obj.dtUp,0.5,range);
+            obj.bgAligned = dataWithBG(:,end);
+            dataWithBG(:,end) = [];
+            obj.preProcessedData(:,idxTemp) = dataWithBG;
+
+            dataBGAUC = sum(obj.preProcessedData(bgLowIn:bgHighIn,:));
             dataBGAUC(dataBGAUC<threshold*(bgHighIn-bgLowIn+1)) = 0; % if average BG less than 10 mV, do not do BG subtraction, set factor to 0
-            bgAUC = sum(obj.bg(bgLowIn:bgHighIn));
-            
+            bgAUC = sum(obj.bgAligned(bgLowIn:bgHighIn));
             bgScaleFactor = dataBGAUC./bgAUC;
             %             bgScaleFactor(bgScaleFactor<5) = 0;
             bgScaleFactor(isnan(bgScaleFactor)) = 0;
-            obj.preProcessedData = obj.preProcessedData-obj.bg*bgScaleFactor;
+            obj.preProcessedData = obj.preProcessedData-obj.bgAligned*bgScaleFactor;
+            obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.4, obj.dtUp,0.7,bgHighIn:bgHighIn+680-1); % realign BG subtracted WF
             obj.noise = std(obj.preProcessedData(end-200:end,:),1); % use last 200 points since data is upsampled
             WFMax = max(obj.preProcessedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
@@ -257,7 +272,10 @@ classdef ChannelDataAPD < handle
                 obj.APDObj.irfDecon = obj.APDObj.irfUpSampled;
                 obj.APDObj.irfdt = obj.APDObj.irfUpSampleddt;
             end
+            
+            obj.preProcessedData(:,find(min(obj.preProcessedData)<-0.05)) = NaN; % remove negative waveform from computation
             [~,dataMaxIAll] = max(obj.preProcessedData);
+            dataMaxIAll(dataMaxIAll==1)=NaN;
             dataMaxI = mode(dataMaxIAll);
 
             % ------------------------peak alignment-----------------------
@@ -288,7 +306,7 @@ classdef ChannelDataAPD < handle
             %             dataMaxIT = mode(dataMaxIT);
             %----------------------------------------------truncate irf---------------------------------------------------------------------
 %             iRFLength = dataLength; % use short irf 1000 points
-            iRFLength = 1000; % 
+            iRFLength = dataLength; % 
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
             irfMaxI = mode(irfMaxI);
 %             plot(circshift(obj.APDObj.irfDecon,irfMaxI-mode(irfMaxI),1))
@@ -418,7 +436,16 @@ classdef ChannelDataAPD < handle
                     obj.Ph_H4S = imag(phasorOut);
             end
         end
-        
+
+        function toSingle(obj)
+           obj.averagedData = single(obj.averagedData);
+           obj.preProcessedData = single(obj.preProcessedData);
+           obj.rawDataUpsampled = single(obj.rawDataUpsampled);
+           obj.rawDataDCRemoved = single(obj.rawDataDCRemoved);
+           obj.dataT = single(obj.dataT);
+           obj.rawData = single(obj.rawData);
+        end
+
         % method to get properties
         % function to get computed result, like fitting, aligned waveform
         % and residue.
