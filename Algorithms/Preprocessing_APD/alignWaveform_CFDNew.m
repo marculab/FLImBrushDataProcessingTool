@@ -42,22 +42,23 @@ dataInvert = -data_in*f;
 dataSum = dataDelayed+dataInvert;
 % figure;plot(dataSum(:,1:100:end))
 dataSum(1:t_d+1,:) = dataSum(1:t_d+1,:)*0;
-% figure;plot(dataSum(:,4)); hold on; plot(dataInvert(:,4));plot(dataDelayed(:,4));hold off
-[~,minIdx] = min(dataSum);
-minIdx = floor(mode(minIdx))-1;
-if minIdx<1
-    minIdx = 1;
-end
+% figure;plot(dataSum(:,:)); hold on; plot(dataInvert(:,4));plot(dataDelayed(:,4));hold off
 
 [~,maxIdx] = max(dataSum);
 maxIdx = round(mean(maxIdx))+1;
 maxIdx = min(maxIdx,size(dataSum,1));
+
+[~,minIdx] = min(dataSum(1:maxIdx,:));
+minIdx = floor(mode(minIdx))-1;
+if minIdx<1
+    minIdx = 1;
+end
 % plotIdx = 100;
 % figure;plot(dataDelayed(:,plotIdx));hold on;plot(dataSum(:,plotIdx));hold off; 
 % pause(1);
 % close(gcf);
 risingEdge = dataSum(minIdx:maxIdx,:);
-% figure;plot(risingEdge(:,1:500:end))
+% figure;plot(risingEdge(:,1:100:end))
 % zeroCrossingIdx =zeros(size(risingEdge,2),1);
 % 
 % for i = 1:size(risingEdge,2)
