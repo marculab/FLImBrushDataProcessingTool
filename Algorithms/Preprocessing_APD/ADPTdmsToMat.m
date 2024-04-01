@@ -5,7 +5,7 @@ close all
 clc
 %% select tdms file
 [file,path] = uigetfile('.tdms','MultiSelect','on');
-
+%%
 if iscell(file)
     numOfFiles = length(file);
 else
@@ -38,7 +38,10 @@ for n = 1: numOfFiles
     iRFName = fieldnames(output.iRFRaw);
     numOfIrf = length(iRFName)-2;
     try
-        lengthOfIRF = output.GainRaw.Props.WFLength;
+        % lengthOfIRF = output.GainRaw.Props.WFLength;
+        % lengthOfIRF = output.iRFRaw.Props.WFLength;
+        % lengthOfIRF = output.GainRaw.Props.WFLength;
+        lengthOfIRF = 1000;
     catch
         lengthOfIRF = 800;
     end
@@ -105,6 +108,7 @@ for n = 1: numOfFiles
     end
     irfV = iRFV;
     irf = iRF;
+    irf = alignWaveform_CFDNew(irf, 2, irfRawdt,0.5);
 %     DCUp = mean(iRFUpSampled(end-100*upSampleFactor:end,:)); % compute DC
 %     iRFUpSampled = iRFUpSampled-DCUp; % remove DC
     irfUpSampled = iRFUpSampled;
@@ -121,7 +125,7 @@ set(gca, 'YScale', 'log')
 
 %% plot result
 figure
-idx = 150;
+idx = 13;
 x = 0:size(irf,1)-1;
 plot(x,irf(:,idx));
 hold on
@@ -133,10 +137,26 @@ hold off
 irfN = irf./max(irf);
 StartIdx = 150;
 figure
-plot(irfN(:,[StartIdx:StartIdx+50]))
+plot(irfN(:,[144:149]))
+% plot(irf(:,[170:180]))
 % plot(irf(:,[StartIdx:StartIdx+20]))
 grid on
-xlim([180 1200])
+xlim([1 1200])
 % title('Ch3 irf idx 150-160')
 irfV(StartIdx)
 interp1(gainV,gain,irfV(StartIdx))
+
+%% find iRF that has peak V less than 1
+idx = find(max(irf)<1&max(irf)>0.9);
+idx(idx<100) = [];
+idx(idx>200) = [];
+figure
+plot(irfN(:,194:199))
+%%
+plot(max(irf))
+irf120 = mean(irfN(:,120:130),2);
+irf150 = mean(irfN(:,150:160),2);
+irf175 = mean(irfN(:,175:185),2);
+irf194 = mean(irfN(:,194:199),2);
+figure
+plot([irf150 irf175 irf194])
