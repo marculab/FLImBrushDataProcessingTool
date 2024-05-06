@@ -13,6 +13,7 @@ classdef ChannelDataAPD < handle
         bgHigh; % BG removal index low
         bw = 400 % MHz detector bandwidth
         CtrlV % APD control voltage
+        BgEstimated = 0; % flag for whether ch1 bg is estimated from data
         dtRaw % raw data dt
         dtUp % upsampled data dt
         dataAveragingLV % maximum number of WF to average
@@ -126,7 +127,7 @@ classdef ChannelDataAPD < handle
                 GTemp = obj.rawGain(timeIdx); % gain of data inside time window
                 timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
                 DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal from tail
-%                 DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
+                % DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
                 DC(i) = mean(DCAllWF(:)); % average all DC data
             end
             obj.rawDataDCRemoved = obj.rawData-DC; % store data
@@ -305,8 +306,8 @@ classdef ChannelDataAPD < handle
             %             [~,dataMaxIT] = max(obj.dataT);
             %             dataMaxIT = mode(dataMaxIT);
             %----------------------------------------------truncate irf---------------------------------------------------------------------
-%             iRFLength = dataLength; % use short irf 1000 points
-            iRFLength = dataLength; % 
+            iRFLength = dataLength; % use short irf 1000 points
+            % iRFLength = 500; % 
             [~,irfMaxI] = max(obj.APDObj.irfDecon); % find irf max
             irfMaxI = mode(irfMaxI);
 %             plot(circshift(obj.APDObj.irfDecon,irfMaxI-mode(irfMaxI),1))

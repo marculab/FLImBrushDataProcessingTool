@@ -151,108 +151,108 @@ classdef LaguerreModel < handle
                     end
                     best_fit_idx = res_norm_min_idx+size(res_norm,1)*(1:size(res_norm_min_idx,2))-size(res_norm,1);
                 end
-                shiftTemp = shift_v(best_fit_idx); % use one single shift
-                % shiftMode = mode(shiftTemp);
-                % best_fit_idx = find(shift_v==shiftMode);
-                obj.shift = shift_v(best_fit_idx);
-                obj.LCs=obj.LCs(:,best_fit_idx);
-                obj.spec_aligned = spec(:,best_fit_idx);
-                %             fit = obj.get('fit');
-                %             idx = 3;
-                %             figure;plot(fit(:,idx));hold on;plot(obj.spec_aligned(:,idx),'*-');hold off
-                %             figure;plot(obj.spec_aligned(:,1),'.-');hold on;plot(obj.spec_aligned(:,3),'+-');hold off
-                %             figure;plot(spec_raw(:,1),'.-');hold on;plot(spec_raw(:,3),'+-');hold off
-                decays = obj.LaguerreBasis*obj.LCs;
-                % decays(decays<0)=0; % added to fix negative decay
-                %             figure;plot(decays);
-                %             figure;plot(decays(:,[1,3]))
-                %             figure;plot(decays./max(decays));
-                %             fit = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs;
-                %             figure;plot(spec(:,600));hold on;plot(fit(:,600))
-                [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
-                %             LTe = h_lifet(decays,obj.channeldataObj.dt,'1/e');
-                %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldataObj.dt, obj.channeldataObj.bw);
-                obj_out = obj;
             end
+            shiftTemp = shift_v(best_fit_idx); % use one single shift
+            shiftMode = mode(shiftTemp);
+            best_fit_idx = find(shift_v==shiftMode);
+            obj.shift = shift_v(best_fit_idx);
+            obj.LCs=obj.LCs(:,best_fit_idx);
+            obj.spec_aligned = spec(:,best_fit_idx);
+            %             fit = obj.get('fit');
+            %             idx = 3;
+            %             figure;plot(fit(:,idx));hold on;plot(obj.spec_aligned(:,idx),'*-');hold off
+            %             figure;plot(obj.spec_aligned(:,1),'.-');hold on;plot(obj.spec_aligned(:,3),'+-');hold off
+            %             figure;plot(spec_raw(:,1),'.-');hold on;plot(spec_raw(:,3),'+-');hold off
+            decays = obj.LaguerreBasis*obj.LCs;
+            % decays(decays<0)=0; % added to fix negative decay
+            %             figure;plot(decays);
+            %             figure;plot(decays(:,[1,3]))
+            %             figure;plot(decays./max(decays));
+            %             fit = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs;
+            %             figure;plot(spec(:,600));hold on;plot(fit(:,600))
+            [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
+            %             LTe = h_lifet(decays,obj.channeldataObj.dt,'1/e');
+            %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldataObj.dt, obj.channeldataObj.bw);
+            obj_out = obj;
+        end
 
 
-            function result = get(obj,option)
-                % GET function to retrive object properties
-                %
-                % Syntax:
-                % out = GET(obj, option): get specified properties from object.
-                %
-                % option list:
-                % 'channeldata': retrive channeldataObj property
-                % 'fit': get fitting, same size as data
-                % 'decay': get fitted decay
-                % 'res': get fitting residual
-                % 'iRF': get instrument responsed function
+        function result = get(obj,option)
+            % GET function to retrive object properties
+            %
+            % Syntax:
+            % out = GET(obj, option): get specified properties from object.
+            %
+            % option list:
+            % 'channeldata': retrive channeldataObj property
+            % 'fit': get fitting, same size as data
+            % 'decay': get fitted decay
+            % 'res': get fitting residual
+            % 'iRF': get instrument responsed function
 
-                switch option
-                    case 'channeldata'
-                        if ~isempty(obj.channeldataObj)
-                            result = obj.channeldataObj;
-                        else
-                            warning('No Channel!')
-                            result = [];
-                        end
-
-                    case 'fit'
-                        if ~isempty(obj.LCs)
-                            result = filter(obj.channeldataObj.iIRF,1,obj.LaguerreBasis)*obj.LCs;
-                        else
-                            warning('use estimate_laguerre before accessing fitted curve!')
-                            result = [];
-                        end
-                    case 'decay'
-                        if ~isempty(obj.LCs)
-                            result = obj.LaguerreBasis*obj.LCs;
-                        else
-                            warning('use estimate_laguerre before accessing fitted decay!')
-                            result = [];
-                        end
-                    case 'res'
-                        if ~isempty(obj.LCs)
-                            result = obj.spec_aligned - obj.get('fit');
-                        else
-                            warning('use estimate_laguerre before accessing fitted decay!')
-                            result = [];
-                        end
-                    case 'M'
-                        result = obj.M;
-                    case 'K'
-                        result = obj.K;
-                    case 'alpha'
-                        result = obj.alpha;
-                    case 'basis'
-                        result = obj.LaguerreBasis;
-                    case 'iRF'
-                        result = obj.channeldataObj.iIRF;
-                    otherwise
-                        warning('unknown option!')
+            switch option
+                case 'channeldata'
+                    if ~isempty(obj.channeldataObj)
+                        result = obj.channeldataObj;
+                    else
+                        warning('No Channel!')
                         result = [];
-                end
-            end
+                    end
 
-            function obj_out = set(obj,option,value)
-                % functions to set non-public parameters, depreciated
-                switch option
-                    case 'K'
-                        obj.K = value;
-                        obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
-                        obj_out = obj;
-                    case 'alpha'
-                        if isnumeric(value)
-                            obj.alpha = value;
-                        else
-                            obj.alpha = alpha_up(obj.M,obj.K);
-                        end
-                        obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
-                        obj_out = obj;
-                    otherwise
-                        warning('unknown option!')
-                end
+                case 'fit'
+                    if ~isempty(obj.LCs)
+                        result = filter(obj.channeldataObj.iIRF,1,obj.LaguerreBasis)*obj.LCs;
+                    else
+                        warning('use estimate_laguerre before accessing fitted curve!')
+                        result = [];
+                    end
+                case 'decay'
+                    if ~isempty(obj.LCs)
+                        result = obj.LaguerreBasis*obj.LCs;
+                    else
+                        warning('use estimate_laguerre before accessing fitted decay!')
+                        result = [];
+                    end
+                case 'res'
+                    if ~isempty(obj.LCs)
+                        result = obj.spec_aligned - obj.get('fit');
+                    else
+                        warning('use estimate_laguerre before accessing fitted decay!')
+                        result = [];
+                    end
+                case 'M'
+                    result = obj.M;
+                case 'K'
+                    result = obj.K;
+                case 'alpha'
+                    result = obj.alpha;
+                case 'basis'
+                    result = obj.LaguerreBasis;
+                case 'iRF'
+                    result = obj.channeldataObj.iIRF;
+                otherwise
+                    warning('unknown option!')
+                    result = [];
+            end
+        end
+
+        function obj_out = set(obj,option,value)
+            % functions to set non-public parameters, depreciated
+            switch option
+                case 'K'
+                    obj.K = value;
+                    obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
+                    obj_out = obj;
+                case 'alpha'
+                    if isnumeric(value)
+                        obj.alpha = value;
+                    else
+                        obj.alpha = alpha_up(obj.M,obj.K);
+                    end
+                    obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
+                    obj_out = obj;
+                otherwise
+                    warning('unknown option!')
             end
         end
     end
