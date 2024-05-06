@@ -28,8 +28,8 @@ upSampleFactor = 5;
 %% retrive common data to all channels
 laserRepRateIn = Ch1DataObj_old.laserRepRate;
 LVAvgIn = Ch1DataObj_old.dataAveragingLV;
-bgLow = 535;
-bgHigh = 900;
+% bgLow = 535;
+% bgHigh = 900;
 avg = Ch1DataObj_old.dataAveraging;
 dataLow = 0.03;
 dataHigh = 1.4;
@@ -102,6 +102,13 @@ title('Upsampled and CFD aligned Data')
 
 removeSaturation(Ch1DataObj,dataLow,dataHigh);
 avgData(Ch1DataObj, avg)
+
+% BG remove based on maximum waveform location
+[~, maxPosition] = max(Ch1DataObj.averagedData);
+avgmaxPosition = round(mean(nonzeros(maxPosition)));
+bgLow = avgmaxPosition - 420;
+bgHigh = avgmaxPosition - 50 ;
+
 nexttile
 tempWF = sortData(Ch1DataObj, 'ascend');
 plot(tempWF(:,1:plotStep:end));
@@ -110,6 +117,7 @@ xline(bgHigh,'r--','BG','LineWidth',2);
 yline(DigitizerNoise,'m--','LineWidth',2);
 ylim([-0.2 1.4])
 title('Averaged Data')
+
 
 removeDCBG(Ch1DataObj,bgLow,bgHigh,1);
 nexttile
