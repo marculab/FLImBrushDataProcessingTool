@@ -11,6 +11,8 @@ classdef dataInfo < handle
         apd2Folder;
         apd3Name;
         apd3Folder;
+        apd4Name;
+        apd4Folder;
         bgFileName;
         bgFileFolder;
         caliFileName;
@@ -22,8 +24,8 @@ classdef dataInfo < handle
         %constructor
         function obj = dataInfo(dataFileNamesIn, dataFolderNamesIn, ...
                 apd1NameIn, apd1FolderIn, apd2NameIn, apd2FolderIn, ...
-                apd3NameIn, apd3FolderIn, bgFileNameIn, bgFolderNameIn,...
-                caliFileNameIn, caliFileFolderIn)
+                apd3NameIn, apd3FolderIn, apd4NameIn, apd4FolderIn,...
+                bgFileNameIn, bgFolderNameIn, caliFileNameIn, caliFileFolderIn)
             %UNTITLED4 Construct an instance of this class
             %   Detailed explanation goes here
             obj.dataFileNames = dataFileNamesIn;
@@ -34,6 +36,8 @@ classdef dataInfo < handle
             obj.apd2Folder = apd2FolderIn;
             obj.apd3Name = apd3NameIn;
             obj.apd3Folder = apd3FolderIn;
+            obj.apd4Name = apd4NameIn;
+            obj.apd4Folder = apd4FolderIn;
             obj.bgFileName = bgFileNameIn;
             obj.bgFileFolder = bgFolderNameIn;
             obj.caliFileName = caliFileNameIn;

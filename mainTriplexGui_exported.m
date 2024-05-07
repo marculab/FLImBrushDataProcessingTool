@@ -13,6 +13,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         TabGroup                        matlab.ui.container.TabGroup
         fileSelectionTab                matlab.ui.container.Tab
         GridLayout                      matlab.ui.container.GridLayout
+        apd4LoadedLamp                  matlab.ui.control.Lamp
+        apd4ViewButton                  matlab.ui.control.Button
+        apd4LoadButton                  matlab.ui.control.Button
+        APD3Label_2                     matlab.ui.control.Label
+        apd4FileEditField               matlab.ui.control.EditField
         dataFilesLabel                  matlab.ui.control.Label
         dataFielesListBox               matlab.ui.control.ListBox
         apd1LoadedLamp                  matlab.ui.control.Lamp
@@ -42,11 +47,14 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         caliLoadedLamp                  matlab.ui.control.Lamp
         caliLoadButton                  matlab.ui.control.Button
         caliViewButton                  matlab.ui.control.Button
-        bg3UIAxes                       matlab.ui.control.UIAxes
-        bg2UIAxes                       matlab.ui.control.UIAxes
         bg1UIAxes                       matlab.ui.control.UIAxes
+        bg2UIAxes                       matlab.ui.control.UIAxes
+        bg3UIAxes                       matlab.ui.control.UIAxes
+        bg4UIAxes                       matlab.ui.control.UIAxes
         DeConSettingTab                 matlab.ui.container.Tab
         GridLayout2                     matlab.ui.container.GridLayout
+        Ch4AlphaValueDropDownLabel      matlab.ui.control.Label
+        Ch4AlphaValueDropDown           matlab.ui.control.DropDown
         RunEXPCheckBox                  matlab.ui.control.CheckBox
         LogScaleCheckBox                matlab.ui.control.CheckBox
         TruncationPanel                 matlab.ui.container.Panel
@@ -63,6 +71,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         IgnoreDataRangePanel            matlab.ui.container.Panel
         BackgroudRemovalPanel           matlab.ui.container.Panel
         ChannelSelectionPanel           matlab.ui.container.Panel
+        channel4CheckBox                matlab.ui.control.CheckBox
         channel3CheckBox                matlab.ui.control.CheckBox
         channel2CheckBox                matlab.ui.control.CheckBox
         channel1CheckBox                matlab.ui.control.CheckBox
@@ -100,10 +109,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         AverageDataButton               matlab.ui.control.Button
         TruncateButton                  matlab.ui.control.Button
         RemoveSaturationButton          matlab.ui.control.Button
+        UIAxes_ch4BgRemoveFig           matlab.ui.control.UIAxes
         UIAxes_ch3BgRemoveFig           matlab.ui.control.UIAxes
         UIAxes_ch2BgRemoveFig           matlab.ui.control.UIAxes
-        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
         UIAxes_ch1BgRemoveFig           matlab.ui.control.UIAxes
+        UIAxes_ch4DataFig               matlab.ui.control.UIAxes
+        UIAxes_ch3DataFig               matlab.ui.control.UIAxes
         UIAxes_ch2DataFig               matlab.ui.control.UIAxes
         UIAxes_ch1DataFig               matlab.ui.control.UIAxes
         FittingResultTab                matlab.ui.container.Tab
@@ -120,10 +131,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         PlotDropDown                    matlab.ui.control.DropDown
         channelLabel                    matlab.ui.control.Label
         channelDropDown                 matlab.ui.control.DropDown
-        UIAxesDeconResult               matlab.ui.control.UIAxes
-        UIAxesResidue                   matlab.ui.control.UIAxes
-        UIAxesAutoCo                    matlab.ui.control.UIAxes
         UIAxesFitting                   matlab.ui.control.UIAxes
+        UIAxesAutoCo                    matlab.ui.control.UIAxes
+        UIAxesResidue                   matlab.ui.control.UIAxes
+        UIAxesDeconResult               matlab.ui.control.UIAxes
         imagesReconstrctionTab          matlab.ui.container.Tab
         EditField                       matlab.ui.control.EditField
         EditFieldLabel                  matlab.ui.control.Label
@@ -138,6 +149,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         apd1DialogApp % apd1 dialog app
         apd2DialogApp % apd1 dialog app
         apd3DialogApp % apd1 dialog app
+        apd4DialogApp % apd1 dialog app
 
         poolobj % parallel pool object
         digitizerNoise = 0.0078; % ENOB = 8;
@@ -153,18 +165,20 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         apd1LoadedFlag =0; % apd1 load flag
         apd2LoadedFlag =0; % apd2 load flag
         apd3LoadedFlag =0; % apd3 load flag
+        apd4LoadedFlag =0; % apd3 load flag
         bgLoadedFlag = 0; % bg load flag
         caliLoadedFlag = 0; % calibratin loaded flag
         expDeconFlag = 0; % Multi-exp deconvolusion flag
         processedDataloadedFlag = 0; % Description
         rootFolder = fileparts(mfilename('fullpath')) % current working directory
-        dataInfoObj = dataInfo('','','','','','','','','','','','');% Description
+        dataInfoObj = dataInfo('','','','','','','','','','','','','','');% Description
         dataNameList = [];
         dataFolder = pwd;
         detectorDataFolder = pwd;
         apd1Obj = [];
         apd2Obj = [];
         apd3Obj = [];
+        apd4Obj = [];
         irfName = [];
         bgObj = [];
         caliObj = sysCaliDataClass('');
@@ -179,18 +193,22 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         DataIgnoreLowLineCh1Handle % Description
         DataIgnoreLowLineCh2Handle % Description
         DataIgnoreLowLineCh3Handle % Description
+        DataIgnoreLowLineCh4Handle % Description
 
         DataIgnoreHighLineCh1Handle % Description
         DataIgnoreHighLineCh2Handle % Description
         DataIgnoreHighLineCh3Handle % Description
+        DataIgnoreHighLineCh4Handle % Description
 
         BgLowLineCh1Handle % Description
         BgLowLineCh2Handle % Description
         BgLowLineCh3Handle % Description
+        BgLowLineCh4Handle % Description
 
         BgHighLineCh1Handle % Description
         BgHighLineCh2Handle % Description
         BgHighLineCh3Handle % Description
+        BgHighLineCh4Handle % Description
 
         ChDataArray;
         Ch1Obj; % Description
@@ -217,10 +235,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         Ch1DataObj % channel 1 ChannelDataAPD Obj
         Ch2DataObj % channel 1 ChannelDataAPD Obj
         Ch3DataObj % channel 1 ChannelDataAPD Obj
+        Ch4DataObj % channel 1 ChannelDataAPD Obj
 
         Ch1Color = [121,0,141]/255; % channel 1 plot color
         Ch2Color = [0,169,255]/255; % channel 2 plot color
         Ch3Color = [129,255,0]/255; % channel 3 plot color
+        Ch4Color = [255,0,0]/255; % channel 4 plot color
 
         fileSelection = 1; % default file selection
         saveFolderName % data folder name
@@ -235,6 +255,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             numOfWFtoPlot = app.nWaveformToPlot;
             plotStep = size(app.Ch1DataObj.preProcessedData,2)/numOfWFtoPlot;
             plotStep = floor(plotStep);
+
             temp = sortData(app.Ch1DataObj, 'ascend');
             tempMin = min(temp(:));
             if isnan(tempMin)
@@ -243,6 +264,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.UIAxes_ch1DataFig,temp(:,1:plotStep:end))
             app.UIAxes_ch1DataFig.YLim = [tempMin-0.1 2];
             app.UIAxes_ch1DataFig.XLim = [0 size(temp,1)];
+
             temp = sortData(app.Ch2DataObj, 'ascend');
             if isnan(tempMin)
                 tempMin = 0;
@@ -250,6 +272,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.UIAxes_ch2DataFig,temp(:,1:plotStep:end))
             app.UIAxes_ch2DataFig.YLim = [tempMin-0.1 2];
             app.UIAxes_ch2DataFig.XLim = [0 size(temp,1)];
+
             temp = sortData(app.Ch3DataObj, 'ascend');
             if isnan(tempMin)
                 tempMin = 0;
@@ -257,23 +280,36 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.UIAxes_ch3DataFig,temp(:,1:plotStep:end))
             app.UIAxes_ch3DataFig.YLim = [tempMin-0.1 2];
             app.UIAxes_ch3DataFig.XLim = [0 size(temp,1)];
+
+            temp = sortData(app.Ch4DataObj, 'ascend');
+            if isnan(tempMin)
+                tempMin = 0;
+            end
+            plot(app.UIAxes_ch4DataFig,temp(:,1:plotStep:end))
+            app.UIAxes_ch4DataFig.YLim = [tempMin-0.1 2];
+            app.UIAxes_ch4DataFig.XLim = [0 size(temp,1)];
+
             switch type
                 case 'raw'
                     titleText1 = ['Ch1 raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText2 = ['Ch2 raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText3 = ['Ch3 raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    titleText4 = ['Ch4 raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                 case 'filtered'
                     titleText1 = ['Ch1 filtered raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText2 = ['Ch2 filtered raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText3 = ['Ch3 filtered raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    titleText4 = ['Ch4 filtered raw FLIm data (no averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                 case 'averaged'
                     titleText1 = ['Ch1 averaged FLIm data (' num2str(app.Ch1DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText2 = ['Ch2 averaged FLIm data (' num2str(app.Ch2DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText3 = ['Ch3 averaged FLIm data (' num2str(app.Ch3DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    titleText4 = ['Ch4 averaged FLIm data (' num2str(app.Ch4DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
             end
             title(app.UIAxes_ch1DataFig,titleText1)
             title(app.UIAxes_ch2DataFig,titleText2)
             title(app.UIAxes_ch3DataFig,titleText3)
+            title(app.UIAxes_ch4DataFig,titleText4)
 
         end
 
@@ -288,6 +324,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             if ~isempty(app.DataIgnoreLowLineCh3Handle)
                 delete(app.DataIgnoreLowLineCh3Handle)
             end
+            if ~isempty(app.DataIgnoreLowLineCh4Handle)
+                delete(app.DataIgnoreLowLineCh4Handle)
+            end
             if ~isempty(app.DataIgnoreHighLineCh1Handle)
                 delete(app.DataIgnoreHighLineCh1Handle)
             end
@@ -296,6 +335,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             end
             if ~isempty(app.DataIgnoreHighLineCh3Handle)
                 delete(app.DataIgnoreHighLineCh3Handle)
+            end
+            if ~isempty(app.DataIgnoreHighLineCh4Handle)
+                delete(app.DataIgnoreHighLineCh4Handle)
             end
 
             lowIdx = app.dataIgnoreLowEditField.Value;
@@ -308,6 +350,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             app.DataIgnoreLowLineCh3Handle = line(app.UIAxes_ch3BgRemoveFig,[lowIdx lowIdx],[app.UIAxes_ch3BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1); % plot on data preview figure
             app.DataIgnoreHighLineCh3Handle = line(app.UIAxes_ch3BgRemoveFig,[highIdx highIdx],[app.UIAxes_ch3BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
+
+            app.DataIgnoreLowLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[lowIdx lowIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1); % plot on data preview figure
+            app.DataIgnoreHighLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[highIdx highIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
         end
 
         function plotBGMarker(app)
@@ -321,6 +366,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             if ~isempty(app.BgLowLineCh3Handle)
                 delete(app.BgLowLineCh3Handle)
             end
+            if ~isempty(app.BgLowLineCh4Handle)
+                delete(app.BgLowLineCh4Handle)
+            end
 
             if ~isempty(app.BgHighLineCh1Handle)
                 delete(app.BgHighLineCh1Handle)
@@ -331,6 +379,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             if ~isempty(app.BgHighLineCh3Handle)
                 delete(app.BgHighLineCh3Handle)
             end
+            if ~isempty(app.BgHighLineCh4Handle)
+                delete(app.BgHighLineCh4Handle)
+            end
+
 
 
             lowIdx = app.BgLowEditField.Value;
@@ -344,6 +396,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.BgLowLineCh3Handle = line(app.UIAxes_ch3DataFig,[lowIdx lowIdx],[app.UIAxes_ch3DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1); % plot on data preview figure
             app.BgHighLineCh3Handle = line(app.UIAxes_ch3DataFig,[highIdx highIdx],[app.UIAxes_ch3DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
 
+            app.BgLowLineCh4Handle = line(app.UIAxes_ch4DataFig,[lowIdx lowIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1); % plot on data preview figure
+            app.BgHighLineCh4Handle = line(app.UIAxes_ch4DataFig,[highIdx highIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
+
             drawnow
         end
 
@@ -353,6 +408,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             ChWidthInPoints = ChWidth/app.Ch1DataObj.dtUp;
             plotStep = size(app.Ch1DataObj.preProcessedData,2)/numOfWFtoPlot;
             plotStep = floor(plotStep);
+
             temp = sortData(app.Ch1DataObj, 'ascend');
             tempMin = min(temp(:));
             if isnan(tempMin)
@@ -366,6 +422,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch1BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch1BgRemoveFig,[tempMin-0.1 2]);
             title(app.UIAxes_ch1BgRemoveFig,'Ch1 DC&BG removed waveforms (100 Waveform)');
+
             temp = sortData(app.Ch2DataObj, 'ascend');
             tempMin = min(temp(:));
             if isnan(tempMin)
@@ -379,6 +436,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch2BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch2BgRemoveFig,[tempMin-0.1 2])
             title(app.UIAxes_ch2BgRemoveFig,'Ch2 DC&BG removed waveforms (100 Waveform)')
+
             temp = sortData(app.Ch3DataObj, 'ascend');
             tempMin = min(temp(:));
             if isnan(tempMin)
@@ -392,6 +450,20 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch3BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch3BgRemoveFig,[tempMin-0.1 2]);
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed waveforms (100 Waveform)')
+
+            temp = sortData(app.Ch4DataObj, 'ascend');
+            tempMin = min(temp(:));
+            if isnan(tempMin)
+                tempMin=0;
+            end
+            [~,maxIdx] = max(temp);
+            maxIdx = median(maxIdx);
+            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+            xline(app.UIAxes_ch4BgRemoveFig,maxIdx-round(0.1*ChWidthInPoints),'c--','LineWidth',2);
+            xline(app.UIAxes_ch4BgRemoveFig,maxIdx+round(0.9*ChWidthInPoints),'c--','LineWidth',2);
+            yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
+            ylim(app.UIAxes_ch4BgRemoveFig,[tempMin-0.1 2]);
+            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed waveforms (100 Waveform)')
         end
 
         function plotUpsampledData(app)
@@ -410,6 +482,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.UIAxes_ch3BgRemoveFig,temp(:,1:plotStep:end));
             ylim(app.UIAxes_ch3BgRemoveFig,[-0.1 2])
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed upsampled waveforms (100 Waveform)')
+            temp = sortData(app.Ch4DataObj, 'ascend');
+            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+            ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
+            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed upsampled waveforms (100 Waveform)')
         end
 
         function plotTruncatedData(app)
@@ -431,6 +507,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch3BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch3BgRemoveFig,[-0.1 2])
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed truncated waveforms (100 Waveform)')
+            temp = sortTruncatedData(app.Ch4DataObj, 'ascend');
+            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+            yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
+            ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
+            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed truncated waveforms (100 Waveform)')
         end
 
         function plotPeakLocations(app,peaks)
@@ -477,6 +558,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     plotObj = app.Ch2DataObj;
                 case 'Channel 3'
                     plotObj = app.Ch3DataObj;
+                case 'Channel 4'
+                    plotObj = app.Ch4DataObj;
             end
 
             %get line number
@@ -608,6 +691,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             if app.channel3CheckBox.Value
                 dropDownList = [dropDownList; app.channel3CheckBox.Text];
             end
+            if app.channel4CheckBox.Value
+                dropDownList = [dropDownList; app.channel4CheckBox.Text];
+            end
             app.channelDropDown.Items = dropDownList(2:end);
         end
 
@@ -615,9 +701,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             cla(app.UIAxes_ch1DataFig)
             cla(app.UIAxes_ch2DataFig)
             cla(app.UIAxes_ch3DataFig)
+            cla(app.UIAxes_ch4DataFig)
             cla(app.UIAxes_ch1BgRemoveFig)
             cla(app.UIAxes_ch2BgRemoveFig)
             cla(app.UIAxes_ch3BgRemoveFig)
+            cla(app.UIAxes_ch4BgRemoveFig)
         end
 
         function saveAPDDetectorPath(app)
@@ -626,6 +714,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             ini.AddKeys('APD Detector Temp Path', 'ADP1', app.apd1FileEditField.Value);
             ini.AddKeys('APD Detector Temp Path', 'ADP2', app.apd2FileEditField.Value);
             ini.AddKeys('APD Detector Temp Path', 'ADP3', app.apd3FileEditField.Value);
+            ini.AddKeys('APD Detector Temp Path', 'ADP4', app.apd4FileEditField.Value);
             ini.WriteFile(fullfile(app.rootFolder,'Algorithms','Preprocessing_APD','DetectorPathTamp.ini'));
         end
 
@@ -640,9 +729,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             ini.AddKeys('DeCon Parameter', 'Ch1 Alpha Value', app.Ch1AlphaValueDropDown.Value);
             ini.AddKeys('DeCon Parameter', 'Ch2 Alpha Value', app.Ch2AlphaValueDropDown.Value);
             ini.AddKeys('DeCon Parameter', 'Ch3 Alpha Value', app.Ch3AlphaValueDropDown.Value);
+            ini.AddKeys('DeCon Parameter', 'Ch4 Alpha Value', app.Ch4AlphaValueDropDown.Value);
             ini.AddKeys('DeCon Parameter', 'Deconvolve Channel 1?', int64(app.channel1CheckBox.Value));
             ini.AddKeys('DeCon Parameter', 'Deconvolve Channel 2?', int64(app.channel2CheckBox.Value));
             ini.AddKeys('DeCon Parameter', 'Deconvolve Channel 3?', int64(app.channel3CheckBox.Value));
+            ini.AddKeys('DeCon Parameter', 'Deconvolve Channel 4?', int64(app.channel4CheckBox.Value));
             ini.AddKeys('DeCon Parameter', 'BG Index Low', app.BgLowEditField.Value);
             ini.AddKeys('DeCon Parameter', 'BG Index High', app.BgHighEditField.Value);
             ini.AddKeys('DeCon Parameter', 'Data Ignore Index Low', app.dataIgnoreLowEditField.Value);
@@ -687,7 +778,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 warndlg('Could not load channel 2 APD detector file, please manually by clicking load button');
                 app.apd2FileEditField.Value = 'Please Select Channel 2 APD File!';
             end
-
+            % load ch3 APD file
             try
                 app.apd3Obj = apdClass(APDPath{3});
                 creatFromPath(app.apd3Obj);
@@ -701,6 +792,21 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             catch
                 warndlg('Could not load channel 3 APD detector file, please manually by clicking load button');
                 app.apd3FileEditField.Value = 'Please Select Channel 3 APD File!';
+            end
+            % load ch4 APD file
+            try
+                app.apd4Obj = apdClass(APDPath{4});
+                creatFromPath(app.apd4Obj);
+                app.apd4LoadedLamp.Color = 'g';
+                app.apd4LoadedFlag = 1;
+                app.apd4FileEditField.Value = app.apd4Obj.filePath;
+                app.apd4ViewButton.Enable = 'On'; % enable view button
+                [filepath,name,ext] = fileparts(APDPath{4}); %
+                app.dataInfoObj.apd4Name = [name ext];
+                app.dataInfoObj.apd4Folder = filepath;
+            catch
+                warndlg('Could not load channel 4 APD detector file, please manually by clicking load button');
+                app.apd4FileEditField.Value = 'Please Select Channel 4 APD File!';
             end
             %--------------------------------------------------------------
         end
@@ -719,13 +825,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.Ch1AlphaValueDropDown.Value = num2str(DeConSettings{6},'%.3f');
             app.Ch2AlphaValueDropDown.Value = num2str(DeConSettings{7},'%.3f');
             app.Ch3AlphaValueDropDown.Value = num2str(DeConSettings{8},'%.3f');
-            app.channel1CheckBox.Value = DeConSettings{9};
-            app.channel2CheckBox.Value = DeConSettings{10};
-            app.channel3CheckBox.Value = DeConSettings{11};
-            app.BgLowEditField.Value = DeConSettings{12};
-            app.BgHighEditField.Value = DeConSettings{13};
-            app.dataIgnoreLowEditField.Value = DeConSettings{14};
-            app.dataIgnoreHighEditField.Value = DeConSettings{15};
+            app.Ch4AlphaValueDropDown.Value = num2str(DeConSettings{9},'%.3f');
+            app.channel1CheckBox.Value = DeConSettings{10};
+            app.channel2CheckBox.Value = DeConSettings{11};
+            app.channel3CheckBox.Value = DeConSettings{12};
+            app.channel4CheckBox.Value = DeConSettings{13};
+            app.BgLowEditField.Value = DeConSettings{14};
+            app.BgHighEditField.Value = DeConSettings{15};
+            app.dataIgnoreLowEditField.Value = DeConSettings{16};
+            app.dataIgnoreHighEditField.Value = DeConSettings{17};
         end
 
         function save_LG_vs_mExp_lifetime_fig(app)
@@ -787,10 +895,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.RemoveSaturationButton.Enable = 0;
                     app.AverageDataButton.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
@@ -815,10 +925,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.AverageDataButton.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
                     app.TruncateButton.Enable = 0;
@@ -844,10 +956,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.AverageDataButton.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
                     app.UpsampleButton.Enable = 0;
@@ -873,10 +987,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
                     app.UpsampleButton.Enable = 0;
                     app.TruncateButton.Enable = 0;
@@ -897,10 +1013,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.AverageDataButton.Enable = 0;
                     app.UpsampleButton.Enable = 0;
                     app.TruncateButton.Enable = 0;
@@ -928,10 +1046,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 0;
                     app.Ch1AlphaValueDropDown.Enable = 0;
                     app.Ch2AlphaValueDropDown.Enable = 0;
                     app.Ch3AlphaValueDropDown.Enable = 0;
+                    app.Ch4AlphaValueDropDown.Enable = 0;
                     app.AverageDataButton.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
                     app.UpsampleButton.Enable = 0;
@@ -956,10 +1076,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     app.channel1CheckBox.Enable = 0;
                     app.channel2CheckBox.Enable = 0;
                     app.channel3CheckBox.Enable = 0;
+                    app.channel4CheckBox.Enable = 0;
                     app.LaguerreOrderEditField.Enable = 1;
                     app.Ch1AlphaValueDropDown.Enable = 1;
                     app.Ch2AlphaValueDropDown.Enable = 1;
                     app.Ch3AlphaValueDropDown.Enable = 1;
+                    app.Ch4AlphaValueDropDown.Enable = 1;
                     app.AverageDataButton.Enable = 0;
                     app.RemoveBGButton.Enable = 0;
                     app.TruncateButton.Enable = 0;
@@ -988,8 +1110,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,app.Ch2DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch2Color)
                     plot(app.UIAxesDeconResult,app.Ch3DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch3Color)
+                    plot(app.UIAxesDeconResult,app.Ch4DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch4Color)
                     hold(app.UIAxesDeconResult,'off')
-                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3')
+                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3','Ch4')
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Decon Intensity (a.u.)')
                     title(app.UIAxesDeconResult,'Decon Intensity Trace Decon Data Points Gain Corrected')
@@ -998,17 +1121,20 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     INT1 = sum(app.Ch1DataObj.preProcessedData)';
                     INT2= sum(app.Ch2DataObj.preProcessedData)';
                     INT3 = sum(app.Ch3DataObj.preProcessedData)';
+                    INT4 = sum(app.Ch4DataObj.preProcessedData)';
                     INT1GC = INT1./app.Ch1DataObj.gain;
                     INT2GC = INT2./app.Ch2DataObj.gain;
                     INT3GC = INT3./app.Ch3DataObj.gain;
+                    INT4GC = INT4./app.Ch4DataObj.gain;
                     plot(app.UIAxesDeconResult,INT1GC,'.-', 'Color',app.Ch1Color)
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,INT2GC,'.-', 'Color',app.Ch2Color)
                     plot(app.UIAxesDeconResult,INT3GC,'.-', 'Color',app.Ch3Color)
+                    plot(app.UIAxesDeconResult,INT4GC,'.-', 'Color',app.Ch4Color)
                     hold(app.UIAxesDeconResult,'off')
                     axis(app.UIAxesDeconResult,'tight')
-                    ylim(app.UIAxesDeconResult,[quantile([INT1GC;INT2GC;INT3GC],0.01) quantile([INT1GC;INT2GC;INT3GC],0.95)])
-                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3')
+                    ylim(app.UIAxesDeconResult,[quantile([INT1GC;INT2GC;INT3GC;INT4GC],0.01) quantile([INT1GC;INT2GC;INT3GC;INT4GC],0.95)])
+                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3','Ch4')
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Raw Intensity (a.u.)')
                     title(app.UIAxesDeconResult,'Raw Intensity Trace Decon Data Points Gain Corrected')
@@ -1016,13 +1142,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     G1 = app.Ch1DataObj.gain;
                     G2 = app.Ch2DataObj.gain;
                     G3 = app.Ch3DataObj.gain;
+                    G4 = app.Ch4DataObj.gain;
                     plot(app.UIAxesDeconResult,G1,'.-', 'Color',app.Ch1Color)
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,G2,'.-', 'Color',app.Ch2Color)
                     plot(app.UIAxesDeconResult,G3,'.-', 'Color',app.Ch3Color)
+                    plot(app.UIAxesDeconResult,G4,'.-', 'Color',app.Ch4Color)
                     hold(app.UIAxesDeconResult,'off')
                     axis(app.UIAxesDeconResult,'tight')
-                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3')
+                    legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3','Ch4')
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Gain')
                     title(app.UIAxesDeconResult,'Gain Trace Decon Data Points Gain Corrected')
@@ -1035,6 +1163,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch2DataObj;
                         case 'Channel 3'
                             plotObj = app.Ch3DataObj;
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
                     end
                     plot(app.UIAxesDeconResult,plotObj.LaguerreBasis)
                     axis(app.UIAxesDeconResult,'tight')
@@ -1049,6 +1179,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch2DataObj;
                         case 'Channel 3'
                             plotObj = app.Ch3DataObj;
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
                     end
                     pointIdx = app.LineSlider.Value;
                     rawDataIdx = (pointIdx-1)*plotObj.dataAveraging+1:pointIdx*plotObj.dataAveraging;
@@ -1078,6 +1210,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             c = app.Ch3Color;
                             lg = 'Channel 3 Residual';
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
+                            c = app.Ch4Color;
+                            lg = 'Channel 4 Residual';
                     end
                     res = get(plotObj,'res')*100;
                     resMax = max(res);
@@ -1103,6 +1239,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             c = app.Ch3Color;
                             lg = 'Channel 3 lifetime';
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
+                            c = app.Ch4Color;
+                            lg = 'Channel 4 lifetime';
                     end
                     LT = plotObj.Lg_LTs;
                     plot(app.UIAxesDeconResult, LT, 'Marker',"*",'Color',c);
@@ -1127,6 +1267,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             c = app.Ch3Color;
                             lg = 'Channel 3 SNR';
+                        case 'Channel 4'
+                            lotObj = app.Ch4DataObj;
+                            c = app.Ch4Color;
+                            lg = 'Channel 4 SNR';
                     end
                     SNR = plotObj.SNR;
                     plot(app.UIAxesDeconResult, SNR, 'Marker',"*",'Color',c);
@@ -1151,6 +1295,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             %                             c = app.Ch3Color;
                             tl = 'Channel 3';
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
+                            %                             c = app.Ch3Color;
+                            tl = 'Channel 4';
                     end
                     lg = {'LG decay vs mExp decay','LG decay vs mExp formula','y=x'};
                     LT_LG_decay = plotObj.Lg_LTs;
@@ -1185,6 +1333,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             %                             c = app.Ch3Color;
                             tl = 'Channel 3';
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
+                            %                             c = app.Ch3Color;
+                            tl = 'Channel 4';
                     end
                     res_Lg = get(plotObj,'wf_aligned')-get(plotObj,'fit');
                     se_Lg = sum(res_Lg.^2)';
@@ -1218,6 +1370,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                             plotObj = app.Ch3DataObj;
                             c = app.Ch3Color;
                             tl = 'Channel 3';
+                        case 'Channel 4'
+                            plotObj = app.Ch4DataObj;
+                            c = app.Ch4Color;
+                            tl = 'Channel 4';
                     end
                     shift = plotObj.shift;
                     plot(app.UIAxesDeconResult, shift, 'Marker',"*",'Color',c);
@@ -1235,6 +1391,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             cla(app.bg1UIAxes)
             cla(app.bg2UIAxes)
             cla(app.bg3UIAxes)
+            cla(app.bg4UIAxes)
         end
 
         function plotBG(app)
@@ -1247,6 +1404,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.bg3UIAxes,app.bgObj.bgCh3,'Marker','.','LineStyle','--','Color', app.Ch3Color,'MarkerSize',8);
             title(app.bg3UIAxes,sprintf('Channel 3 Background, CtrlV = %.3f, Gain = %.3f',app.bgObj.CtrlV3, app.bgObj.bgGain3));
             app.bg3UIAxes.YLim = [min(app.bgObj.bgCh3)-0.1 max(app.bgObj.bgCh3)+0.1];
+            plot(app.bg4UIAxes,app.bgObj.bgCh4,'Marker','.','LineStyle','--','Color', app.Ch4Color,'MarkerSize',8);
+            title(app.bg4UIAxes,sprintf('Channel 4 Background, CtrlV = %.3f, Gain = %.3f',app.bgObj.CtrlV4, app.bgObj.bgGain4));
+            app.bg4UIAxes.YLim = [min(app.bgObj.bgCh4)-0.1 max(app.bgObj.bgCh4)+0.1];
         end
 
 
@@ -1262,6 +1422,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 case 'Channel 3'
                     plotObj = app.Ch3DataObj;
                     %                             c = app.Ch3Color;
+                case 'Channel 4'
+                    plotObj = app.Ch4DataObj;
             end
             res_Lg = get(plotObj,'wf_aligned')-get(plotObj,'fit');
             se_Lg = sum(res_Lg.^2)';
@@ -1420,6 +1582,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 app.bgObj.bgGain1 = interp1(app.apd1Obj.gainV,app.apd1Obj.apdGain,app.bgObj.CtrlV1,'spline');
                 app.bgObj.bgGain2 = interp1(app.apd2Obj.gainV,app.apd2Obj.apdGain,app.bgObj.CtrlV2,'spline');
                 app.bgObj.bgGain3 = interp1(app.apd3Obj.gainV,app.apd3Obj.apdGain,app.bgObj.CtrlV3,'spline');
+                app.bgObj.bgGain4 = interp1(app.apd4Obj.gainV,app.apd4Obj.apdGain,app.bgObj.CtrlV4,'spline');
                 app.bgFileEditField.Value = app.bgObj.pathToBg;
                 app.bgLoadedLamp.Color = 'g';
                 app.bgLoadedFlag = 1;
@@ -1476,9 +1639,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.Ch1DataObj = ChannelDataAPD(app.FLImDataObj.ch1RawWF, app.FLImDataObj.V1, app.FLImDataObj.dataAvg, app.apd1Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh1, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             app.Ch2DataObj = ChannelDataAPD(app.FLImDataObj.ch2RawWF, app.FLImDataObj.V2, app.FLImDataObj.dataAvg, app.apd2Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh2, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             app.Ch3DataObj = ChannelDataAPD(app.FLImDataObj.ch3RawWF, app.FLImDataObj.V3, app.FLImDataObj.dataAvg, app.apd3Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh3, app.FLImDataObj.laserRepRate, app.upSampleFactor);
+            app.Ch4DataObj = ChannelDataAPD(app.FLImDataObj.ch4RawWF, app.FLImDataObj.V4, app.FLImDataObj.dataAvg, app.apd4Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh4, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             removeDCData(app.Ch1DataObj);
             removeDCData(app.Ch2DataObj);
             removeDCData(app.Ch3DataObj);
+            removeDCData(app.Ch4DataObj);
             %----------------------plot raw data and marker-----------------
             plotData(app,'raw')
             %             plotDataIgnoreMarker(app)
@@ -1520,9 +1685,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             bgLow = app.BgLowEditField.Value;
             bgHigh = app.BgHighEditField.Value;
-            removeDCBG(app.Ch1DataObj,bgLow,bgHigh,0.03);
-            removeDCBG(app.Ch2DataObj,bgLow,bgHigh);
-            removeDCBG(app.Ch3DataObj,bgLow,bgHigh);
+            removeDCBG(app.Ch1DataObj,bgLow,bgHigh,1);
+            removeDCBG(app.Ch2DataObj,bgLow,bgHigh,2);
+            removeDCBG(app.Ch3DataObj,bgLow,bgHigh,3);
+            removeDCBG(app.Ch4DataObj,bgLow,bgHigh,4);
             plotPreprocessedData(app)
 
             set(app.UIFigure,'pointer','arrow') % set cursor to arrow
@@ -1750,7 +1916,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             [totalNumOfWf, goodNumOfWf, badNumOfWf] = removeSaturation(app.Ch3DataObj,app.LowThresholdEditField.Value,app.HighThresholdEditField.Value);
             msg3 = sprintf('Total number of waveforms: %d.\nWaveforms left: %d.\nWaveforms removed: %d.',...
                 totalNumOfWf,goodNumOfWf,badNumOfWf);
-            msgbox({'Channel 1:';msg1;'';'Channel 2:';msg2;'';'Channel 3:';msg3},'Data info','help')
+            [totalNumOfWf, goodNumOfWf, badNumOfWf] = removeSaturation(app.Ch4DataObj,app.LowThresholdEditField.Value,app.HighThresholdEditField.Value);
+            msg4 = sprintf('Total number of waveforms: %d.\nWaveforms left: %d.\nWaveforms removed: %d.',...
+                totalNumOfWf,goodNumOfWf,badNumOfWf);
+            msgbox({'Channel 1:';msg1;'';'Channel 2:';msg2;'';'Channel 3:';msg3;'';'Channel 4:';msg4},'Data info','help')
             plotData(app,'filtered')
             %             plotDataIgnoreMarker(app)
             %             plotBGMarker(app)
@@ -1774,6 +1943,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             avgData(app.Ch1DataObj, avg)
             avgData(app.Ch2DataObj, avg)
             avgData(app.Ch3DataObj, avg)
+            avgData(app.Ch4DataObj, avg)
             plotData(app,'averaged')
             %             plotDataIgnoreMarker(app)
             plotBGMarker(app)
@@ -1809,6 +1979,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             truncateData(app.Ch2DataObj,app.channelWidthEditField.Value);
             %             upSampleData(app.Ch3DataObj);
             truncateData(app.Ch3DataObj,app.channelWidthEditField.Value);
+            truncateData(app.Ch4DataObj,app.channelWidthEditField.Value);
             plotTruncatedData(app)
 
             plotDataIgnoreMarker(app)
@@ -1821,17 +1992,21 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
         % Button pushed function: DeconButton
         function DeconButtonPushed(app, event)
 
+            app.xMinEditField.Value = app.xMinEditField.Value; % set decon result plot max
+
             laguerreOrder = app.LaguerreOrderEditField.Value;
             alpha1 = app.Ch1AlphaValueDropDown.Value;
             alpha2 = app.Ch2AlphaValueDropDown.Value;
             alpha3 = app.Ch3AlphaValueDropDown.Value;
+            alpha4 = app.Ch4AlphaValueDropDown.Value;
             alpha1 = str2double(alpha1);
             alpha2 = str2double(alpha2);
             alpha3 = str2double(alpha3);
+            alpha4 = str2double(alpha4);
 
             %             alphaMax = alpha_up(app.channelWidthEditField.Value/0.08,laguerreOrder)+0.1;
             alphaMax = 1;
-            if any(alphaMax<[alpha1 alpha2 alpha3])
+            if any(alphaMax<[alpha1 alpha2 alpha3 alpha4])
                 msg1 = sprintf('Maxmum allowed alpha value for your truncation length is %.3f \n', alphaMax);
                 msg2 = 'Please reselect your alpha value!\n';
                 msgbox([msg1 msg2],'modal');
@@ -1848,11 +2023,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 f = waitbar(0,'Running Laguerre channel 1...');
                 runDeconLG(app.Ch1DataObj,exclude,laguerreOrder,alpha1);
 
-                waitbar(0.33,f,'Running Laguerre channel 2...');
+                waitbar(0.25,f,'Running Laguerre channel 2...');
                 runDeconLG(app.Ch2DataObj,exclude,laguerreOrder,alpha2);
 
-                waitbar(0.66,f,'Running Laguerre channel 3...');
+                waitbar(0.5,f,'Running Laguerre channel 3...');
                 runDeconLG(app.Ch3DataObj,exclude,laguerreOrder,alpha3);
+
+                waitbar(0.75,f,'Running Laguerre channel 4...');
+                runDeconLG(app.Ch4DataObj,exclude,laguerreOrder,alpha4);
+
                 waitbar(1,f,'Laguerre fit finished...');
                 
                 app.expDeconFlag = app.RunEXPCheckBox.Value;
@@ -1862,10 +2041,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     expOrder = str2double(expOrder);
                     f1 = waitbar(0,'Running exponential channel 1...');
                     runDeconExp(app.Ch1DataObj,expOrder,[],[],[],exclude);
-                    waitbar(0.33,f1,'Running exponential channel 2...');
+                    waitbar(0.25,f1,'Running exponential channel 2...');
                     runDeconExp(app.Ch2DataObj,expOrder,[],[],[],exclude);
-                    waitbar(0.66,f1,'Running exponential channel 3...');
+                    waitbar(0.5,f1,'Running exponential channel 3...');
                     runDeconExp(app.Ch3DataObj,expOrder,[],[],[],exclude);
+                    waitbar(0.75,f1,'Running exponential channel 3...');
+                    runDeconExp(app.Ch4DataObj,expOrder,[],[],[],exclude);
                     waitbar(1,f1,'exponential fit finished...');
                 end
 
@@ -1874,13 +2055,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     runPhasor(app.Ch1DataObj, H);
                     runPhasor(app.Ch2DataObj, H);
                     runPhasor(app.Ch3DataObj, H);
+                    runPhasor(app.Ch4DataObj, H);
                 end
 
                 CH1WFGainCorr = get(app.Ch1DataObj,'GainCorrectedWF');
                 CH2WFGainCorr = get(app.Ch2DataObj,'GainCorrectedWF');
                 CH3WFGainCorr = get(app.Ch3DataObj,'GainCorrectedWF');
+                CH4WFGainCorr = get(app.Ch4DataObj,'GainCorrectedWF');
                 %-------------------------------------------compute extended phasor-----------------------------------------------------
-                WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr];
+                WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr;CH4WFGainCorr];
                 numOfWF = size(WFExtended,2);
                 EOP = zeros(numOfWF,1);
                 for i = 1:numOfWF
@@ -1893,6 +2076,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 Spectrum(:,1) = sum(CH1WFGainCorr)';
                 Spectrum(:,2) = sum(CH2WFGainCorr)';
                 Spectrum(:,3) = sum(CH3WFGainCorr)';
+                Spectrum(:,4) = sum(CH4WFGainCorr)';
                 SP = zeros(numOfWF,1);
                 for i = 1: numOfWF
                     SP(i) = (ComputePhasor(Spectrum(i,:),0,1,0)+(1+1i))/2;
@@ -1940,18 +2124,22 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             saveFileFullPath = fullfile(app.dataFolder,app.saveFolderName,saveFileName);
 
             dataInfoObj = app.dataInfoObj;
-
+            toSingle(app.Ch1DataObj); % convert to single
+            toSingle(app.Ch2DataObj); % convert to single
+            toSingle(app.Ch3DataObj); % convert to single
+            toSingle(app.Ch4DataObj); % convert to single
             Ch1DataObj = app.Ch1DataObj;
             Ch2DataObj = app.Ch2DataObj;
             Ch3DataObj = app.Ch3DataObj;
+            Ch4DataObj = app.Ch4DataObj;
             EOP_H1G = app.EOP_H1G;
             EOP_H1S = app.EOP_H1S;
             SP_G = app.SP_G;
             SP_S = app.SP_S;
             calibrationObj =app.caliObj;
 
-            save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
-            saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,saveFileFullPath)
+            save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+            saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,saveFileFullPath)
             %save Laguerre vs multi-exp square error
             %             save_LG_vs_mExp_lifetime_fig(app)
             %             save_LG_vs_mExp_error_fig(app)
@@ -1975,9 +2163,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch1DataObj);
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
-            alignWF_CFD(app.Ch1DataObj, 1, (80:180)*app.upSampleFactor)
-            alignWF_CFD(app.Ch2DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
-            alignWF_CFD(app.Ch3DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
+            upSampleData(app.Ch4DataObj);
+            alignWF_CFD(app.Ch1DataObj, 0.99, (180*app.upSampleFactor:300*app.upSampleFactor)) % need updating to account for the bg
+            alignWF_CFD(app.Ch2DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch2DataObj.rawData,1)*app.upSampleFactor))
+            alignWF_CFD(app.Ch3DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch3DataObj.rawData,1)*app.upSampleFactor))
+            alignWF_CFD(app.Ch4DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch4DataObj.rawData,1)*app.upSampleFactor))
             plotUpsampledData(app)
             uiUpdate(app,'Upsampled')
             set(app.UIFigure,'pointer','arrow') % set cursor to spinning
@@ -2041,6 +2231,29 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 app.exponentialsDropDown.Enable = 0;
             end
         end
+
+        % Button pushed function: apd4LoadButton
+        function apd4LoadButtonPushed(app, event)
+            [filename, foldername] = uigetfile({'*.tdms;*.mat','APD Data Files (*.tdms;*.mat)'}, 'Please Select Channel 4 APD File', app.detectorDataFolder);
+            figure(app.UIFigure)
+            if filename
+                app.detectorDataFolder = foldername;
+                app.dataInfoObj.apd4Name = filename;
+                app.dataInfoObj.apd4Folder = foldername;
+                app.apd4Obj = apdClass(fullfile(foldername,filename));
+                app.apd4LoadedLamp.Color = 'g';
+                app.apd4LoadedFlag = 1;
+                app.apd4FileEditField.Value = app.apd4Obj.filePath;
+                creatFromPath(app.apd4Obj);
+                app.apd4ViewButton.Enable = 'On'; % enable view button
+            else
+                app.apd4LoadedLamp.Color = 'r'; % reset indicator
+                app.apd4FileEditField.Value = 'Please Select Channel 4 APD File'; % reset prompt
+                app.apd4Obj = []; % clear irf field
+                app.apd4LoadedFlag = 0; % clear flag
+                app.apd4ViewButton.Enable = 'Off'; % Disable view button
+            end
+        end
     end
 
     % Component initialization
@@ -2051,7 +2264,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 1247 727];
+            app.UIFigure.Position = [100 100 1600 900];
             app.UIFigure.Name = 'Error';
             app.UIFigure.Icon = 'Icon.png';
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @MainAppCloseRequest, true);
@@ -2082,7 +2295,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             % Create TabGroup
             app.TabGroup = uitabgroup(app.UIFigure);
             app.TabGroup.SelectionChangedFcn = createCallbackFcn(app, @TabGroupSelectionChanged, true);
-            app.TabGroup.Position = [6 5 1240 720];
+            app.TabGroup.Position = [0 0 1600 900];
 
             % Create fileSelectionTab
             app.fileSelectionTab = uitab(app.TabGroup);
@@ -2091,31 +2304,18 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.fileSelectionTab);
             app.GridLayout.ColumnWidth = {60, 131, 128, 63, '29.09x', '0x', 40, 83, 23, '3x'};
-            app.GridLayout.RowHeight = {22, 22, 22, 22, 22, '1x', '1x', '1x'};
+            app.GridLayout.RowHeight = {22, 22, 22, 22, 'fit', 22, '1x', '1x', '1x', '1x'};
             app.GridLayout.RowSpacing = 6.55555555555556;
             app.GridLayout.Padding = [10 6.55555555555556 10 6.55555555555556];
 
-            % Create bg1UIAxes
-            app.bg1UIAxes = uiaxes(app.GridLayout);
-            title(app.bg1UIAxes, 'Ch1 background')
-            xlabel(app.bg1UIAxes, 'Points')
-            ylabel(app.bg1UIAxes, 'Voltage(V)')
-            app.bg1UIAxes.XTickLabelRotation = 0;
-            app.bg1UIAxes.YTickLabelRotation = 0;
-            app.bg1UIAxes.ZTickLabelRotation = 0;
-            app.bg1UIAxes.Layout.Row = 6;
-            app.bg1UIAxes.Layout.Column = [4 10];
-
-            % Create bg2UIAxes
-            app.bg2UIAxes = uiaxes(app.GridLayout);
-            title(app.bg2UIAxes, 'Ch2 background')
-            xlabel(app.bg2UIAxes, 'Points')
-            ylabel(app.bg2UIAxes, 'Voltage(V)')
-            app.bg2UIAxes.XTickLabelRotation = 0;
-            app.bg2UIAxes.YTickLabelRotation = 0;
-            app.bg2UIAxes.ZTickLabelRotation = 0;
-            app.bg2UIAxes.Layout.Row = 7;
-            app.bg2UIAxes.Layout.Column = [4 10];
+            % Create bg4UIAxes
+            app.bg4UIAxes = uiaxes(app.GridLayout);
+            title(app.bg4UIAxes, 'Ch4 background')
+            xlabel(app.bg4UIAxes, 'Points')
+            ylabel(app.bg4UIAxes, 'Voltage(V)')
+            zlabel(app.bg4UIAxes, 'Z')
+            app.bg4UIAxes.Layout.Row = 10;
+            app.bg4UIAxes.Layout.Column = [4 10];
 
             % Create bg3UIAxes
             app.bg3UIAxes = uiaxes(app.GridLayout);
@@ -2125,14 +2325,36 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.bg3UIAxes.XTickLabelRotation = 0;
             app.bg3UIAxes.YTickLabelRotation = 0;
             app.bg3UIAxes.ZTickLabelRotation = 0;
-            app.bg3UIAxes.Layout.Row = 8;
+            app.bg3UIAxes.Layout.Row = 9;
             app.bg3UIAxes.Layout.Column = [4 10];
+
+            % Create bg2UIAxes
+            app.bg2UIAxes = uiaxes(app.GridLayout);
+            title(app.bg2UIAxes, 'Ch2 background')
+            xlabel(app.bg2UIAxes, 'Points')
+            ylabel(app.bg2UIAxes, 'Voltage(V)')
+            app.bg2UIAxes.XTickLabelRotation = 0;
+            app.bg2UIAxes.YTickLabelRotation = 0;
+            app.bg2UIAxes.ZTickLabelRotation = 0;
+            app.bg2UIAxes.Layout.Row = 8;
+            app.bg2UIAxes.Layout.Column = [4 10];
+
+            % Create bg1UIAxes
+            app.bg1UIAxes = uiaxes(app.GridLayout);
+            title(app.bg1UIAxes, 'Ch1 background')
+            xlabel(app.bg1UIAxes, 'Points')
+            ylabel(app.bg1UIAxes, 'Voltage(V)')
+            app.bg1UIAxes.XTickLabelRotation = 0;
+            app.bg1UIAxes.YTickLabelRotation = 0;
+            app.bg1UIAxes.ZTickLabelRotation = 0;
+            app.bg1UIAxes.Layout.Row = 7;
+            app.bg1UIAxes.Layout.Column = [4 10];
 
             % Create caliViewButton
             app.caliViewButton = uibutton(app.GridLayout, 'push');
             app.caliViewButton.BusyAction = 'cancel';
             app.caliViewButton.Enable = 'off';
-            app.caliViewButton.Layout.Row = 4;
+            app.caliViewButton.Layout.Row = 5;
             app.caliViewButton.Layout.Column = [9 10];
             app.caliViewButton.Text = 'View';
 
@@ -2140,13 +2362,13 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.caliLoadButton = uibutton(app.GridLayout, 'push');
             app.caliLoadButton.ButtonPushedFcn = createCallbackFcn(app, @caliLoadButtonPushed, true);
             app.caliLoadButton.BusyAction = 'cancel';
-            app.caliLoadButton.Layout.Row = 4;
+            app.caliLoadButton.Layout.Row = 5;
             app.caliLoadButton.Layout.Column = 8;
             app.caliLoadButton.Text = 'Load';
 
             % Create caliLoadedLamp
             app.caliLoadedLamp = uilamp(app.GridLayout);
-            app.caliLoadedLamp.Layout.Row = 4;
+            app.caliLoadedLamp.Layout.Row = 5;
             app.caliLoadedLamp.Layout.Column = 7;
             app.caliLoadedLamp.Color = [1 0 0];
 
@@ -2225,14 +2447,14 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.bgNotNeededCheckBox = uicheckbox(app.GridLayout);
             app.bgNotNeededCheckBox.ValueChangedFcn = createCallbackFcn(app, @bgNotNeededCheckBoxValueChanged, true);
             app.bgNotNeededCheckBox.Text = 'BG not needed ';
-            app.bgNotNeededCheckBox.Layout.Row = 5;
+            app.bgNotNeededCheckBox.Layout.Row = 6;
             app.bgNotNeededCheckBox.Layout.Column = [9 10];
 
             % Create bgLoadButton
             app.bgLoadButton = uibutton(app.GridLayout, 'push');
             app.bgLoadButton.ButtonPushedFcn = createCallbackFcn(app, @bgLoadButtonPushed, true);
             app.bgLoadButton.BusyAction = 'cancel';
-            app.bgLoadButton.Layout.Row = 5;
+            app.bgLoadButton.Layout.Row = 6;
             app.bgLoadButton.Layout.Column = 8;
             app.bgLoadButton.Text = 'Load';
 
@@ -2246,7 +2468,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             % Create bgLoadedLamp
             app.bgLoadedLamp = uilamp(app.GridLayout);
-            app.bgLoadedLamp.Layout.Row = 5;
+            app.bgLoadedLamp.Layout.Row = 6;
             app.bgLoadedLamp.Layout.Column = 7;
             app.bgLoadedLamp.Color = [1 0 0];
 
@@ -2269,14 +2491,14 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.bgFileEditField = uieditfield(app.GridLayout, 'text');
             app.bgFileEditField.Editable = 'off';
             app.bgFileEditField.HorizontalAlignment = 'center';
-            app.bgFileEditField.Layout.Row = 5;
+            app.bgFileEditField.Layout.Row = 6;
             app.bgFileEditField.Layout.Column = [5 6];
             app.bgFileEditField.Value = 'Please Select Background File!';
 
             % Create BGfileEditFieldLabel
             app.BGfileEditFieldLabel = uilabel(app.GridLayout);
             app.BGfileEditFieldLabel.HorizontalAlignment = 'right';
-            app.BGfileEditFieldLabel.Layout.Row = 5;
+            app.BGfileEditFieldLabel.Layout.Row = 6;
             app.BGfileEditFieldLabel.Layout.Column = 4;
             app.BGfileEditFieldLabel.Text = 'BG file:';
 
@@ -2314,14 +2536,14 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.caliFileEditField = uieditfield(app.GridLayout, 'text');
             app.caliFileEditField.Editable = 'off';
             app.caliFileEditField.HorizontalAlignment = 'center';
-            app.caliFileEditField.Layout.Row = 4;
+            app.caliFileEditField.Layout.Row = 5;
             app.caliFileEditField.Layout.Column = [5 6];
             app.caliFileEditField.Value = 'Please Select System Intensity Calibration!';
 
             % Create CalibrationLabel
             app.CalibrationLabel = uilabel(app.GridLayout);
             app.CalibrationLabel.HorizontalAlignment = 'right';
-            app.CalibrationLabel.Layout.Row = 4;
+            app.CalibrationLabel.Layout.Row = 5;
             app.CalibrationLabel.Layout.Column = 4;
             app.CalibrationLabel.Text = 'Calibration';
 
@@ -2336,7 +2558,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.dataFielesListBox.Items = {'No Data file selected!'};
             app.dataFielesListBox.Multiselect = 'on';
             app.dataFielesListBox.ValueChangedFcn = createCallbackFcn(app, @dataFielesListBoxValueChanged, true);
-            app.dataFielesListBox.Layout.Row = [2 8];
+            app.dataFielesListBox.Layout.Row = [2 10];
             app.dataFielesListBox.Layout.Column = [1 3];
             app.dataFielesListBox.Value = {'No Data file selected!'};
 
@@ -2346,6 +2568,43 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.dataFilesLabel.Layout.Row = 1;
             app.dataFilesLabel.Layout.Column = 1;
             app.dataFilesLabel.Text = 'Data Files';
+
+            % Create apd4FileEditField
+            app.apd4FileEditField = uieditfield(app.GridLayout, 'text');
+            app.apd4FileEditField.Editable = 'off';
+            app.apd4FileEditField.HorizontalAlignment = 'right';
+            app.apd4FileEditField.Layout.Row = 4;
+            app.apd4FileEditField.Layout.Column = [5 6];
+            app.apd4FileEditField.Value = 'Please Select Channel 4 APD File!';
+
+            % Create APD3Label_2
+            app.APD3Label_2 = uilabel(app.GridLayout);
+            app.APD3Label_2.HorizontalAlignment = 'right';
+            app.APD3Label_2.Layout.Row = 4;
+            app.APD3Label_2.Layout.Column = 4;
+            app.APD3Label_2.Text = 'APD4';
+
+            % Create apd4LoadButton
+            app.apd4LoadButton = uibutton(app.GridLayout, 'push');
+            app.apd4LoadButton.ButtonPushedFcn = createCallbackFcn(app, @apd4LoadButtonPushed, true);
+            app.apd4LoadButton.BusyAction = 'cancel';
+            app.apd4LoadButton.Layout.Row = 4;
+            app.apd4LoadButton.Layout.Column = 8;
+            app.apd4LoadButton.Text = 'Load';
+
+            % Create apd4ViewButton
+            app.apd4ViewButton = uibutton(app.GridLayout, 'push');
+            app.apd4ViewButton.BusyAction = 'cancel';
+            app.apd4ViewButton.Enable = 'off';
+            app.apd4ViewButton.Layout.Row = 4;
+            app.apd4ViewButton.Layout.Column = [9 10];
+            app.apd4ViewButton.Text = 'View';
+
+            % Create apd4LoadedLamp
+            app.apd4LoadedLamp = uilamp(app.GridLayout);
+            app.apd4LoadedLamp.Layout.Row = 4;
+            app.apd4LoadedLamp.Layout.Column = 7;
+            app.apd4LoadedLamp.Color = [1 0 0];
 
             % Create DeConSettingTab
             app.DeConSettingTab = uitab(app.TabGroup);
@@ -2368,7 +2627,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch1DataFig.Box = 'on';
             app.UIAxes_ch1DataFig.XGrid = 'on';
             app.UIAxes_ch1DataFig.YGrid = 'on';
-            app.UIAxes_ch1DataFig.Layout.Row = [2 9];
+            app.UIAxes_ch1DataFig.Layout.Row = [2 7];
             app.UIAxes_ch1DataFig.Layout.Column = [5 7];
 
             % Create UIAxes_ch2DataFig
@@ -2379,19 +2638,8 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch2DataFig.Box = 'on';
             app.UIAxes_ch2DataFig.XGrid = 'on';
             app.UIAxes_ch2DataFig.YGrid = 'on';
-            app.UIAxes_ch2DataFig.Layout.Row = [10 17];
+            app.UIAxes_ch2DataFig.Layout.Row = [8 13];
             app.UIAxes_ch2DataFig.Layout.Column = [5 7];
-
-            % Create UIAxes_ch1BgRemoveFig
-            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
-            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
-            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
-            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
-            app.UIAxes_ch1BgRemoveFig.Box = 'on';
-            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 9];
-            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
 
             % Create UIAxes_ch3DataFig
             app.UIAxes_ch3DataFig = uiaxes(app.GridLayout2);
@@ -2401,8 +2649,30 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch3DataFig.Box = 'on';
             app.UIAxes_ch3DataFig.XGrid = 'on';
             app.UIAxes_ch3DataFig.YGrid = 'on';
-            app.UIAxes_ch3DataFig.Layout.Row = [18 25];
+            app.UIAxes_ch3DataFig.Layout.Row = [14 19];
             app.UIAxes_ch3DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch4DataFig
+            app.UIAxes_ch4DataFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch4DataFig, 'Ch4')
+            xlabel(app.UIAxes_ch4DataFig, 'Points')
+            ylabel(app.UIAxes_ch4DataFig, 'Voltage')
+            app.UIAxes_ch4DataFig.Box = 'on';
+            app.UIAxes_ch4DataFig.XGrid = 'on';
+            app.UIAxes_ch4DataFig.YGrid = 'on';
+            app.UIAxes_ch4DataFig.Layout.Row = [20 25];
+            app.UIAxes_ch4DataFig.Layout.Column = [5 7];
+
+            % Create UIAxes_ch1BgRemoveFig
+            app.UIAxes_ch1BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch1BgRemoveFig, 'background removed ch1')
+            xlabel(app.UIAxes_ch1BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch1BgRemoveFig, 'Voltage')
+            app.UIAxes_ch1BgRemoveFig.Box = 'on';
+            app.UIAxes_ch1BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch1BgRemoveFig.Layout.Row = [2 7];
+            app.UIAxes_ch1BgRemoveFig.Layout.Column = [8 10];
 
             % Create UIAxes_ch2BgRemoveFig
             app.UIAxes_ch2BgRemoveFig = uiaxes(app.GridLayout2);
@@ -2412,7 +2682,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch2BgRemoveFig.Box = 'on';
             app.UIAxes_ch2BgRemoveFig.XGrid = 'on';
             app.UIAxes_ch2BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch2BgRemoveFig.Layout.Row = [10 17];
+            app.UIAxes_ch2BgRemoveFig.Layout.Row = [8 13];
             app.UIAxes_ch2BgRemoveFig.Layout.Column = [8 10];
 
             % Create UIAxes_ch3BgRemoveFig
@@ -2423,8 +2693,19 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch3BgRemoveFig.Box = 'on';
             app.UIAxes_ch3BgRemoveFig.XGrid = 'on';
             app.UIAxes_ch3BgRemoveFig.YGrid = 'on';
-            app.UIAxes_ch3BgRemoveFig.Layout.Row = [18 25];
+            app.UIAxes_ch3BgRemoveFig.Layout.Row = [14 19];
             app.UIAxes_ch3BgRemoveFig.Layout.Column = [8 10];
+
+            % Create UIAxes_ch4BgRemoveFig
+            app.UIAxes_ch4BgRemoveFig = uiaxes(app.GridLayout2);
+            title(app.UIAxes_ch4BgRemoveFig, 'background removed ch4')
+            xlabel(app.UIAxes_ch4BgRemoveFig, 'Points')
+            ylabel(app.UIAxes_ch4BgRemoveFig, 'Voltage')
+            app.UIAxes_ch4BgRemoveFig.Box = 'on';
+            app.UIAxes_ch4BgRemoveFig.XGrid = 'on';
+            app.UIAxes_ch4BgRemoveFig.YGrid = 'on';
+            app.UIAxes_ch4BgRemoveFig.Layout.Row = [20 25];
+            app.UIAxes_ch4BgRemoveFig.Layout.Column = [8 10];
 
             % Create RemoveSaturationButton
             app.RemoveSaturationButton = uibutton(app.GridLayout2, 'push');
@@ -2745,6 +3026,14 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.channel3CheckBox.Layout.Column = 3;
             app.channel3CheckBox.Value = true;
 
+            % Create channel4CheckBox
+            app.channel4CheckBox = uicheckbox(app.GridLayout2);
+            app.channel4CheckBox.Enable = 'off';
+            app.channel4CheckBox.Text = 'Channel 4';
+            app.channel4CheckBox.Layout.Row = 9;
+            app.channel4CheckBox.Layout.Column = 4;
+            app.channel4CheckBox.Value = true;
+
             % Create ChannelSelectionPanel
             app.ChannelSelectionPanel = uipanel(app.GridLayout2);
             app.ChannelSelectionPanel.ForegroundColor = [1 0 0];
@@ -2887,6 +3176,23 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.RunEXPCheckBox.Layout.Row = 24;
             app.RunEXPCheckBox.Layout.Column = 1;
 
+            % Create Ch4AlphaValueDropDown
+            app.Ch4AlphaValueDropDown = uidropdown(app.GridLayout2);
+            app.Ch4AlphaValueDropDown.Items = {'0.880 (0.5-5 ns)', '0.916 (0.7-8 ns)', '0.930 (1-8 ns)', '0.965 (2-16 ns)'};
+            app.Ch4AlphaValueDropDown.ItemsData = {'0.880', '0.916', '0.930', '0.965', ''};
+            app.Ch4AlphaValueDropDown.Enable = 'off';
+            app.Ch4AlphaValueDropDown.Layout.Row = 22;
+            app.Ch4AlphaValueDropDown.Layout.Column = [3 4];
+            app.Ch4AlphaValueDropDown.Value = '0.916';
+
+            % Create Ch4AlphaValueDropDownLabel
+            app.Ch4AlphaValueDropDownLabel = uilabel(app.GridLayout2);
+            app.Ch4AlphaValueDropDownLabel.HorizontalAlignment = 'right';
+            app.Ch4AlphaValueDropDownLabel.Enable = 'off';
+            app.Ch4AlphaValueDropDownLabel.Layout.Row = 22;
+            app.Ch4AlphaValueDropDownLabel.Layout.Column = [1 2];
+            app.Ch4AlphaValueDropDownLabel.Text = 'Ch4 Alpha Value';
+
             % Create FittingResultTab
             app.FittingResultTab = uitab(app.TabGroup);
             app.FittingResultTab.Title = 'Fitting Result';
@@ -2898,32 +3204,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.GridLayout3.RowSpacing = 2.75;
             app.GridLayout3.Padding = [10 2.75 10 2.75];
 
-            % Create UIAxesFitting
-            app.UIAxesFitting = uiaxes(app.GridLayout3);
-            title(app.UIAxesFitting, 'Fitting')
-            xlabel(app.UIAxesFitting, 'Time(ns)')
-            ylabel(app.UIAxesFitting, 'Y')
-            app.UIAxesFitting.XTickLabelRotation = 0;
-            app.UIAxesFitting.YTickLabelRotation = 0;
-            app.UIAxesFitting.ZTickLabelRotation = 0;
-            app.UIAxesFitting.Box = 'on';
-            app.UIAxesFitting.XGrid = 'on';
-            app.UIAxesFitting.YGrid = 'on';
-            app.UIAxesFitting.Layout.Row = 2;
-            app.UIAxesFitting.Layout.Column = [1 6];
-
-            % Create UIAxesAutoCo
-            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
-            title(app.UIAxesAutoCo, 'Auto Correlation')
-            ylabel(app.UIAxesAutoCo, 'Y')
-            app.UIAxesAutoCo.XTickLabelRotation = 0;
-            app.UIAxesAutoCo.YTickLabelRotation = 0;
-            app.UIAxesAutoCo.ZTickLabelRotation = 0;
-            app.UIAxesAutoCo.Box = 'on';
-            app.UIAxesAutoCo.XGrid = 'on';
-            app.UIAxesAutoCo.YGrid = 'on';
-            app.UIAxesAutoCo.Layout.Row = [4 5];
-            app.UIAxesAutoCo.Layout.Column = [1 6];
+            % Create UIAxesDeconResult
+            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
+            title(app.UIAxesDeconResult, 'Utility Plot')
+            xlabel(app.UIAxesDeconResult, 'Time(ns)')
+            ylabel(app.UIAxesDeconResult, 'Y')
+            app.UIAxesDeconResult.Box = 'on';
+            app.UIAxesDeconResult.XGrid = 'on';
+            app.UIAxesDeconResult.YGrid = 'on';
+            app.UIAxesDeconResult.Layout.Row = [2 3];
+            app.UIAxesDeconResult.Layout.Column = [7 12];
 
             % Create UIAxesResidue
             app.UIAxesResidue = uiaxes(app.GridLayout3);
@@ -2938,16 +3228,32 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxesResidue.Layout.Row = 3;
             app.UIAxesResidue.Layout.Column = [1 6];
 
-            % Create UIAxesDeconResult
-            app.UIAxesDeconResult = uiaxes(app.GridLayout3);
-            title(app.UIAxesDeconResult, 'Utility Plot')
-            xlabel(app.UIAxesDeconResult, 'Time(ns)')
-            ylabel(app.UIAxesDeconResult, 'Y')
-            app.UIAxesDeconResult.Box = 'on';
-            app.UIAxesDeconResult.XGrid = 'on';
-            app.UIAxesDeconResult.YGrid = 'on';
-            app.UIAxesDeconResult.Layout.Row = [2 3];
-            app.UIAxesDeconResult.Layout.Column = [7 12];
+            % Create UIAxesAutoCo
+            app.UIAxesAutoCo = uiaxes(app.GridLayout3);
+            title(app.UIAxesAutoCo, 'Auto Correlation')
+            ylabel(app.UIAxesAutoCo, 'Y')
+            app.UIAxesAutoCo.XTickLabelRotation = 0;
+            app.UIAxesAutoCo.YTickLabelRotation = 0;
+            app.UIAxesAutoCo.ZTickLabelRotation = 0;
+            app.UIAxesAutoCo.Box = 'on';
+            app.UIAxesAutoCo.XGrid = 'on';
+            app.UIAxesAutoCo.YGrid = 'on';
+            app.UIAxesAutoCo.Layout.Row = [4 5];
+            app.UIAxesAutoCo.Layout.Column = [1 6];
+
+            % Create UIAxesFitting
+            app.UIAxesFitting = uiaxes(app.GridLayout3);
+            title(app.UIAxesFitting, 'Fitting')
+            xlabel(app.UIAxesFitting, 'Time(ns)')
+            ylabel(app.UIAxesFitting, 'Y')
+            app.UIAxesFitting.XTickLabelRotation = 0;
+            app.UIAxesFitting.YTickLabelRotation = 0;
+            app.UIAxesFitting.ZTickLabelRotation = 0;
+            app.UIAxesFitting.Box = 'on';
+            app.UIAxesFitting.XGrid = 'on';
+            app.UIAxesFitting.YGrid = 'on';
+            app.UIAxesFitting.Layout.Row = 2;
+            app.UIAxesFitting.Layout.Column = [1 6];
 
             % Create channelDropDown
             app.channelDropDown = uidropdown(app.GridLayout3);
@@ -2991,7 +3297,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.xMaxEditField.ValueChangedFcn = createCallbackFcn(app, @xMinEditFieldValueChanged, true);
             app.xMaxEditField.Layout.Row = 1;
             app.xMaxEditField.Layout.Column = 6;
-            app.xMaxEditField.Value = 154;
+            app.xMaxEditField.Value = 54.4;
 
             % Create xMaxEditFieldLabel
             app.xMaxEditFieldLabel = uilabel(app.GridLayout3);
@@ -3044,30 +3350,30 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             % Create UIAxesImg
             app.UIAxesImg = uiaxes(app.imagesReconstrctionTab);
             title(app.UIAxesImg, 'FLIm Images')
-            app.UIAxesImg.Position = [663 263 530 392];
+            app.UIAxesImg.Position = [663 443 530 392];
 
             % Create EditFieldLabel
             app.EditFieldLabel = uilabel(app.imagesReconstrctionTab);
             app.EditFieldLabel.HorizontalAlignment = 'right';
-            app.EditFieldLabel.Position = [18 659 55 22];
+            app.EditFieldLabel.Position = [18 839 55 22];
             app.EditFieldLabel.Text = 'Edit Field';
 
             % Create EditField
             app.EditField = uieditfield(app.imagesReconstrctionTab, 'text');
-            app.EditField.Position = [88 659 505 22];
+            app.EditField.Position = [88 839 505 22];
 
             % Create DataFileSelectedLabel
             app.DataFileSelectedLabel = uilabel(app.UIFigure);
             app.DataFileSelectedLabel.HorizontalAlignment = 'right';
             app.DataFileSelectedLabel.FontWeight = 'bold';
             app.DataFileSelectedLabel.FontColor = [1 0 0];
-            app.DataFileSelectedLabel.Position = [691 703 112 22];
+            app.DataFileSelectedLabel.Position = [691 876 112 22];
             app.DataFileSelectedLabel.Text = 'Data File Selected:';
 
             % Create DataFileSelectedDisp
             app.DataFileSelectedDisp = uieditfield(app.UIFigure, 'text');
             app.DataFileSelectedDisp.Editable = 'off';
-            app.DataFileSelectedDisp.Position = [806 702 438 22];
+            app.DataFileSelectedDisp.Position = [806 875 438 22];
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

@@ -8,9 +8,11 @@ classdef FLImDataClass < handle
         ch1RawWF; % channel 1 raw waveform data, 2D matrix
         ch2RawWF; % channel 2 raw waveform data, 2D matrix
         ch3RawWF; % channel 3 raw waveform data, 2D matrix
+        ch4RawWF; % channel 4 raw waveform data, 2D matrix
         V1; % channel 1 raw control V, 1D column vector
         V2; % channel 2 raw control V, 1D column vector
         V3; % channel 3 raw control V, 1D column vector
+        V4; % channel 3 raw control V, 1D column vector
         dataAvg; % number of waveforms to average used in LabView control software
         laserRepRate; % 355nm laser rep rate
     end
@@ -43,9 +45,10 @@ classdef FLImDataClass < handle
             end
 %             FLImDataObj.laserRepRate; % output laser reprate to 
             
-            timeDelay = [4.2800;4.9563;5.0427]; % time delay in ms
+            timeDelay = [4.2800;4.9563;5.0427;5.0427]; % time delay in ms
             shift = round(timeDelay./1000.*FLImDataObj.laserRepRate);
             FLImDataObj.WFLength = output.Channel1.Props.Data_Length;
+            
             FLImDataObj.ch1RawWF = reshape(output.Channel1.Waveform.data,FLImDataObj.WFLength,FLImDataObj.numOfPoints);
             % check data and V dimention, if the same, load data, if not duplicate V
             
@@ -76,7 +79,14 @@ classdef FLImDataClass < handle
             end
             FLImDataObj.ch3RawWF = circshift(FLImDataObj.ch3RawWF,-shift(3),2); % circular shift to account for delay
             %             FLImDataObj.V3 = circshift(FLImDataObj.V3,-1); % circular shift to account for delay
-            
+            FLImDataObj.ch4RawWF = reshape(output.Channel4.Waveform.data,FLImDataObj.WFLength,FLImDataObj.numOfPoints);
+            if size(FLImDataObj.ch4RawWF,2)==length(output.Channel4.Voltage.data)
+                FLImDataObj.V4 = output.Channel4.Voltage.data';
+            else
+                temp = repmat(output.Channel4.Voltage.data,FLImDataObj.dataAvg,1);
+                FLImDataObj.V4 = temp(:);
+            end
+            FLImDataObj.ch4RawWF = circshift(FLImDataObj.ch4RawWF,-shift(4),2); % circular shift to account for delay
             checkDataIntegraty(FLImDataObj)
         end
         
@@ -89,6 +99,9 @@ classdef FLImDataClass < handle
             end
             if ne(length(FLImDataObj.V3),size(FLImDataObj.ch3RawWF,2))
                 warndlg('Channel 3 Data and control V dimention missmatch, possible corrupted data','Warning');
+            end
+            if ne(length(FLImDataObj.V4),size(FLImDataObj.ch4RawWF,2))
+                warndlg('Channel 4 Data and control V dimention missmatch, possible corrupted data','Warning');
             end
         end
     end
