@@ -458,7 +458,7 @@ Ch3DataObj.toSingle();
 DateString = char(datetime("today"));
 saveName = fullfile(filepath,[name '_12.5GS_' DateString '.mat']);
 save(saveName,'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3')
-saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,saveName)
+saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,[],saveName)
 close all
 
 % %% plot fitting

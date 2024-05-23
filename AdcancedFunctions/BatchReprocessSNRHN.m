@@ -90,7 +90,7 @@ for i=313:size(T,1)
         save(newFileName, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
         delete(matName)
         status = movefile(newFileName,matName);
-        saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,matName)
+        saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,[],matName)
     end
 end
 
