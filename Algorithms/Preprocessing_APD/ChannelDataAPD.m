@@ -341,6 +341,7 @@ classdef ChannelDataAPD < handle
         end
         
         function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
+            obj.dataT = double(obj.dataT); % convert to double so lsqnonneg does not throw error
             %---------------generate laguerre functions------------------------
             obj.M = size(obj.dataT,1);
             obj.exclude = exclude_in;
