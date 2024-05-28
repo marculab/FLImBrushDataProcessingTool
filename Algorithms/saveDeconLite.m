@@ -20,7 +20,7 @@ VarListDecon={'laserRepRate','alpha', 'dataT', 'gain','irfIdx','Lg_INTs',...
     'Ph_H3S','Ph_H3G','Ph_H4S','Ph_H4G'};
 
 for ii=1:numOfChannel
-    for jj=1:length(VarList)
+    for jj=1:length(VarListLite)
         eval(['Ch' num2str(ii) 'DataObj.' VarListLite{jj} '=Ch' num2str(ii) 'DataObjIn.' VarListDecon{jj} ';'])
         % eval(['SP_G' '=data.SP_G'';'])
         % eval(['SP_S' '=data.SP_S'';'])
