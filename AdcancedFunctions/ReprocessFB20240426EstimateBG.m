@@ -98,7 +98,7 @@ legend([h, h2],'Measured BG', 'Estimated BG')
 Ch1DataObj.bg = estimatedBGAvg; % overwrite existing BG with estimated BG
 Ch1DataObj.BgEstimated = 1; % set BG estimation flag
 
-alignWF_CFD(Ch1DataObj, 0.99, 170*upSampleFactor:300*upSampleFactor) % align using distal peak
+alignWF_CFD(Ch1DataObj, 0.90, 170*upSampleFactor:300*upSampleFactor) % align using distal peak
 nexttile
 tempWF = sortData(Ch1DataObj, 'ascend');
 plot(tempWF(:,1:plotStep:end));
@@ -232,7 +232,7 @@ ylim([-0.2 1.4])
 title('Estimated BG from raw data')
 legend(h,'Measured BG')
 
-alignWF_CFD(Ch2DataObj, 0.99, 170*upSampleFactor:300*upSampleFactor) % align using distal peak
+alignWF_CFD(Ch2DataObj, 0.5, 300*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor) % align using distal peak
 nexttile
 tempWF = sortData(Ch2DataObj, 'ascend');
 plot(tempWF(:,1:plotStep:end));
@@ -352,7 +352,7 @@ ylim([-0.2 1.4])
 title('Estimated BG from raw data')
 legend(h,'Measured BG')
 
-alignWF_CFD(Ch3DataObj, 0.99, 170*upSampleFactor:300*upSampleFactor) % align using distal peak
+alignWF_CFD(Ch3DataObj, 0.5, 300*upSampleFactor:size(Ch3DataObj.rawData,1)*upSampleFactor) % align using distal peak
 nexttile
 tempWF = sortData(Ch3DataObj, 'ascend');
 plot(tempWF(:,1:plotStep:end));
