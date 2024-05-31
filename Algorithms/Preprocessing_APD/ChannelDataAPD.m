@@ -401,7 +401,7 @@ classdef ChannelDataAPD < handle
                     %                     obj.spec_aligned(:,idx) = laguerreObj.spec_aligned;
                 end
             end
-            %             obj.stat_test = test_stats(obj.spec_aligned,obj.fit, obj.dtUp, obj.bw);
+            obj.stat_test = test_stats(get(obj,'wf_aligned'),get(obj,'fit'), obj.dtUp, 20); % use bw of 20 so no downsmpling of residual
             obj.Lg_INTsGainCorrected = obj.Lg_INTs./obj.gain;
         end
         
