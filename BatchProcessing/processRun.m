@@ -26,12 +26,12 @@ Ch1Color = [121,0,141]/255; % channel 1 plot color
 Ch2Color = [0,169,255]/255; % channel 2 plot color
 Ch3Color = [129,255,0]/255; % channel 3 plot color
 upSampleFactor = 5;
-bgLow = 650;
-bgHigh = 900;
+% bgLow = 650;
+% bgHigh = 900;
 DigitizerNoise = 0.0078; % ENOB = 8;
 numOfWFtoPlot = 100;
 laguerreOrder = 12;
-% ChWidth = 154;
+% ChWidth = 680*0.08; % please update based on your data
 % alpha1 = 0.916;
 % alpha2 = 0.916;
 % alpha3 = 0.916;
@@ -125,9 +125,9 @@ xlim([0 size(temp,1)]);
 upSampleData(Ch1DataObj);
 upSampleData(Ch2DataObj);
 upSampleData(Ch3DataObj);
-alignWF_CFD(Ch1DataObj, 1, (80:180)*upSampleFactor)
-alignWF_CFD(Ch2DataObj, 0.5, (180:size(Ch2DataObj.rawData,1))*upSampleFactor)
-alignWF_CFD(Ch3DataObj, 0.5, (180:size(Ch2DataObj.rawData,1))*upSampleFactor)
+alignWF_CFD(Ch1DataObj, 1, 80*upSampleFactor:180*upSampleFactor)
+alignWF_CFD(Ch2DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
+alignWF_CFD(Ch3DataObj, 0.5, 180*upSampleFactor:size(Ch3DataObj.rawData,1)*upSampleFactor)
 % plot upsampled data
 fUpSampled = figure;
 tiledlayout(3,1)
@@ -169,9 +169,15 @@ avgData(Ch2DataObj, avg)
 avgData(Ch3DataObj, avg)
 
 %% -------------- ---------remove fiber background-------------------------
-removeDCBG(Ch1DataObj,bgLow,bgHigh,0.03);
-removeDCBG(Ch2DataObj,bgLow,bgHigh);
-removeDCBG(Ch3DataObj,bgLow,bgHigh);
+% BG remove based on maximum waveform location
+[~, maxPosition] = max(Ch1DataObj.averagedData);
+avgmaxPosition = round(mean(nonzeros(maxPosition)));
+bgLow = avgmaxPosition - 420;
+bgHigh = avgmaxPosition - 50 ;
+
+removeDCBG(Ch1DataObj,bgLow,bgHigh,1,0.03);
+removeDCBG(Ch2DataObj,bgLow,bgHigh,2);
+removeDCBG(Ch3DataObj,bgLow,bgHigh,3);
 
 ChWidthInPoints = ChWidth/Ch1DataObj.dtUp;
 
