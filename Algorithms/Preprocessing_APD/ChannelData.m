@@ -1,7 +1,7 @@
 classdef ChannelData
     % CHANNELDATA class, store raw data and relavent parameters for each spectral channel.
     properties
-        data % raw data from one spectral channel, DC and BG removed and truncated, 2D matrix
+        data % raw data from one spectral channel, DC and BG removed and truncated, 2D single matrix
         iIRF % instrument response funciton of spectral channel, 1D vector
         dt % time resolution of ddigitizer, scaler
         bw % bandwidth of the system, scaler
@@ -13,7 +13,7 @@ classdef ChannelData
     methods
         function obj = ChannelData(data,iIRF,dt,bw,deconidx,noise,gain_list)
             % constructor, create object to store waveforms and parameters from one spectral channel
-            obj.data = data;
+            obj.data = single(data);
             obj.iIRF = iIRF;
             obj.dt = dt;
             obj.bw = bw;
