@@ -75,7 +75,7 @@ classdef LaguerreModel < handle
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
-            spec_raw = obj.channeldataObj.data;
+            spec_raw = double(obj.channeldataObj.data); % convert back to double for data processing
             spec = spec_raw;
             LaguerreBasisS = obj.LaguerreBasis;
             wfLength = size(spec,1);
@@ -157,7 +157,7 @@ classdef LaguerreModel < handle
             best_fit_idx = find(shift_v==shiftMode);
             obj.shift = shift_v(best_fit_idx);
             obj.LCs=obj.LCs(:,best_fit_idx);
-            obj.spec_aligned = spec(:,best_fit_idx);
+            obj.spec_aligned = single(spec(:,best_fit_idx)); % convert to single for storage
             %             fit = obj.get('fit');
             %             idx = 3;
             %             figure;plot(fit(:,idx));hold on;plot(obj.spec_aligned(:,idx),'*-');hold off
