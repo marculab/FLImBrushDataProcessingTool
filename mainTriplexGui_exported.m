@@ -1520,9 +1520,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             bgLow = app.BgLowEditField.Value;
             bgHigh = app.BgHighEditField.Value;
-            removeDCBG(app.Ch1DataObj,bgLow,bgHigh,0.03);
-            removeDCBG(app.Ch2DataObj,bgLow,bgHigh);
-            removeDCBG(app.Ch3DataObj,bgLow,bgHigh);
+            removeDCBG(app.Ch1DataObj,bgLow,bgHigh,1);
+            removeDCBG(app.Ch2DataObj,bgLow,bgHigh,2);
+            removeDCBG(app.Ch3DataObj,bgLow,bgHigh,3);
             plotPreprocessedData(app)
 
             set(app.UIFigure,'pointer','arrow') % set cursor to arrow
@@ -1951,7 +1951,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             calibrationObj =app.caliObj;
 
             save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
-            saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,saveFileFullPath)
+            saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,'',saveFileFullPath)
             %save Laguerre vs multi-exp square error
             %             save_LG_vs_mExp_lifetime_fig(app)
             %             save_LG_vs_mExp_error_fig(app)
@@ -1975,9 +1975,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch1DataObj);
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
-            alignWF_CFD(app.Ch1DataObj, 1, (80:180)*app.upSampleFactor)
-            alignWF_CFD(app.Ch2DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
-            alignWF_CFD(app.Ch3DataObj, 0.5, (180:size(app.Ch2DataObj.rawData,1))*app.upSampleFactor)
+            alignWF_CFD(app.Ch1DataObj, 0.99, (180*app.upSampleFactor:300*app.upSampleFactor)) % need updating to account for the bg
+            alignWF_CFD(app.Ch2DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch2DataObj.rawData,1)*app.upSampleFactor))
+            alignWF_CFD(app.Ch3DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch2DataObj.rawData,1)*app.upSampleFactor))
             plotUpsampledData(app)
             uiUpdate(app,'Upsampled')
             set(app.UIFigure,'pointer','arrow') % set cursor to spinning
