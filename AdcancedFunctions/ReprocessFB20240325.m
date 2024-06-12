@@ -93,7 +93,7 @@ ylim([-0.2 1.4])
 title('Estimated BG from raw data')
 legend(h,'Measured BG')
 
-alignWF_CFD(Ch1DataObj, 0.5, 170*upSampleFactor:300*upSampleFactor) % align using distal peak
+alignWF_CFD(Ch1DataObj, 0.5, 170*upSampleFactor:300*upSampleFactor) % align using peak rising edge
 nexttile
 tempWF = sortData(Ch1DataObj, 'ascend');
 plot(tempWF(:,1:plotStep:end));
@@ -142,7 +142,7 @@ xline(min(exclude),'g--','LineWidth',2);
 xline(max(exclude),'g--','LineWidth',2);
 
 runDeconLG(Ch1DataObj,exclude,LaguerreOrder,alpha);
-Ch1DataObj.stat_test = test_stats(get(Ch1DataObj,'wf_aligned'),get(Ch1DataObj,'fit'),Ch1DataObj.dtUp, 20);
+% Ch1DataObj.stat_test = test_stats(get(Ch1DataObj,'wf_aligned'),get(Ch1DataObj,'fit'),Ch1DataObj.dtUp, 20);
 
 nexttile
 idxTemp = find(max(Ch1DataObj.dataT)>0.5&max(Ch1DataObj.dataT)<0.7);
@@ -268,7 +268,7 @@ xline(min(exclude),'g--','LineWidth',2);
 xline(max(exclude),'g--','LineWidth',2);
 
 runDeconLG(Ch2DataObj,exclude,LaguerreOrder,alpha);
-Ch2DataObj.stat_test = test_stats(get(Ch2DataObj,'wf_aligned'),get(Ch2DataObj,'fit'),Ch2DataObj.dtUp, 20);
+% Ch2DataObj.stat_test = test_stats(get(Ch2DataObj,'wf_aligned'),get(Ch2DataObj,'fit'),Ch2DataObj.dtUp, 20);
 
 nexttile
 % idxTemp = find(max(Ch2DataObj.dataT)>0.4&max(Ch2DataObj.dataT)<0.6);
@@ -388,7 +388,7 @@ xline(min(exclude),'g--','LineWidth',2);
 xline(max(exclude),'g--','LineWidth',2);
 
 runDeconLG(Ch3DataObj,exclude,LaguerreOrder,alpha);
-Ch3DataObj.stat_test = test_stats(get(Ch3DataObj,'wf_aligned'),get(Ch3DataObj,'fit'),Ch3DataObj.dtUp, 20);
+% Ch3DataObj.stat_test = test_stats(get(Ch3DataObj,'wf_aligned'),get(Ch3DataObj,'fit'),Ch3DataObj.dtUp, 20);
 
 nexttile
 % idxTemp = find(max(Ch3DataObj.dataT)>0.4&max(Ch3DataObj.dataT)<0.6);
