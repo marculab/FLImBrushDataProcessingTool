@@ -1,4 +1,0 @@
-Ch1: M00562768_laser_reflection.mat
-Ch2: M00549707_DCS.mat
-Ch3: M00549708_DASPI.mat
-Ch3: M00928868.mat
