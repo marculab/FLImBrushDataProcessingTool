@@ -39,7 +39,7 @@ classdef ChannelDataAPD < handle
         noise % data noise
         outlierFlag % 1D column vector
         preProcessedData % final preprocessed data
-        prePeakPoints = 200; % data points before peak
+        prePeakPoints = 68; % data points before peak
         rawData % raw data
         rawDataDCRemoved % raw data DC removed
         rawDataUpsampled % upsampled raw data after DC removal
