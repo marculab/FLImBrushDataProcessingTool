@@ -57,7 +57,8 @@ classdef backGround < handle
                     bgCh3Temp(:,i) = interp(obj.bgCh3Raw(:,i),obj.upSampleFactor);
                     bgCh4Temp(:,i) = interp(obj.bgCh4Raw(:,i),obj.upSampleFactor);
                 end
-                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, (80:180)*obj.upSampleFactor);
+                % bgCh2Temp = bgCh2Temp-mean(bgCh2Temp(end-100:end,:)); % remove dc incase AB leak into ch2
+                obj.bgCh1Aligned = alignWaveform_CFDNew(bgCh1Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 80*obj.upSampleFactor:180*obj.upSampleFactor);
                 obj.bgCh2Aligned = alignWaveform_CFDNew(bgCh2Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 180*obj.upSampleFactor:size(bgCh2Temp,1));
                 obj.bgCh3Aligned = alignWaveform_CFDNew(bgCh3Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 180*obj.upSampleFactor:size(bgCh3Temp,1));
                 obj.bgCh4Aligned = alignWaveform_CFDNew(bgCh4Temp, 2.8, obj.dt/obj.upSampleFactor,0.5, 180*obj.upSampleFactor:size(bgCh4Temp,1));
