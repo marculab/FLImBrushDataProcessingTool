@@ -39,9 +39,8 @@ for n = 1: numOfFiles
     numOfIrf = length(iRFName)-2;
     try
         % lengthOfIRF = output.GainRaw.Props.WFLength;
-        % lengthOfIRF = output.iRFRaw.Props.WFLength;
-        % lengthOfIRF = output.GainRaw.Props.WFLength;
-        lengthOfIRF = 1000;
+        lengthOfIRF = output.iRFRaw.Props.WFLength;
+        % lengthOfIRF = 1000;
     catch
         lengthOfIRF = 800;
     end
@@ -73,7 +72,7 @@ for n = 1: numOfFiles
         %             iRFRawtempUpSampled(:,m) = interp(iRFRawtemp(:,m),upSampleFactor);
         %         end
         %                 figure; plot(iRFRawtemp);title('Before alignment');xlim([200 230])
-        %         iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 3, irfRawdt,0.5);
+        iRFRawtemp = alignWaveform_CFDNew(iRFRawtemp, 2, irfRawdt,0.5);
         iRF(:,i) = mean(iRFRawtemp,2);
         %         iRFUpSampled(:,i) = interp(iRF(:,i),upSampleFactor);
         %         figure
@@ -135,9 +134,9 @@ hold off
 % xlim([100 600])
 %%
 irfN = irf./max(irf);
-StartIdx = 150;
+StartIdx = 20;
 figure
-plot(irfN(:,[144:149]))
+plot(irfN(:,[StartIdx:end]))
 % plot(irf(:,[170:180]))
 % plot(irf(:,[StartIdx:StartIdx+20]))
 grid on
@@ -146,17 +145,17 @@ xlim([1 1200])
 irfV(StartIdx)
 interp1(gainV,gain,irfV(StartIdx))
 
-%% find iRF that has peak V less than 1
-idx = find(max(irf)<1&max(irf)>0.9);
-idx(idx<100) = [];
-idx(idx>200) = [];
-figure
-plot(irfN(:,194:199))
-%%
-plot(max(irf))
-irf120 = mean(irfN(:,120:130),2);
-irf150 = mean(irfN(:,150:160),2);
-irf175 = mean(irfN(:,175:185),2);
-irf194 = mean(irfN(:,194:199),2);
-figure
-plot([irf150 irf175 irf194])
+% %% find iRF that has peak V less than 1
+% idx = find(max(irf)<1&max(irf)>0.9);
+% idx(idx<100) = [];
+% idx(idx>200) = [];
+% figure
+% plot(irfN(:,194:199))
+% %%
+% plot(max(irf))
+% irf120 = mean(irfN(:,120:130),2);
+% irf150 = mean(irfN(:,150:160),2);
+% irf175 = mean(irfN(:,175:185),2);
+% irf194 = mean(irfN(:,194:199),2);
+% figure
+% plot([irf150 irf175 irf194])
