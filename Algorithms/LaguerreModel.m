@@ -68,6 +68,7 @@ classdef LaguerreModel < handle
             switch nargin
                 case 2
                     shift_range=-5:20; %default shift range order
+                    % shift_range = 6; % hard code shift
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
@@ -114,11 +115,11 @@ classdef LaguerreModel < handle
             fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
             res = spec-fit_all;
             peakError = zeros(size(res,2),1); % get peak error
-            parfor m = 1:size(res,2)
+            for m = 1:size(res,2)
                 [~,I]=max(spec(:,m));
                 startIdx = max(I-20,1);
                 endIdx = min(I+5,length(spec(:,m)));
-                peakError(m) = sum(res(startIdx:endIdx,m));
+                peakError(m) = sum(res(startIdx:endIdx,m).^2);
             end
             % res = res;
             %             ind1 = sub2ind([length(shift_range),size(spec_raw,2)],14,25);
@@ -130,7 +131,8 @@ classdef LaguerreModel < handle
             %             res = res(40:50,:);
             res_norm = vecnorm(res,2);
             res_norm = reshape(res_norm,[],size(spec_raw,2));
-            peakError = reshape(peakError,[],size(spec_raw,2));
+            % peakError = reshape(peakError,[],size(spec_raw,2));
+            peakError = res_norm;
             if size(res_norm,1)==1
                 best_fit_idx = 1:length(res_norm);
             else
@@ -152,9 +154,13 @@ classdef LaguerreModel < handle
                     best_fit_idx = res_norm_min_idx+size(res_norm,1)*(1:size(res_norm_min_idx,2))-size(res_norm,1);
                 end
             end
-            shiftTemp = shift_v(best_fit_idx); % use one single shift
-            shiftMode = mode(shiftTemp);
-            best_fit_idx = find(shift_v==shiftMode);
+            % shiftTemp = shift_v(best_fit_idx); % use one single shift
+            % shiftMode = mode(shiftTemp);
+            % best_fit_idx = find(shift_v==shiftMode);
+
+            % best_fit_idx = best_fit_idx+1;
+            
+            % best_fit_idx = [12 38];
             obj.shift = shift_v(best_fit_idx);
             obj.LCs=obj.LCs(:,best_fit_idx);
             obj.spec_aligned = single(spec(:,best_fit_idx)); % convert to single for storage
