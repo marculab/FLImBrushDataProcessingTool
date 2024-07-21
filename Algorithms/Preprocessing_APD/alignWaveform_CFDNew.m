@@ -22,8 +22,9 @@ data_in_raw = data_in; % make copy of raw data
 data_in(isnan(data_in)) = eps;
 
 % remove signal DC value
-DC_range = round(size(data_in,1)*0.1);
+DC_range = round(size(data_in,1)*0.01);
 DC = mean(mean(data_in(1:DC_range,:)));
+% DC=0;
 data_in = data_in-DC;
 % figure;plot(data_in(:,1:50:end));
 %---------------truncate data----------------------
