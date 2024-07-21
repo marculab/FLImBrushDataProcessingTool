@@ -214,7 +214,7 @@ classdef ChannelDataAPD < handle
         function removeDCBG(obj, bgLowIn, bgHighIn, channel, varargin)
             switch nargin
                 case 4
-                    threshold = 0.01;
+                    threshold = 0.02;
                 case 5
                     threshold = varargin{1};
             end
