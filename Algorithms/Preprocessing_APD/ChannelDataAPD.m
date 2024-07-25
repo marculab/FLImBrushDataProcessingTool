@@ -342,6 +342,7 @@ classdef ChannelDataAPD < handle
         
         function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
             %---------------generate laguerre functions------------------------
+            obj.dataT = double(obj.dataT);
             obj.M = size(obj.dataT,1);
             obj.exclude = exclude_in;
             switch nargin
