@@ -152,9 +152,9 @@ classdef LaguerreModel < handle
                     best_fit_idx = res_norm_min_idx+size(res_norm,1)*(1:size(res_norm_min_idx,2))-size(res_norm,1);
                 end
             end
-            shiftTemp = shift_v(best_fit_idx); % use one single shift
-            shiftMode = mode(shiftTemp);
-            best_fit_idx = find(shift_v==shiftMode);
+            % shiftTemp = shift_v(best_fit_idx); % use one single shift
+            % shiftMode = mode(shiftTemp);
+            % best_fit_idx = find(shift_v==shiftMode);
             obj.shift = shift_v(best_fit_idx);
             obj.LCs=obj.LCs(:,best_fit_idx);
             obj.spec_aligned = spec(:,best_fit_idx);
