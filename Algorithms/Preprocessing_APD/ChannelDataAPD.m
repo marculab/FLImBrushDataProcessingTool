@@ -91,7 +91,7 @@ classdef ChannelDataAPD < handle
             obj.APDObj = APDObjIn;
             obj.dtRaw = dtIn;
             obj.bg = bgIn;
-            obj.rawGain = interp1(APDObjIn.gainV,APDObjIn.apdGain,CtrlVIn,'spline'); % use spline interpolation method
+            obj.rawGain = interp1(APDObjIn.gainV,APDObjIn.apdGain,CtrlVIn,'pchip'); % use spline interpolation method
             obj.numOfWFs = size(rawDataIn,2);
             obj.wfLenght = size(rawDataIn,1);
             obj.laserRepRate = laserRepRateIn;
