@@ -48,8 +48,12 @@ plot(dataT2(:,idx))
 %% rerun deonvolution
 % data1 = load('E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-3-14 10-36 fixed CFD\20221108FBvsV4_01.mat')
 
+runDeconLG(data1.Ch1DataObj,[450:550],12,0.916); 
+runDeconLG(data2.Ch1DataObj,[450:550],12,0.916); 
 runDeconLG(data1.Ch2DataObj,[450:550],12,0.916); 
 runDeconLG(data2.Ch2DataObj,[450:550],12,0.916); 
+runDeconLG(data1.Ch3DataObj,[450:550],12,0.916); 
+runDeconLG(data2.Ch3DataObj,[450:550],12,0.916); 
 %%
 figure
 tiledlayout(1,3)
@@ -57,27 +61,29 @@ nexttile
 scatter(data1.Ch1DataObj.Lg_LTs,data2.Ch1DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+xlim([3 6])
+ylim([3 6])
 title('Channel 1 LT')
 
 nexttile
 scatter(data1.Ch2DataObj.Lg_LTs,data2.Ch2DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+% xlim([0 8])
+% ylim([0 8])
 % axis equal
-% xlim([3 6])
-% ylim([3 6])
+xlim([3 6])
+ylim([3 6])
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
 title('Channel 2 LT')
 
 nexttile
 scatter(data1.Ch3DataObj.Lg_LTs,data2.Ch3DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+xlim([3 6])
+ylim([3 6])
 title('Channel 3 LT')
 
 %% plot histogram from both run

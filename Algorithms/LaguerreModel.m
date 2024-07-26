@@ -114,7 +114,7 @@ classdef LaguerreModel < handle
             fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
             res = spec-fit_all;
             peakError = zeros(size(res,2),1); % get peak error
-            parfor m = 1:size(res,2)
+            for m = 1:size(res,2)
                 [~,I]=max(spec(:,m));
                 startIdx = max(I-20,1);
                 endIdx = min(I+5,length(spec(:,m)));
@@ -131,6 +131,7 @@ classdef LaguerreModel < handle
             res_norm = vecnorm(res,2);
             res_norm = reshape(res_norm,[],size(spec_raw,2));
             peakError = reshape(peakError,[],size(spec_raw,2));
+            peakError = res_norm;
             if size(res_norm,1)==1
                 best_fit_idx = 1:length(res_norm);
             else
@@ -170,6 +171,52 @@ classdef LaguerreModel < handle
             %             figure;plot(decays./max(decays));
             %             fit = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs;
             %             figure;plot(spec(:,600));hold on;plot(fit(:,600))
+            [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
+
+            spec_aligned2 = obj.spec_aligned;
+            for i = 1:size(spec_raw,2)
+                [~,minIdx] = min(res_norm(:,i)); % find minimum residual index
+                minShift = shift_range(minIdx); % best shift
+                if minIdx<3 % if minimum is at start
+                    minIdx = 3;
+                end
+                if minIdx>size(res_norm,1)-2 % if minimum is at end
+                    minIdx = size(res_norm,1)-2;
+                end
+                
+                shiftTemp = shift_range(minIdx-2:minIdx+2)'; % get +-2 of shift
+                resTemp = res_norm(minIdx-2:minIdx+2,i); % get corresponding residual
+                if ~any(isnan(resTemp)) % if NaN skip
+                    bestShift = findShift(shiftTemp,resTemp);
+                    if (abs(bestShift-minShift)>=1)
+                        error('Best fit from residual fit does not match computed shift!')
+                    end
+                    dx = bestShift-minShift;
+                    x = 1:size(spec,1);
+                    xx = x-dx;
+                    spec_temp = obj.spec_aligned(:,i);
+                    bestSpec = interp1(x,spec_temp,xx,'pchip');
+                    spec_aligned2(:,i) = bestSpec;
+                end
+                % figure;
+                % plot(spec_temp)
+                % hold on
+                % plot(bestSpec)
+                % hold off
+                % legend('Old', 'New')
+                % grid on
+            end
+            %-------------------re-compute laguerre------------------------
+            lam=zeros(size(D,1),size(spec_aligned2,2));
+            parfor i=1:size(spec_aligned2,2)
+                d=l1*spec_aligned2(:,i);
+                [lam(:,i),~,~,myflag(i),~]=lsqnonneg(C,d);
+            end
+            obj.LCs=(vv'*vv)\(vv'*spec_aligned2-D'*lam);
+            %             fit_all = obj.get('fit');
+            % fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
+            obj.spec_aligned = spec_aligned2;
+            decays = obj.LaguerreBasis*obj.LCs;
             [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
             %             LTe = h_lifet(decays,obj.channeldataObj.dt,'1/e');
             %             obj.stat_test = test_stats(obj.spec_aligned,obj.get('fit'), obj.channeldataObj.dt, obj.channeldataObj.bw);
