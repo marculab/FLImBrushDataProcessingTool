@@ -154,8 +154,8 @@ upSampleData(Ch1DataObj);
 upSampleData(Ch2DataObj);
 upSampleData(Ch3DataObj);
 upSampleData(Ch4DataObj);
-alignWF_CFD(Ch1DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
-alignWF_CFD(Ch2DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
+alignWF_CFD(Ch1DataObj, 0.8, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
+alignWF_CFD(Ch2DataObj, 0.3, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
 alignWF_CFD(Ch3DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
 alignWF_CFD(Ch4DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
 % plot upsampled data
@@ -422,10 +422,11 @@ Ch4DataObj.toSingle();
 [~,runName,~] = fileparts(DataPath); % get run name
 saveFolderName = [runName '_DeCon'];
 mkdir(saveRootPath,saveFolderName); % create folder with run name
-saveFileName = [runName '.mat'];
+saveFileName = [runName '_DeCon.mat'];
 saveFileFullPath = fullfile(saveRootPath,saveFolderName,saveFileName);
 save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
-
+saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,saveFileFullPath) % save decon lite
+%------------------------------save figures---------------------------------
 saveas(fBG,fullfile(saveRootPath,saveFolderName,'Background'),'fig');
 saveas(fRaw,fullfile(saveRootPath,saveFolderName,'RawWaveFrom'),'fig');
 saveas(fUpSampled,fullfile(saveRootPath,saveFolderName,'UpSampledWF'),'fig');
