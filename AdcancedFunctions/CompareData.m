@@ -24,7 +24,7 @@ path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
 % path2 = 'E:\C440\WrongCFD\20221108FBvsV4_01';
 %% load in data
 data1 = load(path1);
-data2 = load(path2);
+data2 = load(path1);
 
 %% check truncated data
 dataT1 = data1.Ch2DataObj.dataT;
@@ -117,19 +117,19 @@ hold off
 figure
 tiledlayout(1,3)
 nexttile
-histogram(data1.Ch1DataObj.Lg_LTs-data2.Ch1DataObj.Lg_LTs,[-0.5:0.05:0.5])
+histogram(data1.Ch1DataObj.Lg_LTs-data2.Ch1DataObj.Lg_LTs,[-0.2:0.005:0.2])
 % xlim([0 8])
 % ylim([0 8])
 % title('Channel 1 LT')
 
 nexttile
-histogram(data1.Ch2DataObj.Lg_LTs-data2.Ch2DataObj.Lg_LTs,[-0.5:0.05:0.5])
+histogram(data1.Ch2DataObj.Lg_LTs-data2.Ch2DataObj.Lg_LTs,[-0.2:0.005:0.2])
 % xlim([0 8])
 % ylim([0 8])
 % title('Channel 2 LT')
 
 nexttile
-histogram(data1.Ch3DataObj.Lg_LTs-data2.Ch3DataObj.Lg_LTs,[-0.5:0.05:0.5])
+histogram(data1.Ch3DataObj.Lg_LTs-data2.Ch3DataObj.Lg_LTs,[-0.2:0.005:0.2])
 % xlim([0 8])
 % ylim([0 8])
 % title('Channel 3 LT')
