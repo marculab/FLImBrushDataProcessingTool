@@ -2,7 +2,7 @@ clear
 close all
 clc
 addpath(genpath('..\Algorithms'))
-saveRootPath = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\DeCon';
+saveRootPath = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\DeCon_pChip';
 % DataPath = 'Z:\V2 Sacramento Database\SP4-Intuitive Surgical\2023-03-21-Visit\2023_03_22_PEM\2023_03_22_PEM_50.tdms';
 % BGPath = 'Z:\V2 Sacramento Database\SP4-Intuitive Surgical\2023-03-21-Visit\2023_03_21_Baseline_Tissue\Background\Background01.tdms';
 APD1Path = '..\APDDetectorFile\UCD_NCIBT\M00936636.mat';
@@ -14,8 +14,8 @@ alpha1 = 0.916;
 alpha2 = 0.916;
 alpha3 = 0.916;
 alpha4 = 0.916;
-Datafolder = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240718 p11';
-BGFile = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240718 p11\Background\Background01.tdms';
+Datafolder = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240725BXP13';
+BGFile = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240725BXP13\Background\Background01.tdms';
 % IntuitiveDataAggregate(1,:)=[];
 dataFiles = dir([Datafolder '\*.tdms']);
 for i = 1:numel(dataFiles)
