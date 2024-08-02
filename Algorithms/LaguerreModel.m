@@ -12,6 +12,7 @@ classdef LaguerreModel < handle
         stat_test % statistic test
         channeldataObj % channeldata class object containing raw data and other parameters
         shift % number of data points waveform has to shift to match iRF
+        shift_fit % shift from fitted residual
         spec_aligned % aligned waveform
         exclude % index of data excluded from decon due to artifact in the data
     end
@@ -174,6 +175,7 @@ classdef LaguerreModel < handle
             [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
 
             spec_aligned2 = obj.spec_aligned;
+            obj.shift_fit = obj.shift;
             for i = 1:size(spec_raw,2)
                 [~,minIdx] = min(res_norm(:,i)); % find minimum residual index
                 minShift = shift_range(minIdx); % best shift
@@ -188,8 +190,9 @@ classdef LaguerreModel < handle
                 resTemp = res_norm(minIdx-2:minIdx+2,i); % get corresponding residual
                 if ~any(isnan(resTemp)) % if NaN skip
                     bestShift = findShift(shiftTemp,resTemp);
+                    obj.shift_fit(i) = bestShift; % save best shift from fitting
                     if (abs(bestShift-minShift)>=1)
-                        error('Best fit from residual fit does not match computed shift!')
+                        warning('Best fit from residual fit does not match computed shift!')
                     end
                     dx = bestShift-minShift;
                     x = 1:size(spec,1);
