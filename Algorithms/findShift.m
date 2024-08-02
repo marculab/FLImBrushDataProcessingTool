@@ -25,11 +25,13 @@ opts = fitoptions( 'Method', 'LinearLeastSquares' );
 
 % Fit model to data.
 try
-[fitresult, gof] = fit( xData, yData, ft, opts );
-shift_2 = min(shift):0.05:max(shift);
-res_interp = fitresult(shift_2);
-[~,I] = min(res_interp);
-bestShift = shift_2(I);
+[fitresult, gof] = fit( xData, yData, ft, opts); % enable center and scaling
+fun = @(x)fitresult.p1*x^4+fitresult.p2*x^3+fitresult.p3*x^2+fitresult.p4*x+fitresult.p5;
+bestShift = fminbnd(fun,min(xData),max(xData));
+% shift_2 = min(shift):0.05:max(shift);
+% res_interp = fitresult(shift_2);
+% [~,I] = min(res_interp);
+% bestShift = shift_2(I);
 catch
     bestShift = 0;
 end
