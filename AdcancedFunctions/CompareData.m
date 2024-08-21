@@ -12,9 +12,9 @@ addpath(genpath('E:\MyGitRepo\FLImBrushDataProcessingTool\Algorithms'))
 %     '\Data_100_Patient_Study\Subject_146\Triplex\ALL_DECONVOLVED_FILES' ...
 %     '\P800853_07_15_22_02_12.5GS_wCFDBug_lite.mat'];
 
-path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
-path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
-% path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
+% path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
+% path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
+path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
 % path2 = 'E:\Patient146\WrongCFD\P800853_07_15_22_02_12.5GS_wCFDBug';
 
 % path1 = 'E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-7-17 13-11\20221108FBvsV4_01.mat';
@@ -24,7 +24,7 @@ path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
 % path2 = 'E:\C440\WrongCFD\20221108FBvsV4_01';
 %% load in data
 data1 = load(path1);
-data2 = load(path1);
+data2 = load(path2);
 
 %% check truncated data
 dataT1 = data1.Ch2DataObj.dataT;
@@ -200,12 +200,18 @@ AMDLT1 = data1Aligned(:,:)'*t'./sum(data1Aligned(:,:))'-AMDIRF1;
 AMDLT2 = data2Aligned(:,:)'*t'./sum(data2Aligned(:,:))'-AMDIRF1;
 %% look for specific point
 % idx = 7009;
-idx = 5008;
+idx = 6247;
 %-----------------------plot truncated waveform----------------------------
 figure
 plot(data1.Ch2DataObj.dataT(:,idx))
 hold on
 plot(data2.Ch2DataObj.dataT(:,idx))
+hold off
+
+figure
+plot(data1Aligned(:,idx))
+hold on
+plot(data2Aligned(:,idx))
 hold off
 %----------------------------plot fitting ----------------------------
 figure
