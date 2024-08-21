@@ -48,6 +48,7 @@ classdef ChannelDataAPD < handle
         SNR % data SNR
         stat_test % statistic test
         shift % WF shift amount
+        shift_fit % shift from residual fit
         truncationLength % data truncation length
         %         timeStamp % time stamp of averaged data used for image reconstruction
         %         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
@@ -63,6 +64,7 @@ classdef ChannelDataAPD < handle
         Ph_H3G % phasor result harmonics 3
         Ph_H4S % phasor result harmonics 4
         Ph_H4G % phasor result harmonics 4
+        wf_aligned_fit % aligned waveform from residual fit
         %         mExp_a1 % multi-exponential fit result
         %         mExp_a2 % multi-exponential fit result
         %         mExp_a3 % multi-exponential fit result
@@ -343,6 +345,7 @@ classdef ChannelDataAPD < handle
         function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
             %---------------generate laguerre functions------------------------
             obj.dataT = double(obj.dataT);
+            obj.wf_aligned_fit = zeros(size(obj.dataT));
             obj.M = size(obj.dataT,1);
             obj.exclude = exclude_in;
             switch nargin
@@ -365,6 +368,7 @@ classdef ChannelDataAPD < handle
             obj.Lg_LTs = zeros(numOfDataPoints,1);
             obj.Lg_INTs = zeros(numOfDataPoints,1);
             obj.shift = zeros(numOfDataPoints,1);
+            obj.shift_fit = zeros(numOfDataPoints,1);
             %             obj.spec_aligned = zeros(size(obj.dataT));
             %             obj.fit = zeros(size(obj.dataT));
             %             obj.res = zeros(size(obj.dataT));
@@ -396,6 +400,8 @@ classdef ChannelDataAPD < handle
                     obj.Lg_LTs(idx) = laguerreObj.LTs;
                     obj.Lg_INTs(idx) = laguerreObj.INTs;
                     obj.shift(idx) = laguerreObj.shift;
+                    obj.shift_fit(idx) = laguerreObj.shift_fit;
+                    obj.wf_aligned_fit(:,idx) = laguerreObj.spec_aligned;
                     %                     obj.fit(:,idx) = get(laguerreObj,'fit');
                     %                     obj.res(:,idx) = get(laguerreObj,'res');
                     %                     obj.spec_aligned(:,idx) = laguerreObj.spec_aligned;
@@ -478,13 +484,15 @@ classdef ChannelDataAPD < handle
                     if ~isempty(obj.Lg_LCs)
                         switch nargin % check number of function input
                             case 2
-                                result = obj.dataT;
-                                for i = 1:obj.numOfAvgWFs
-                                    result(:,i) = circshift(obj.dataT(:,i),obj.shift(i));
-                                end
+                                % result = obj.dataT;
+                                % for i = 1:obj.numOfAvgWFs
+                                %     result(:,i) = circshift(obj.dataT(:,i),obj.shift(i));
+                                % end
+                                result = obj.wf_aligned_fit; % use res fit alignment
                             case 3
                                 idx = varargin{1};
-                                result = circshift(obj.dataT(:,idx),obj.shift(idx));
+                                result = obj.wf_aligned_fit(:,idx);
+                                % result = circshift(obj.dataT(:,idx),obj.shift(idx));
                         end
                     else
                         warning('Deconvolution result not available, run deconvolution before accessing aligned wavefrom!')
