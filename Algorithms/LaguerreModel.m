@@ -68,7 +68,7 @@ classdef LaguerreModel < handle
             obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
                 case 2
-                    shift_range=-5:20; %default shift range order
+                    shift_range=3:15; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
@@ -188,18 +188,38 @@ classdef LaguerreModel < handle
                 
                 shiftTemp = shift_range(minIdx-2:minIdx+2)'; % get +-2 of shift
                 resTemp = res_norm(minIdx-2:minIdx+2,i); % get corresponding residual
-                if ~any(isnan(resTemp)) % if NaN skip
-                    bestShift = findShift(shiftTemp,resTemp);
-                    obj.shift_fit(i) = bestShift; % save best shift from fitting
+                if ~any(isnan(resTemp)) % if any NaN skip
+                    bestShift = findShift(shiftTemp,resTemp); % find best shift from the fit
                     if (abs(bestShift-minShift)>=1)
                         warning('Best fit from residual fit does not match computed shift!')
                     end
-                    dx = bestShift-minShift;
-                    x = 1:size(spec,1);
-                    xx = x-dx;
-                    spec_temp = obj.spec_aligned(:,i);
-                    bestSpec = interp1(x,spec_temp,xx,'pchip');
-                    spec_aligned2(:,i) = bestSpec;
+                    localShift = [-10:1:10]*0.05;
+                    bestShift = bestShift+localShift;
+                    bestSpec = zeros(size(spec_aligned2,1),numel(bestShift));
+                    for m = 1:numel(bestShift) % check local minimum
+                        dx = bestShift(m)-minShift;
+                        x = 1:size(spec,1);
+                        xx = x-dx;
+                        spec_temp = obj.spec_aligned(:,i);
+                        bestSpec(:,m) = interp1(x,spec_temp,xx,'pchip');
+                    end
+
+                    lam=zeros(size(D,1),size(bestSpec,2));
+                    for n=1:size(bestSpec,2)
+                        d=l1*bestSpec(:,n);
+                        [lam(:,n),~,~,~,~]=lsqnonneg(C,d);
+                    end
+                    LCs=(vv'*vv)\(vv'*bestSpec-D'*lam);
+                    fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*LCs; % get fit without blip
+                    res = bestSpec-fit_all;
+                    res_norm_2 = vecnorm(res,2);
+                    [~,I] = min(res_norm_2);
+                    spec_aligned2(:,i) = bestSpec(:,I);
+                    obj.shift_fit(i) = bestShift(I); % save best shift from fitting
+                    if localShift(I)~=0
+                        warning('Fit minimum is not true minimum');
+                        localShift(I)
+                    end
                 end
                 % figure;
                 % plot(spec_temp)
