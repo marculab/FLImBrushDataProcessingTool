@@ -2166,7 +2166,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
             upSampleData(app.Ch4DataObj);
-            alignWF_CFD(app.Ch1DataObj, 0.99, (180*app.upSampleFactor:300*app.upSampleFactor)) % need updating to account for the bg
+            estimateBG(app.Ch1DataObj);
+            estimateBG(app.Ch2DataObj);
+            estimateBG(app.Ch3DataObj);
+            estimateBG(app.Ch4DataObj);
+            alignWF_CFD(app.Ch1DataObj, 0.8, (180*app.upSampleFactor:300*app.upSampleFactor)) % need updating to account for the bg
             alignWF_CFD(app.Ch2DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch2DataObj.rawData,1)*app.upSampleFactor))
             alignWF_CFD(app.Ch3DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch3DataObj.rawData,1)*app.upSampleFactor))
             alignWF_CFD(app.Ch4DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch4DataObj.rawData,1)*app.upSampleFactor))
