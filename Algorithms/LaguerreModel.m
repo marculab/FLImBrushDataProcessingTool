@@ -68,7 +68,7 @@ classdef LaguerreModel < handle
             obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
                 case 2
-                    shift_range=3:15; %default shift range order
+                    shift_range=-10:10; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
@@ -108,7 +108,7 @@ classdef LaguerreModel < handle
             %             options = optimset('TolX',eps);
             parfor i=1:size(spec,2)
                 d=l1*spec(:,i);
-                [lam(:,i),~,~,myflag(i),~]=lsqnonneg(C,d);
+                lam(:,i)=lsqnonneg(C,d);
             end
             obj.LCs=(vv'*vv)\(vv'*spec-D'*lam);
             %             fit_all = obj.get('fit');
@@ -193,7 +193,7 @@ classdef LaguerreModel < handle
                     if (abs(bestShift-minShift)>=1)
                         warning('Best fit from residual fit does not match computed shift!')
                     end
-                    localShift = [-10:1:10]*0.05;
+                    localShift = (-10:1:10)*0.05;
                     bestShift = bestShift+localShift;
                     bestSpec = zeros(size(spec_aligned2,1),numel(bestShift));
                     for m = 1:numel(bestShift) % check local minimum
@@ -233,7 +233,7 @@ classdef LaguerreModel < handle
             lam=zeros(size(D,1),size(spec_aligned2,2));
             parfor i=1:size(spec_aligned2,2)
                 d=l1*spec_aligned2(:,i);
-                [lam(:,i),~,~,myflag(i),~]=lsqnonneg(C,d);
+                lam(:,i)=lsqnonneg(C,d);
             end
             obj.LCs=(vv'*vv)\(vv'*spec_aligned2-D'*lam);
             %             fit_all = obj.get('fit');
