@@ -276,7 +276,7 @@ classdef ChannelDataAPD < handle
             bgScaleFactor(isnan(bgScaleFactor)) = 0;
             obj.preProcessedData = obj.preProcessedData-obj.bgAligned*bgScaleFactor;
             obj.preProcessedData = alignWaveform_CFDNew(obj.preProcessedData, 2.4, obj.dtUp,0.7,bgHighIn:bgHighIn+680-1); % realign BG subtracted WF
-            obj.noise = std(obj.preProcessedData(end-200:end,:),1); % use last 200 points since data is upsampled
+            obj.noise = std(obj.preProcessedData(1:500,:),1); % use last first 500 points since data is upsampled
             WFMax = max(obj.preProcessedData);
             obj.SNR = 20*log10(WFMax./obj.noise)'; % covert to column vector
         end
@@ -433,7 +433,7 @@ classdef ChannelDataAPD < handle
                     %                     obj.spec_aligned(:,idx) = laguerreObj.spec_aligned;
                 end
             end
-            obj.stat_test = test_stats(get(obj,'wf_aligned'),get(obj,'fit'), obj.dtUp, 20); % use bw of 20 so no downsmpling of residual
+            obj.stat_test = test_stats(get(obj,'wf_aligned'),get(obj,'fit'), obj.dtUp, 20, {'',{'vars', obj.noise.^2}}); % use bw of 20 so no downsmpling of residual
             obj.Lg_INTsGainCorrected = obj.Lg_INTs./obj.gain;
         end
 
