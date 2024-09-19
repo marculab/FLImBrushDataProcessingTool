@@ -8,7 +8,7 @@ threshold = 2/sqrt(size(spec,1));% threshod for auto-correlaton
 if nargin > 4
     param = varargin{1};
 else
-    param = {[],[],threshold}; %2/sqrt(dacayLength) is the default value for the bound of max xcorr.
+    param = {[],[]}; %2/sqrt(dacayLength) is the default value for the bound of max xcorr.
 end
 
 res = spec - spec_fitted; %residue
@@ -18,7 +18,7 @@ chi2 = struct('h',[],'pvalue',[],'stat',[],'cvalue',[]);
 autoCorr = struct('h',[],'autoCorrCurve',[]);
 stats = struct('lbq',lbq,'chi2',chi2,'autoCorr',autoCorr);
 
-[stats.autoCorr.h,stats.autoCorr.autoCorrCurve] = autoCorrTest(res,param{3});
+[stats.autoCorr.h,stats.autoCorr.autoCorrCurve] = autoCorrTest(res,threshold);
 
 
 
