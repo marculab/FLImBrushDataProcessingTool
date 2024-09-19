@@ -305,6 +305,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     titleText2 = ['Ch2 averaged FLIm data (' num2str(app.Ch2DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText3 = ['Ch3 averaged FLIm data (' num2str(app.Ch3DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText4 = ['Ch4 averaged FLIm data (' num2str(app.Ch4DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    pos = [1,-0.08,500,0.08*2];
+                    RecColor = [1 0 1 0.2];
+                    rectangle(app.UIAxes_ch1DataFig,'Position',pos,'FaceColor',RecColor,'EdgeColor', 'none');
+                    text(app.UIAxes_ch1DataFig,20,0.2,'Noise estimation','Color','k','FontSize',10)
+                    rectangle(app.UIAxes_ch2DataFig,'Position',pos,'FaceColor',RecColor,'EdgeColor', 'none');
+                    text(app.UIAxes_ch2DataFig,20,0.2,'Noise estimation','Color','k','FontSize',10)
+                    rectangle(app.UIAxes_ch3DataFig,'Position',pos,'FaceColor',RecColor,'EdgeColor', 'none');
+                    text(app.UIAxes_ch3DataFig,20,0.2,'Noise estimation','Color','k','FontSize',10)
+                    rectangle(app.UIAxes_ch4DataFig,'Position',pos,'FaceColor',RecColor,'EdgeColor', 'none');
+                    text(app.UIAxes_ch4DataFig,20,0.2,'Noise estimation','Color','k','FontSize',10)
             end
             title(app.UIAxes_ch1DataFig,titleText1)
             title(app.UIAxes_ch2DataFig,titleText2)
