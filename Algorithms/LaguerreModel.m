@@ -114,6 +114,7 @@ classdef LaguerreModel < handle
             %             fit_all = obj.get('fit');
             fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*obj.LCs; % get fit without blip
             res = spec-fit_all;
+            res(exclude_in,:) = 0*res(exclude_in,:);
             peakError = zeros(size(res,2),1); % get peak error
             for m = 1:size(res,2)
                 [~,I]=max(spec(:,m));
@@ -212,6 +213,7 @@ classdef LaguerreModel < handle
                     LCs=(vv'*vv)\(vv'*bestSpec-D'*lam);
                     fit_all = filter(obj.channeldataObj.iIRF,1,LaguerreBasisS)*LCs; % get fit without blip
                     res = bestSpec-fit_all;
+                    res(exclude_in,:) = res(exclude_in,:)*0; % remove exclude range from res calculation
                     res_norm_2 = vecnorm(res,2);
                     [~,I] = min(res_norm_2);
                     spec_aligned2(:,i) = bestSpec(:,I);
