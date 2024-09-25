@@ -14,6 +14,12 @@ classdef LaguerreModel < handle
         shift % number of data points waveform has to shift to match iRF
         spec_aligned % aligned waveform
         exclude % index of data excluded from decon due to artifact in the data
+        vv % vv matrix with exclude
+        vv_full % original vv with no exclude
+        D  % D matrix
+        l1 % l1 matrix
+        C % C matrix
+        WF_aligned % waveform aligned with iRF
     end
 
     methods (Access = public)
@@ -50,7 +56,45 @@ classdef LaguerreModel < handle
             obj.LaguerreBasis = Laguerre(obj.M,obj.K,obj.alpha);
         end
 
-        function obj_out = estimate_laguerre(obj, exclude_in, varargin)
+        function warmup_laguerre(obj, exclude_in) % function to generate all decon matrix
+            obj.exclude = exclude_in; % exclude data for APD system, [540 640]
+            obj.vv=filter(obj.channeldataObj.iIRF,1,obj.LaguerreBasis);
+            obj.vv_full=filter(obj.channeldataObj.iIRF,1,obj.LaguerreBasis);
+            if ~isempty(exclude_in) % if exlude is not empty
+                obj.vv(exclude_in,:) = zeros(size(obj.vv(exclude_in,:))); % ignore data in range 540-640
+            end
+            obj.D=conv2(eye(size(obj.channeldataObj.data,1)),[1,-3,3,-1],'valid')'*obj.LaguerreBasis;
+            H=obj.vv'*obj.vv; %positive definite matrix
+            H_chol=chol(inv(H)); %Cholesky decomposition
+            obj.C=H_chol*obj.D';
+            obj.l1=H_chol*obj.vv';
+        end
+
+        function estimate_laguerre(obj,exclude_in) % recursive function to find best shift and decon
+            LCs = zeros(obj.K,size(obj.channeldataObj.data,2));
+            shift = zeros(size(obj.channeldataObj.data,2),1);
+            WF_aligned = zeros(size(obj.channeldataObj.data));
+            fit = zeros(size(obj.channeldataObj.data));
+            l1 = obj.l1;
+            C = obj.C;
+            vv = obj.vv;
+            D = obj.D;
+            WF = obj.channeldataObj.data;
+            parfor i = 1:size(obj.channeldataObj.data,2)                
+                % [rss, obj.LCs(:,i)] = fitData(obj.channeldataObj.data(:,i), 8.7, obj.l1, obj.C, obj.vv, obj.D);
+                if ~isnan(sum(WF(:,i))) % if waveform is not all NaN
+                [shift(i), LCs(:,i), WF_aligned(:,i), fit(:,i)] = findShift(WF(:,i), l1, C, vv, D);
+                end
+            end
+            obj.shift = shift;
+            obj.LCs = LCs;
+            obj.WF_aligned = WF_aligned;
+            decays = obj.LaguerreBasis*obj.LCs;
+            [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
+            
+        end
+
+        function obj_out = estimate_laguerre_old(obj, exclude_in, varargin)
             % run Laguerre deconvolution to estimate Laguerre coefficients
             % syntax:
             % 1. estimate_laguerre(obj) or obj.estimate_laguerre: run Laguerre deconvolution using all data point and default shift range of -20 to 20
@@ -73,7 +117,7 @@ classdef LaguerreModel < handle
                     shift_range = varargin{1};
 
                 otherwise
-                    warning('Too many input argument for LaguerreModel constructor!')
+                    warning('Too many input argument for function estimate_laguerre!')
             end
             spec_raw = obj.channeldataObj.data;
             spec = spec_raw;
@@ -256,4 +300,69 @@ classdef LaguerreModel < handle
             end
         end
     end
+end
+
+% some helper functins
+function [rss, LCs, WF_aligned, fit] = fitData(WF_in, shift, l1, C, vv, D) % compute Laguerre fitting using pre-computed matrix
+    % lam=zeros(size(D,1),1);
+    WF = circshift(WF_in, round(shift)); % shift closest integer amount
+    dx = shift - round(shift);
+    x = 1:length(WF);
+    x = x';
+    xx = x-dx;
+    WF_aligned = interp1(x,WF,xx,"pchip"); % shift decimal amount
+    d=l1*WF_aligned;
+    lam=lsqnonneg(C,d);
+    LCs=(vv'*vv)\(vv'*WF_aligned-D'*lam);
+    fit = vv*LCs; % get fit without blip
+    res = WF_aligned-fit;
+    res(fit==0)=0;
+    rss = vecnorm(res,2);
+end
+
+function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
+    tol = 0.0005;
+    s0 = 0;
+    s1 = 10;
+    s3 = 50;
+    R = 0.61803399; % golden ratio
+    c = 1-R;
+    
+    s2 = s1+c*(s3-s1);
+
+    f0 = fitData(WF_in, s0, l1, C, vv, D);
+    f1 = fitData(WF_in, s1, l1, C, vv, D);
+    f2 = fitData(WF_in, s2, l1, C, vv, D);
+    f3 = fitData(WF_in, s3, l1, C, vv, D);
+    
+    iteration = 0;
+    while (abs(s3-s0) > tol*(abs(s1)+abs(s2))) % recursive bracketing
+        iteration = iteration+1;
+        if (f2<f1)
+            s0 = s1;
+            s1 = s2;
+            s2 = R*s2+c*s3;
+            
+            f1 = f2;
+            f2 = fitData(WF_in, s2, l1, C, vv, D);
+        else
+            s3 = s2;
+            s2 = s1;
+            s1 = R*s1+c*s0;
+
+            f2 = f1;
+            f1 = fitData(WF_in, s1, l1, C, vv, D);
+        end
+    end % end of bracketing
+
+    sprintf('Iteration %d, tolerence %.5f',iteration, abs(s3-s0)) % print tolerence to command window
+
+    if f1<f2
+        shift = s1;
+    else
+        shift = s2;
+    end
+
+    [~, LCs, WF_aligned, fit] = fitData(WF_in, shift, l1, C, vv, D); % re-run decon and get output
+
 end
