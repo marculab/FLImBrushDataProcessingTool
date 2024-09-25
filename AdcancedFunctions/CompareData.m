@@ -12,9 +12,10 @@ addpath(genpath('E:\MyGitRepo\FLImBrushDataProcessingTool\Algorithms'))
 %     '\Data_100_Patient_Study\Subject_146\Triplex\ALL_DECONVOLVED_FILES' ...
 %     '\P800853_07_15_22_02_12.5GS_wCFDBug_lite.mat'];
 
-% path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
+path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
+path2 = path1;
 % path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
-path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
+% path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
 % path2 = 'E:\Patient146\WrongCFD\P800853_07_15_22_02_12.5GS_wCFDBug';
 
 % path1 = 'E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-7-17 13-11\20221108FBvsV4_01.mat';
@@ -47,13 +48,15 @@ nexttile
 plot(dataT2(:,idx))
 %% rerun deonvolution
 % data1 = load('E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-3-14 10-36 fixed CFD\20221108FBvsV4_01.mat')
-
-runDeconLG(data1.Ch1DataObj,[450:550],12,0.916); 
-runDeconLG(data2.Ch1DataObj,[450:550],12,0.916); 
-runDeconLG(data1.Ch2DataObj,[450:550],12,0.916); 
-runDeconLG(data2.Ch2DataObj,[450:550],12,0.916); 
-runDeconLG(data1.Ch3DataObj,[450:550],12,0.916); 
-runDeconLG(data2.Ch3DataObj,[450:550],12,0.916); 
+exclude = data1.Ch2DataObj.exclude;
+runDeconLG(data1.Ch1DataObj,exclude,12,0.916); 
+runDeconLG(data2.Ch1DataObj,exclude,12,0.916); 
+tic
+runDeconLG(data1.Ch2DataObj,exclude,12,0.916); 
+toc
+runDeconLG(data2.Ch2DataObj,exclude,12,0.916); 
+runDeconLG(data1.Ch3DataObj,exclude,12,0.916); 
+runDeconLG(data2.Ch3DataObj,exclude,12,0.916); 
 %%
 figure
 tiledlayout(1,3)
@@ -72,11 +75,12 @@ plot([0 10],[0 10],'r--')
 % xlim([0 8])
 % ylim([0 8])
 % axis equal
-xlim([3 6])
-ylim([3 6])
+grid on
+xlim([2 6])
+ylim([2 6])
 xlabel('Correct CFD')
 ylabel('Wrong CFD')
-title('Channel 2 LT')
+title('Channel 2 Laguerre LT')
 
 nexttile
 scatter(data1.Ch3DataObj.Lg_LTs,data2.Ch3DataObj.Lg_LTs,'b.')
@@ -261,12 +265,16 @@ AMDLT2(idx)
 histogram(AMDLT1,[2:0.05:8])
 figure
 scatter(AMDLT1,AMDLT2,'b.')
-xlim([2 5])
-ylim([2 5])
+xlim([2 6])
+ylim([2 6])
 title('Channel 2 LT')
 hold on
 plot([0 10],[0 10],'r-.')
 hold off
+grid on
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
+title('Channel 2 AMD LT')
 
 figure
 histogram(AMDLT1-AMDLT2,[-0.5:0.05:0.5])
@@ -286,8 +294,8 @@ plot([0 10],[0 10],'r-.')
 hold off
 axis equal
 title('Correct CFD')
-xlim([1 7])
-ylim([1 7])
+xlim([2 6])
+ylim([2 6])
 nexttile
 scatter(data2.Ch2DataObj.Lg_LTs,AMDLT1,'b.')
 hold on
