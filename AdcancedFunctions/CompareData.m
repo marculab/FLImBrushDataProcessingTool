@@ -13,6 +13,7 @@ addpath(genpath('E:\MyGitRepo\FLImBrushDataProcessingTool\Algorithms'))
 %     '\P800853_07_15_22_02_12.5GS_wCFDBug_lite.mat'];
 
 path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
+% path2 = path1;
 path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
 % path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
 % path2 = 'E:\Patient146\WrongCFD\P800853_07_15_22_02_12.5GS_wCFDBug';
@@ -26,30 +27,51 @@ path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
 data1 = load(path1);
 data2 = load(path2);
 
-%% check truncated data
+%% plot effect of wrong CFD
 dataT1 = data1.Ch2DataObj.dataT;
-dataT2 = data2.Ch2DataObj.dataT;
-idx = 450:455;
+% dataT2 = data2.Ch2DataObj.dataT;
+% idx = 450:455;
+WF = dataT1(:,2000);
+WF1 = circshift(WF,-4);
+WF2 = circshift(WF,-2);
+WF3 = circshift(WF,2);
+WF4 = circshift(WF,4);
+WFMatrix = [WF WF1 WF2 WF3 WF4];
+WFMatrix = double(WFMatrix);
 figure
-tiledlayout(1,2)
+tiledlayout(2,1)
 nexttile
-plot(dataT1(:,idx))
+plot(WFMatrix)
+xlim([0 200])
+grid on
+hold on
 nexttile
-plot(dataT2(:,idx))
+plot(WF)
+hold on
+plot(mean(WFMatrix,2))
+xlim([0 200])
+legend('original', 'Shifted average')
+hold off
+grid on
 %% redo CFD align dataT
-dataT1 = alignWaveform_CFDNew(dataT1, 2.4, 0.08,0.5);
-dataT2 = alignWaveform_CFDNew(dataT2, 2.4, 0.08,0.5);
-figure
-tiledlayout(1,2)
-nexttile
-plot(dataT1(:,idx))
-nexttile
-plot(dataT2(:,idx))
+% dataT1 = alignWaveform_CFDNew(dataT1, 2.4, 0.08,0.5);
+% dataT2 = alignWaveform_CFDNew(dataT2, 2.4, 0.08,0.5);
+% figure
+% tiledlayout(1,2)
+% nexttile
+% plot(dataT1(:,idx))
+% nexttile
+% plot(dataT2(:,idx))
 %% rerun deonvolution
 % data1 = load('E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-3-14 10-36 fixed CFD\20221108FBvsV4_01.mat')
+exclude = data1.Ch1DataObj.exclude;
+runDeconLG(data1.Ch2DataObj,exclude,12,0.916); 
+runDeconLG(data2.Ch2DataObj,exclude,12,0.916); 
 
-runDeconLG(data1.Ch2DataObj,[450:550],12,0.916); 
-runDeconLG(data2.Ch2DataObj,[450:550],12,0.916); 
+%% plot shift difference
+figure
+histogram(data1.Ch2DataObj.shift-data2.Ch2DataObj.shift,-2:0.05:2)
+
 %%
 figure
 tiledlayout(1,3)
@@ -57,28 +79,34 @@ nexttile
 scatter(data1.Ch1DataObj.Lg_LTs,data2.Ch1DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+xlim([2 6])
+ylim([2 6])
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
 title('Channel 1 LT')
 
 nexttile
 scatter(data1.Ch2DataObj.Lg_LTs,data2.Ch2DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+xlim([2 6])
+ylim([2 6])
 % axis equal
 % xlim([3 6])
 % ylim([3 6])
 title('Channel 2 LT')
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
 
 nexttile
 scatter(data1.Ch3DataObj.Lg_LTs,data2.Ch3DataObj.Lg_LTs,'b.')
 hold on
 plot([0 10],[0 10],'r--')
-xlim([0 8])
-ylim([0 8])
+xlim([2 6])
+ylim([2 6])
 title('Channel 3 LT')
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
 
 %% plot histogram from both run
 figure
@@ -118,6 +146,8 @@ histogram(data1.Ch1DataObj.Lg_LTs-data2.Ch1DataObj.Lg_LTs,[-0.5:0.05:0.5])
 
 nexttile
 histogram(data1.Ch2DataObj.Lg_LTs-data2.Ch2DataObj.Lg_LTs,[-0.5:0.05:0.5])
+title('Laguerre lifetime')
+xlabel('Correct CFD - wrong CFD')
 % xlim([0 8])
 % ylim([0 8])
 % title('Channel 2 LT')
@@ -159,20 +189,26 @@ scatter(Lg_LT_diff,data1.Ch2DataObj.irfIdx)
 
 
 %% get aligned waveform and fit
-data1Aligned = get(data1.Ch2DataObj,'wf_aligned');
-data2Aligned = get(data2.Ch2DataObj,'wf_aligned');
+data1Aligned = data1.Ch2DataObj.dataT;
+data2Aligned = data2.Ch2DataObj.dataT;
+for i=1:data1.Ch2DataObj.numOfAvgWFs
+    data1Aligned(:,i) = circshift(data1Aligned(:,i),data1.Ch2DataObj.shift(i));
+    data2Aligned(:,i) = circshift(data2Aligned(:,i),data2.Ch2DataObj.shift(i));
+end
+% data1Aligned = get(data1.Ch2DataObj,'wf_aligned');
+% data2Aligned = get(data2.Ch2DataObj,'wf_aligned');
 data1Fit = get(data1.Ch2DataObj,'fit');
 data2Fit = get(data2.Ch2DataObj,'fit');
 decay1 = get(data1.Ch2DataObj,'decay');
 decay2 = get(data2.Ch2DataObj,'decay');
 %% correlation between waveform max and lifetime difference
-[~,maxIdx1] = max(data1Aligned);
-[~,maxIdx2] = max(data2Aligned);
-maxDiff = maxIdx1-maxIdx2;
-figure
-scatter(maxDiff,Lg_LT_diff)
-xlim([-1 2])
-intersect(find(maxDiff==0),find(Lg_LT_diff<-0.2))
+% [~,maxIdx1] = max(data1Aligned);
+% [~,maxIdx2] = max(data2Aligned);
+% maxDiff = maxIdx1-maxIdx2;
+% figure
+% scatter(maxDiff,Lg_LT_diff)
+% xlim([-1 2])
+% intersect(find(maxDiff==0),find(Lg_LT_diff<-0.2))
 %% get iRF
 irf1 = data1.Ch2DataObj.APDObj.irfTNorm(:,data1.Ch2DataObj.irfIdx);
 irf2 = data2.Ch2DataObj.APDObj.irfTNorm(:,data2.Ch2DataObj.irfIdx);
@@ -192,9 +228,19 @@ AMDIRF1 = irf1(:,:)'*t'./sum(irf1(:,:))';
 
 AMDLT1 = data1Aligned(:,:)'*t'./sum(data1Aligned(:,:))'-AMDIRF1;
 AMDLT2 = data2Aligned(:,:)'*t'./sum(data2Aligned(:,:))'-AMDIRF1;
+
+figure
+scatter(AMDLT1,AMDLT2,'b.')
+hold on
+line([0 10],[0 10],'Color','red','LineStyle','--')
+xlim([2 6])
+ylim([2 6])
+xlabel('Correct CFD')
+ylabel('Wrong CFD')
+grid on
 %% look for specific point
 % idx = 7009;
-idx = 5008;
+idx = 6259;
 %-----------------------plot truncated waveform----------------------------
 figure
 plot(data1.Ch2DataObj.dataT(:,idx))
@@ -257,8 +303,9 @@ plot([0 10],[0 10],'r-.')
 hold off
 
 figure
-histogram(AMDLT1-AMDLT2,[-0.5:0.05:0.5])
-
+histogram(AMDLT1-AMDLT2,[-0.25:0.01:0.25])
+title('AMD lifetime')
+xlabel('Correct CFD - wrong CFD')
 
 data1.Ch2DataObj.Lg_LTs(idx)
 data2.Ch2DataObj.Lg_LTs(idx)
