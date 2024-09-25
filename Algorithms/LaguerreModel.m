@@ -321,7 +321,7 @@ function [rss, LCs, WF_aligned, fit] = fitData(WF_in, shift, l1, C, vv, D) % com
 end
 
 function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
-    tol = 0.0005;
+    tol = 0.005;
     s0 = 0;
     s1 = 10;
     s3 = 50;
