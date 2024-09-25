@@ -68,7 +68,7 @@ classdef LaguerreModel < handle
             obj.exclude = exclude_in; % exclude data for APD system, [540 640]
             switch nargin
                 case 2
-                    shift_range=-10:10; %default shift range order
+                    shift_range=0:20; %default shift range order
                     %                     shift_range= 0; %default shift range order
                 case 3
                     shift_range = varargin{1};
@@ -216,10 +216,10 @@ classdef LaguerreModel < handle
                     [~,I] = min(res_norm_2);
                     spec_aligned2(:,i) = bestSpec(:,I);
                     obj.shift_fit(i) = bestShift(I); % save best shift from fitting
-                    if localShift(I)~=0
-                        warning('Fit minimum is not true minimum');
-                        localShift(I)
-                    end
+                    % if localShift(I)~=0
+                    %     warning('Fit minimum is not true minimum');
+                    %     localShift(I)
+                    % end
                 end
                 % figure;
                 % plot(spec_temp)
