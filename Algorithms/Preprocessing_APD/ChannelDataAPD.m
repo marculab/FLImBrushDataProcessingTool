@@ -54,6 +54,7 @@ classdef ChannelDataAPD < handle
         %         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
         upSampleFactor; % upsample factor
         wfLenght % length of each waveform
+        wf_aligned % aligned waveform
         exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
         expDeconObj  % exponential decon object, does not include data that is filtered
         Ph_H1S % phasor result harmonics 1
@@ -375,6 +376,7 @@ classdef ChannelDataAPD < handle
         function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
             %---------------generate laguerre functions------------------------
             obj.dataT = double(obj.dataT);
+            obj.wf_aligned = zeros(size((obj.dataT)));
             obj.M = size(obj.dataT,1);
             obj.exclude = exclude_in;
             switch nargin
@@ -423,11 +425,13 @@ classdef ChannelDataAPD < handle
                     obj.irfIdx(idx) = i; %  store irf index
                     channelDataStruct = ChannelData(spec,irf,obj.dtUp,1.5,1:length(idx),std(spec(end-50:end,:),1),obj.gain(idx));
                     laguerreObj = LaguerreModel(channelDataStruct,obj.K, obj.alpha);
-                    laguerreObj.estimate_laguerre(obj.exclude);
+                    laguerreObj.warmup_laguerre(obj.exclude);
+                    laguerreObj.estimate_laguerre([]);
                     obj.Lg_LCs(:,idx) = laguerreObj.LCs;
                     obj.Lg_LTs(idx) = laguerreObj.LTs;
                     obj.Lg_INTs(idx) = laguerreObj.INTs;
                     obj.shift(idx) = laguerreObj.shift;
+                    obj.wf_aligned(:,idx) = laguerreObj.WF_aligned;
                     %                     obj.fit(:,idx) = get(laguerreObj,'fit');
                     %                     obj.res(:,idx) = get(laguerreObj,'res');
                     %                     obj.spec_aligned(:,idx) = laguerreObj.spec_aligned;
@@ -510,13 +514,10 @@ classdef ChannelDataAPD < handle
                     if ~isempty(obj.Lg_LCs)
                         switch nargin % check number of function input
                             case 2
-                                result = obj.dataT;
-                                for i = 1:obj.numOfAvgWFs
-                                    result(:,i) = circshift(obj.dataT(:,i),obj.shift(i));
-                                end
+                                result = obj.wf_aligned;
                             case 3
                                 idx = varargin{1};
-                                result = circshift(obj.dataT(:,idx),obj.shift(idx));
+                                result = obj.wf_aligned(:,idx);
                         end
                     else
                         warning('Deconvolution result not available, run deconvolution before accessing aligned wavefrom!')
