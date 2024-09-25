@@ -65,8 +65,12 @@ grid on
 %% rerun deonvolution
 % data1 = load('E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-3-14 10-36 fixed CFD\20221108FBvsV4_01.mat')
 exclude = data1.Ch1DataObj.exclude;
-runDeconLG(data1.Ch2DataObj,exclude,12,0.916); 
+tic
+runDeconLG(data1.Ch2DataObj,exclude,12,0.916);
+toc
+tic
 runDeconLG(data2.Ch2DataObj,exclude,12,0.916); 
+toc
 
 %% plot shift difference
 figure
