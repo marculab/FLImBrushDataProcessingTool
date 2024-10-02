@@ -20,8 +20,8 @@ apd4Obj.creatFromPath();
 RunLevelData = importHNRunData("H&N Aggregate Input Data 20240822.xlsx", "Run_Level", [1, Inf]);
 T = RunLevelData(RunLevelData.Patient>100,:);
 %%
-root = "F:\V2_Sacramento_Database\Da Vinci Robot Study (100 patients)\Data_100_Patient_Study";
-for i = 568%:numel(T.Patient)
+root = "A:\P196Reprocess20241002";
+for i = 521%:numel(T.Patient)
     ID = T.Patient(i);
     Run = T.Run(i);
     DeConFile = T.DeconvolutionFile(i)
