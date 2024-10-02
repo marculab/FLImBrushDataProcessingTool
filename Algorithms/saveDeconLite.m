@@ -1,4 +1,5 @@
 function saveDeconLite(Ch1DataObjIn,Ch2DataObjIn,Ch3DataObjIn,Ch4DataObjIn,saveFileFullPath)
+
 if isempty(Ch4DataObjIn)
     numOfChannel = 3;
 else

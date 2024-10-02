@@ -281,13 +281,15 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.UIAxes_ch3DataFig.YLim = [tempMin-0.1 2];
             app.UIAxes_ch3DataFig.XLim = [0 size(temp,1)];
 
-            temp = sortData(app.Ch4DataObj, 'ascend');
-            if isnan(tempMin)
-                tempMin = 0;
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                temp = sortData(app.Ch4DataObj, 'ascend');
+                if isnan(tempMin)
+                    tempMin = 0;
+                end
+                plot(app.UIAxes_ch4DataFig,temp(:,1:plotStep:end))
+                app.UIAxes_ch4DataFig.YLim = [tempMin-0.1 2];
+                app.UIAxes_ch4DataFig.XLim = [0 size(temp,1)];
             end
-            plot(app.UIAxes_ch4DataFig,temp(:,1:plotStep:end))
-            app.UIAxes_ch4DataFig.YLim = [tempMin-0.1 2];
-            app.UIAxes_ch4DataFig.XLim = [0 size(temp,1)];
 
             switch type
                 case 'raw'
@@ -304,7 +306,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     titleText1 = ['Ch1 averaged FLIm data (' num2str(app.Ch1DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText2 = ['Ch2 averaged FLIm data (' num2str(app.Ch2DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
                     titleText3 = ['Ch3 averaged FLIm data (' num2str(app.Ch3DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
-                    titleText4 = ['Ch4 averaged FLIm data (' num2str(app.Ch4DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    if ismember('Ch4DataObj',fieldnames(app))
+                        titleText4 = ['Ch4 averaged FLIm data (' num2str(app.Ch4DataObj.dataAveraging) ' averaging) ' num2str(numOfWFtoPlot) ' waveforms'];
+                    end
                     pos = [1,-0.08,500,0.08*2];
                     RecColor = [1 0 1 0.2];
                     rectangle(app.UIAxes_ch1DataFig,'Position',pos,'FaceColor',RecColor,'EdgeColor', 'none');
@@ -319,7 +323,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             title(app.UIAxes_ch1DataFig,titleText1)
             title(app.UIAxes_ch2DataFig,titleText2)
             title(app.UIAxes_ch3DataFig,titleText3)
-            title(app.UIAxes_ch4DataFig,titleText4)
+            if ismember('Ch4DataObj',fieldnames(app))
+                title(app.UIAxes_ch4DataFig,titleText4)
+            end
 
         end
 
@@ -360,9 +366,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             app.DataIgnoreLowLineCh3Handle = line(app.UIAxes_ch3BgRemoveFig,[lowIdx lowIdx],[app.UIAxes_ch3BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1); % plot on data preview figure
             app.DataIgnoreHighLineCh3Handle = line(app.UIAxes_ch3BgRemoveFig,[highIdx highIdx],[app.UIAxes_ch3BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
-
-            app.DataIgnoreLowLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[lowIdx lowIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1); % plot on data preview figure
-            app.DataIgnoreHighLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[highIdx highIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
+            
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                app.DataIgnoreLowLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[lowIdx lowIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1); % plot on data preview figure
+                app.DataIgnoreHighLineCh4Handle = line(app.UIAxes_ch4BgRemoveFig,[highIdx highIdx],[app.UIAxes_ch4BgRemoveFig.YLim],'Color','g','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
+            end
         end
 
         function plotBGMarker(app)
@@ -405,10 +413,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
             app.BgLowLineCh3Handle = line(app.UIAxes_ch3DataFig,[lowIdx lowIdx],[app.UIAxes_ch3DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1); % plot on data preview figure
             app.BgHighLineCh3Handle = line(app.UIAxes_ch3DataFig,[highIdx highIdx],[app.UIAxes_ch3DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
-
-            app.BgLowLineCh4Handle = line(app.UIAxes_ch4DataFig,[lowIdx lowIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1); % plot on data preview figure
-            app.BgHighLineCh4Handle = line(app.UIAxes_ch4DataFig,[highIdx highIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
-
+            
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                app.BgLowLineCh4Handle = line(app.UIAxes_ch4DataFig,[lowIdx lowIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1); % plot on data preview figure
+                app.BgHighLineCh4Handle = line(app.UIAxes_ch4DataFig,[highIdx highIdx],[app.UIAxes_ch4DataFig.YLim],'Color','r','LineStyle','--','LineWidth',1) ; %  plot on data preview figure
+            end
             drawnow
         end
 
@@ -460,20 +469,22 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch3BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch3BgRemoveFig,[tempMin-0.1 2]);
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed waveforms (100 Waveform)')
-
-            temp = sortData(app.Ch4DataObj, 'ascend');
-            tempMin = min(temp(:));
-            if isnan(tempMin)
-                tempMin=0;
+            
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                temp = sortData(app.Ch4DataObj, 'ascend');
+                tempMin = min(temp(:));
+                if isnan(tempMin)
+                    tempMin=0;
+                end
+                [~,maxIdx] = max(temp);
+                maxIdx = median(maxIdx);
+                plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+                xline(app.UIAxes_ch4BgRemoveFig,maxIdx-round(0.1*ChWidthInPoints),'c--','LineWidth',2);
+                xline(app.UIAxes_ch4BgRemoveFig,maxIdx+round(0.9*ChWidthInPoints),'c--','LineWidth',2);
+                yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
+                ylim(app.UIAxes_ch4BgRemoveFig,[tempMin-0.1 2]);
+                title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed waveforms (100 Waveform)')
             end
-            [~,maxIdx] = max(temp);
-            maxIdx = median(maxIdx);
-            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
-            xline(app.UIAxes_ch4BgRemoveFig,maxIdx-round(0.1*ChWidthInPoints),'c--','LineWidth',2);
-            xline(app.UIAxes_ch4BgRemoveFig,maxIdx+round(0.9*ChWidthInPoints),'c--','LineWidth',2);
-            yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
-            ylim(app.UIAxes_ch4BgRemoveFig,[tempMin-0.1 2]);
-            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed waveforms (100 Waveform)')
         end
 
         function plotUpsampledData(app)
@@ -492,10 +503,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.UIAxes_ch3BgRemoveFig,temp(:,1:plotStep:end));
             ylim(app.UIAxes_ch3BgRemoveFig,[-0.1 2])
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed upsampled waveforms (100 Waveform)')
-            temp = sortData(app.Ch4DataObj, 'ascend');
-            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
-            ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
-            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed upsampled waveforms (100 Waveform)')
+            if ismember('Ch4DataObj',fieldnames(app))
+                temp = sortData(app.Ch4DataObj, 'ascend');
+                plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+                ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
+                title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed upsampled waveforms (100 Waveform)')
+            end
         end
 
         function plotTruncatedData(app)
@@ -517,11 +530,13 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             yline(app.UIAxes_ch3BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
             ylim(app.UIAxes_ch3BgRemoveFig,[-0.1 2])
             title(app.UIAxes_ch3BgRemoveFig,'Ch3 DC&BG removed truncated waveforms (100 Waveform)')
-            temp = sortTruncatedData(app.Ch4DataObj, 'ascend');
-            plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
-            yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
-            ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
-            title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed truncated waveforms (100 Waveform)')
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                temp = sortTruncatedData(app.Ch4DataObj, 'ascend');
+                plot(app.UIAxes_ch4BgRemoveFig,temp(:,1:plotStep:end));
+                yline(app.UIAxes_ch4BgRemoveFig,app.digitizerNoise,'m--','LineWidth',2);
+                ylim(app.UIAxes_ch4BgRemoveFig,[-0.1 2])
+                title(app.UIAxes_ch4BgRemoveFig,'Ch4 DC&BG removed truncated waveforms (100 Waveform)')
+            end
         end
 
         function plotPeakLocations(app,peaks)
@@ -1120,22 +1135,29 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,app.Ch2DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch2Color)
                     plot(app.UIAxesDeconResult,app.Ch3DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch3Color)
-                    plot(app.UIAxesDeconResult,app.Ch4DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch4Color)
+                    if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                        plot(app.UIAxesDeconResult,app.Ch4DataObj.Lg_INTsGainCorrected,'.-', 'Color',app.Ch4Color)
+                    end
                     hold(app.UIAxesDeconResult,'off')
                     legend(app.UIAxesDeconResult,'Ch1','Ch2','Ch3','Ch4')
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Decon Intensity (a.u.)')
                     title(app.UIAxesDeconResult,'Decon Intensity Trace Decon Data Points Gain Corrected')
                     axis(app.UIAxesDeconResult,'tight')
+
                 case 'Raw Intensity'
                     INT1 = sum(app.Ch1DataObj.preProcessedData)';
-                    INT2= sum(app.Ch2DataObj.preProcessedData)';
+                    INT2 = sum(app.Ch2DataObj.preProcessedData)';
                     INT3 = sum(app.Ch3DataObj.preProcessedData)';
-                    INT4 = sum(app.Ch4DataObj.preProcessedData)';
                     INT1GC = INT1./app.Ch1DataObj.gain;
                     INT2GC = INT2./app.Ch2DataObj.gain;
                     INT3GC = INT3./app.Ch3DataObj.gain;
-                    INT4GC = INT4./app.Ch4DataObj.gain;
+                    if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                        INT4 = sum(app.Ch4DataObj.preProcessedData)';
+                        INT4GC = INT4./app.Ch4DataObj.gain;
+                    else
+                        INT4GC = [];
+                    end
                     plot(app.UIAxesDeconResult,INT1GC,'.-', 'Color',app.Ch1Color)
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,INT2GC,'.-', 'Color',app.Ch2Color)
@@ -1148,11 +1170,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Raw Intensity (a.u.)')
                     title(app.UIAxesDeconResult,'Raw Intensity Trace Decon Data Points Gain Corrected')
+
                 case 'Gain'
                     G1 = app.Ch1DataObj.gain;
                     G2 = app.Ch2DataObj.gain;
                     G3 = app.Ch3DataObj.gain;
-                    G4 = app.Ch4DataObj.gain;
+                    if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                        G4 = app.Ch4DataObj.gain;
+                    else
+                        G4 = [];
+                    end
                     plot(app.UIAxesDeconResult,G1,'.-', 'Color',app.Ch1Color)
                     hold(app.UIAxesDeconResult,'on')
                     plot(app.UIAxesDeconResult,G2,'.-', 'Color',app.Ch2Color)
@@ -1164,6 +1191,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     xlabel(app.UIAxesDeconResult,'Points')
                     ylabel(app.UIAxesDeconResult,'Gain')
                     title(app.UIAxesDeconResult,'Gain Trace Decon Data Points Gain Corrected')
+
                 case 'Laguerre basis'
                     channel = app.channelDropDown.Value;
                     switch channel
@@ -1205,6 +1233,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                         lg{i} = temp;
                     end
                     legend(app.UIAxesDeconResult,lg)
+
                 case 'Residual Max'
                     channel = app.channelDropDown.Value;
                     switch channel
@@ -1234,6 +1263,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     ylabel(app.UIAxesDeconResult,'Max residual (%)')
                     title(app.UIAxesDeconResult,'Max residual vs point measurement #')
                     legend(app.UIAxesDeconResult,lg)
+
                 case 'Lifetime'
                     channel = app.channelDropDown.Value;
                     switch channel
@@ -1414,9 +1444,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             plot(app.bg3UIAxes,app.bgObj.bgCh3,'Marker','.','LineStyle','--','Color', app.Ch3Color,'MarkerSize',8);
             title(app.bg3UIAxes,sprintf('Channel 3 Background, CtrlV = %.3f, Gain = %.3f',app.bgObj.CtrlV3, app.bgObj.bgGain3));
             app.bg3UIAxes.YLim = [min(app.bgObj.bgCh3)-0.1 max(app.bgObj.bgCh3)+0.1];
+
+            if ~isempty(app.bgObj.bgCh4) % if channel 4 bg is not empty
             plot(app.bg4UIAxes,app.bgObj.bgCh4,'Marker','.','LineStyle','--','Color', app.Ch4Color,'MarkerSize',8);
             title(app.bg4UIAxes,sprintf('Channel 4 Background, CtrlV = %.3f, Gain = %.3f',app.bgObj.CtrlV4, app.bgObj.bgGain4));
             app.bg4UIAxes.YLim = [min(app.bgObj.bgCh4)-0.1 max(app.bgObj.bgCh4)+0.1];
+            end
         end
 
 
@@ -1552,6 +1585,7 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
         % Button pushed function: loadDataButton
         function loadFileButtonPushed(app, event)
+            app.fileSelection = 1; % reset file selection
             [app.dataNameList, folderlist] = creatInputFileList(app.rootFolder);
             figure(app.UIFigure)
             if ~isempty(app.dataNameList)
@@ -1649,11 +1683,16 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.Ch1DataObj = ChannelDataAPD(app.FLImDataObj.ch1RawWF, app.FLImDataObj.V1, app.FLImDataObj.dataAvg, app.apd1Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh1, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             app.Ch2DataObj = ChannelDataAPD(app.FLImDataObj.ch2RawWF, app.FLImDataObj.V2, app.FLImDataObj.dataAvg, app.apd2Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh2, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             app.Ch3DataObj = ChannelDataAPD(app.FLImDataObj.ch3RawWF, app.FLImDataObj.V3, app.FLImDataObj.dataAvg, app.apd3Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh3, app.FLImDataObj.laserRepRate, app.upSampleFactor);
-            app.Ch4DataObj = ChannelDataAPD(app.FLImDataObj.ch4RawWF, app.FLImDataObj.V4, app.FLImDataObj.dataAvg, app.apd4Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh4, app.FLImDataObj.laserRepRate, app.upSampleFactor);
             removeDCData(app.Ch1DataObj);
             removeDCData(app.Ch2DataObj);
             removeDCData(app.Ch3DataObj);
-            removeDCData(app.Ch4DataObj);
+            if ~isempty(app.FLImDataObj.ch4RawWF) % creat channel 4 obj if ch4 data available
+                app.Ch4DataObj = ChannelDataAPD(app.FLImDataObj.ch4RawWF, app.FLImDataObj.V4, app.FLImDataObj.dataAvg, app.apd4Obj, app.TimeResolutionnsEditField.Value, app.bgObj.bgCh4, app.FLImDataObj.laserRepRate, app.upSampleFactor);
+                removeDCData(app.Ch4DataObj);
+                app.channel4CheckBox.Value = 1;
+            else
+                app.channel4CheckBox.Value = 0;
+            end
             %----------------------plot raw data and marker-----------------
             plotData(app,'raw')
             %             plotDataIgnoreMarker(app)
@@ -1698,7 +1737,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             removeDCBG(app.Ch1DataObj,bgLow,bgHigh,1);
             removeDCBG(app.Ch2DataObj,bgLow,bgHigh,2);
             removeDCBG(app.Ch3DataObj,bgLow,bgHigh,3);
-            removeDCBG(app.Ch4DataObj,bgLow,bgHigh,4);
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                removeDCBG(app.Ch4DataObj,bgLow,bgHigh,4);
+            end
             plotPreprocessedData(app)
 
             set(app.UIFigure,'pointer','arrow') % set cursor to arrow
@@ -1926,10 +1967,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             [totalNumOfWf, goodNumOfWf, badNumOfWf] = removeSaturation(app.Ch3DataObj,app.LowThresholdEditField.Value,app.HighThresholdEditField.Value);
             msg3 = sprintf('Total number of waveforms: %d.\nWaveforms left: %d.\nWaveforms removed: %d.',...
                 totalNumOfWf,goodNumOfWf,badNumOfWf);
-            [totalNumOfWf, goodNumOfWf, badNumOfWf] = removeSaturation(app.Ch4DataObj,app.LowThresholdEditField.Value,app.HighThresholdEditField.Value);
-            msg4 = sprintf('Total number of waveforms: %d.\nWaveforms left: %d.\nWaveforms removed: %d.',...
-                totalNumOfWf,goodNumOfWf,badNumOfWf);
-            msgbox({'Channel 1:';msg1;'';'Channel 2:';msg2;'';'Channel 3:';msg3;'';'Channel 4:';msg4},'Data info','help')
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                [totalNumOfWf, goodNumOfWf, badNumOfWf] = removeSaturation(app.Ch4DataObj,app.LowThresholdEditField.Value,app.HighThresholdEditField.Value);
+                msg4 = sprintf('Total number of waveforms: %d.\nWaveforms left: %d.\nWaveforms removed: %d.',...
+                    totalNumOfWf,goodNumOfWf,badNumOfWf);
+                msgbox({'Channel 1:';msg1;'';'Channel 2:';msg2;'';'Channel 3:';msg3;'';'Channel 4:';msg4},'Data info','help')
+            end
             plotData(app,'filtered')
             %             plotDataIgnoreMarker(app)
             %             plotBGMarker(app)
@@ -1953,7 +1996,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             avgData(app.Ch1DataObj, avg)
             avgData(app.Ch2DataObj, avg)
             avgData(app.Ch3DataObj, avg)
-            avgData(app.Ch4DataObj, avg)
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                avgData(app.Ch4DataObj, avg)
+            end
             plotData(app,'averaged')
             %             plotDataIgnoreMarker(app)
             plotBGMarker(app)
@@ -1983,13 +2028,12 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             set(app.UIFigure,'pointer','watch') % set cursor to spinning
             drawnow
 
-            %             upSampleData(app.Ch1DataObj);
             truncateData(app.Ch1DataObj,app.channelWidthEditField.Value);
-            %             upSampleData(app.Ch2DataObj);
             truncateData(app.Ch2DataObj,app.channelWidthEditField.Value);
-            %             upSampleData(app.Ch3DataObj);
             truncateData(app.Ch3DataObj,app.channelWidthEditField.Value);
-            truncateData(app.Ch4DataObj,app.channelWidthEditField.Value);
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                truncateData(app.Ch4DataObj,app.channelWidthEditField.Value);
+            end
             plotTruncatedData(app)
 
             plotDataIgnoreMarker(app)
@@ -2029,35 +2073,43 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
 
                 set(app.UIFigure,'pointer','watch') % set cursor to spinning
                 drawnow
-
-                f = waitbar(0,'Running Laguerre channel 1...');
+                if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                    progressBarNum = (0:1:4)/4;
+                else
+                    progressBarNum = (0:1:3)/3;
+                end
+                f = waitbar(progressBarNum(1),'Running Laguerre channel 1...');
                 runDeconLG(app.Ch1DataObj,exclude,laguerreOrder,alpha1);
 
-                waitbar(0.25,f,'Running Laguerre channel 2...');
+                waitbar(progressBarNum(2),f,'Running Laguerre channel 2...');
                 runDeconLG(app.Ch2DataObj,exclude,laguerreOrder,alpha2);
 
-                waitbar(0.5,f,'Running Laguerre channel 3...');
+                waitbar(progressBarNum(3),f,'Running Laguerre channel 3...');
                 runDeconLG(app.Ch3DataObj,exclude,laguerreOrder,alpha3);
 
-                waitbar(0.75,f,'Running Laguerre channel 4...');
-                runDeconLG(app.Ch4DataObj,exclude,laguerreOrder,alpha4);
+                if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                    waitbar(progressBarNum(4),f,'Running Laguerre channel 4...');
+                    runDeconLG(app.Ch4DataObj,exclude,laguerreOrder,alpha4);
+                end
 
-                waitbar(1,f,'Laguerre fit finished...');
+                waitbar(progressBarNum(end),f,'Laguerre fit finished...');
                 
                 app.expDeconFlag = app.RunEXPCheckBox.Value;
 
                 if app.expDeconFlag
                     expOrder = app.exponentialsDropDown.Value;
                     expOrder = str2double(expOrder);
-                    f1 = waitbar(0,'Running exponential channel 1...');
+                    f1 = waitbar(progressBarNum(1),'Running exponential channel 1...');
                     runDeconExp(app.Ch1DataObj,expOrder,[],[],[],exclude);
-                    waitbar(0.25,f1,'Running exponential channel 2...');
+                    waitbar(progressBarNum(2),f1,'Running exponential channel 2...');
                     runDeconExp(app.Ch2DataObj,expOrder,[],[],[],exclude);
-                    waitbar(0.5,f1,'Running exponential channel 3...');
+                    waitbar(progressBarNum(3),f1,'Running exponential channel 3...');
                     runDeconExp(app.Ch3DataObj,expOrder,[],[],[],exclude);
-                    waitbar(0.75,f1,'Running exponential channel 3...');
-                    runDeconExp(app.Ch4DataObj,expOrder,[],[],[],exclude);
-                    waitbar(1,f1,'exponential fit finished...');
+                    if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                        waitbar(progressBarNum(4),f1,'Running exponential channel 3...');
+                        runDeconExp(app.Ch4DataObj,expOrder,[],[],[],exclude);
+                    end
+                    waitbar(progressBarNum(end),f1,'exponential fit finished...');
                 end
 
                 %------------------run phasor for harmonic of 1 to 4-----------------------
@@ -2065,13 +2117,19 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                     runPhasor(app.Ch1DataObj, H);
                     runPhasor(app.Ch2DataObj, H);
                     runPhasor(app.Ch3DataObj, H);
-                    runPhasor(app.Ch4DataObj, H);
+                    if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                        runPhasor(app.Ch4DataObj, H);
+                    end
                 end
 
                 CH1WFGainCorr = get(app.Ch1DataObj,'GainCorrectedWF');
                 CH2WFGainCorr = get(app.Ch2DataObj,'GainCorrectedWF');
                 CH3WFGainCorr = get(app.Ch3DataObj,'GainCorrectedWF');
-                CH4WFGainCorr = get(app.Ch4DataObj,'GainCorrectedWF');
+                if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                    CH4WFGainCorr = get(app.Ch4DataObj,'GainCorrectedWF');
+                else 
+                    CH4WFGainCorr = [];
+                end
                 %-------------------------------------------compute extended phasor-----------------------------------------------------
                 WFExtended = [CH1WFGainCorr;CH2WFGainCorr;CH3WFGainCorr;CH4WFGainCorr];
                 numOfWF = size(WFExtended,2);
@@ -2086,7 +2144,11 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 Spectrum(:,1) = sum(CH1WFGainCorr)';
                 Spectrum(:,2) = sum(CH2WFGainCorr)';
                 Spectrum(:,3) = sum(CH3WFGainCorr)';
-                Spectrum(:,4) = sum(CH4WFGainCorr)';
+
+                if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                    Spectrum(:,4) = sum(CH4WFGainCorr)';
+                end
+
                 SP = zeros(numOfWF,1);
                 for i = 1: numOfWF
                     SP(i) = (ComputePhasor(Spectrum(i,:),0,1,0)+(1+1i))/2;
@@ -2094,12 +2156,9 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 app.SP_G = real(SP);
                 app.SP_S = imag(SP);
 
-                waitbar(1,f,'Finished');
-
                 close(f)
                 delete(f)
-                % close(f1)
-                % delete(f1)
+
 
                 set(app.UIFigure,'pointer','arrow') % set cursor to arrow
                 drawnow
@@ -2137,20 +2196,28 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             toSingle(app.Ch1DataObj); % convert to single
             toSingle(app.Ch2DataObj); % convert to single
             toSingle(app.Ch3DataObj); % convert to single
-            toSingle(app.Ch4DataObj); % convert to single
-
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                toSingle(app.Ch4DataObj); % convert to single
+            end
             dataInfoObj = app.dataInfoObj; % pointer to Object
             Ch1DataObj = app.Ch1DataObj; % pointer to Object
             Ch2DataObj = app.Ch2DataObj; % pointer to Object
             Ch3DataObj = app.Ch3DataObj; % pointer to Object
-            Ch4DataObj = app.Ch4DataObj; % pointer to Object
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                Ch4DataObj = app.Ch4DataObj; % pointer to Object
+            else
+                Ch4DataObj = [];
+            end
             EOP_H1G = app.EOP_H1G;
             EOP_H1S = app.EOP_H1S;
             SP_G = app.SP_G;
             SP_S = app.SP_S;
             calibrationObj =app.caliObj; % pointer to Object
-
-            save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+            if ismember('Ch4DataObj',fieldnames(app)) % if channel 4 data available
+                save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+            else
+                save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','calibrationObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+            end
             saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,saveFileFullPath)
             %save Laguerre vs multi-exp square error
             %             save_LG_vs_mExp_lifetime_fig(app)
@@ -2175,15 +2242,21 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             upSampleData(app.Ch1DataObj);
             upSampleData(app.Ch2DataObj);
             upSampleData(app.Ch3DataObj);
-            upSampleData(app.Ch4DataObj);
+            
             estimateBG(app.Ch1DataObj);
             estimateBG(app.Ch2DataObj);
             estimateBG(app.Ch3DataObj);
-            estimateBG(app.Ch4DataObj);
+            
             alignWF_CFD(app.Ch1DataObj, 0.8, (180*app.upSampleFactor:300*app.upSampleFactor)) % need updating to account for the bg
             alignWF_CFD(app.Ch2DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch2DataObj.rawData,1)*app.upSampleFactor))
             alignWF_CFD(app.Ch3DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch3DataObj.rawData,1)*app.upSampleFactor))
-            alignWF_CFD(app.Ch4DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch4DataObj.rawData,1)*app.upSampleFactor))
+            
+            if ismember('Ch4DataObj',fieldnames(app))
+                upSampleData(app.Ch4DataObj);
+                estimateBG(app.Ch4DataObj);
+                alignWF_CFD(app.Ch4DataObj, 0.5, (180*app.upSampleFactor:size(app.Ch4DataObj.rawData,1)*app.upSampleFactor))
+            end
+
             plotUpsampledData(app)
             uiUpdate(app,'Upsampled')
             set(app.UIFigure,'pointer','arrow') % set cursor to spinning
@@ -3048,7 +3121,6 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
             app.channel4CheckBox.Text = 'Channel 4';
             app.channel4CheckBox.Layout.Row = 9;
             app.channel4CheckBox.Layout.Column = 4;
-            app.channel4CheckBox.Value = true;
 
             % Create ChannelSelectionPanel
             app.ChannelSelectionPanel = uipanel(app.GridLayout2);
