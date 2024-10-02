@@ -27,6 +27,8 @@ classdef ChannelDataAPD < handle
         goodDataIdx % raw waveform good data index, result of saturation filtering
         gain % gain lise 1D vector
         irfIdx % 1 by (number of data points) index of correponding irf in the APD Obj
+        irfGainMax % max gain for variable irf
+        irfVMax % max V for variable irf 
         Lg_INTs % intensities
         Lg_INTsGainCorrected % intensities
         K % Laguerre order
@@ -410,8 +412,10 @@ classdef ChannelDataAPD < handle
             obj.irfIdx = ones(numOfDataPoints,1);
             %--------------------------------------------------------------
 
-            numOfiRFV = length(obj.APDObj.irfV);
-
+            irfVMaxIdx = find(obj.APDObj.apdGain<10,1,'last'); % find max index of apd gain less than 10
+            obj.irfVMax = obj.APDObj.gainV(irfVMaxIdx); % volatge to cap irf
+            obj.irfGainMax = obj.APDObj.apdGain(irfVMaxIdx);
+            numOfiRFV = find(obj.APDObj.irfV>obj.irfVMax,1); % find index of irf V higher than 10
             % obj.APDObj.irfTNorm(:,211) = obj.APDObj.irfTNorm(:,208);
             % numOfiRFV = 80;
             % loop through all V and find corresponding data index
@@ -419,7 +423,7 @@ classdef ChannelDataAPD < handle
                 vLow = obj.APDObj.irfV(i-1);
                 if i==numOfiRFV
                     % if i+10>numOfiRFV
-                    vHigh = 5;
+                    vHigh = 7;
                 else
                     vHigh = obj.APDObj.irfV(i);
                 end
