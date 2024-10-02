@@ -12,6 +12,8 @@ classdef LaguerreModel < handle
         stat_test % statistic test
         channeldataObj % channeldata class object containing raw data and other parameters
         shift % number of data points waveform has to shift to match iRF
+        iteration % number of iterations of recursive search
+        exitflag % convergence flag
         spec_aligned % aligned waveform
         exclude % index of data excluded from decon due to artifact in the data
         vv % vv matrix with exclude
@@ -75,6 +77,8 @@ classdef LaguerreModel < handle
             shift = zeros(size(obj.channeldataObj.data,2),1);
             WF_aligned = zeros(size(obj.channeldataObj.data));
             fit = zeros(size(obj.channeldataObj.data));
+            iteration = zeros(size(obj.channeldataObj.data,2),1);
+            exitflag = zeros(size(obj.channeldataObj.data,2),1);
             l1 = obj.l1;
             C = obj.C;
             vv = obj.vv;
@@ -83,12 +87,14 @@ classdef LaguerreModel < handle
             parfor i = 1:size(obj.channeldataObj.data,2)                
                 % [rss, obj.LCs(:,i)] = fitData(obj.channeldataObj.data(:,i), 8.7, obj.l1, obj.C, obj.vv, obj.D);
                 if ~isnan(sum(WF(:,i))) % if waveform is not all NaN
-                [shift(i), LCs(:,i), WF_aligned(:,i), fit(:,i)] = findShift(WF(:,i), l1, C, vv, D);
+                [shift(i), LCs(:,i), WF_aligned(:,i), fit(:,i), iteration(i), exitflag(i)] = findShift(WF(:,i), l1, C, vv, D);
                 end
             end
             obj.shift = shift;
             obj.LCs = LCs;
             obj.WF_aligned = WF_aligned;
+            obj.iteration = iteration;
+            obj.exitflag = exitflag;
             decays = obj.LaguerreBasis*obj.LCs;
             [obj.LTs,obj.INTs] = h_lifet(decays,obj.channeldataObj.dt,'average');
             
@@ -320,7 +326,7 @@ function [rss, LCs, WF_aligned, fit] = fitData(WF_in, shift, l1, C, vv, D) % com
     rss = vecnorm(res,2);
 end
 
-function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
+function [shift, LCs, WF_aligned, fit, iteration, exitflag] = findShift(WF_in, l1, C, vv, D)
     tol = 0.005;
     s0 = 0;
     s1 = 10;
@@ -336,7 +342,8 @@ function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
     f3 = fitData(WF_in, s3, l1, C, vv, D);
     
     iteration = 0;
-    while (abs(s3-s0) > tol*(abs(s1)+abs(s2))) % recursive bracketing
+    exitflag = 1;
+    while (abs(s3-s0) > tol) % recursive bracketing
         iteration = iteration+1;
         if (f2<f1)
             s0 = s1;
@@ -353,12 +360,13 @@ function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
             f2 = f1;
             f1 = fitData(WF_in, s1, l1, C, vv, D);
         end
-        if iteration>30 % break if iteration is higher than 30 to avoid infite loop
+        if iteration>=30 % break if iteration is higher than 30 to avoid infite loop
+            exitflag = 0;
             break
         end
     end % end of bracketing
 
-    sprintf('Iteration %d, tolerence %.5f',iteration, abs(s3-s0)) % print tolerence to command window
+    % sprintf('Iteration %d, tolerence %.5f',iteration, abs(s3-s0)) % print tolerence to command window
 
     if f1<f2
         shift = s1;

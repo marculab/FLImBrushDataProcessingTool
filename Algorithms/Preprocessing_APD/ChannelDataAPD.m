@@ -49,6 +49,8 @@ classdef ChannelDataAPD < handle
         SNR % data SNR
         stat_test % statistic test
         shift % WF shift amount
+        shiftIteration % iteration of recursive search
+        Lg_exitflag % flag for convergence, 1: function converge; 0: max iteration achieved
         % shift_fit % fitted shift
         truncationLength % data truncation length
         %         timeStamp % time stamp of averaged data used for image reconstruction
@@ -400,6 +402,8 @@ classdef ChannelDataAPD < handle
             obj.Lg_LTs = zeros(numOfDataPoints,1);
             obj.Lg_INTs = zeros(numOfDataPoints,1);
             obj.shift = zeros(numOfDataPoints,1);
+            obj.shiftIteration = zeros(numOfDataPoints,1);
+            obj.Lg_exitflag = zeros(numOfDataPoints,1);
             %             obj.spec_aligned = zeros(size(obj.dataT));
             %             obj.fit = zeros(size(obj.dataT));
             %             obj.res = zeros(size(obj.dataT));
@@ -432,6 +436,8 @@ classdef ChannelDataAPD < handle
                     obj.Lg_LTs(idx) = laguerreObj.LTs;
                     obj.Lg_INTs(idx) = laguerreObj.INTs;
                     obj.shift(idx) = laguerreObj.shift;
+                    obj.shiftIteration(idx) = laguerreObj.iteration;
+                    obj.Lg_exitflag(idx) = laguerreObj.exitflag;
                     obj.wf_aligned(:,idx) = laguerreObj.WF_aligned;
                     %                     obj.fit(:,idx) = get(laguerreObj,'fit');
                     %                     obj.res(:,idx) = get(laguerreObj,'res');
@@ -482,6 +488,7 @@ classdef ChannelDataAPD < handle
             obj.rawDataUpsampled = single(obj.rawDataUpsampled);
             obj.rawDataDCRemoved = single(obj.rawDataDCRemoved);
             obj.dataT = single(obj.dataT);
+            obj.wf_aligned = single(obj.wf_aligned);
             obj.rawData = single(obj.rawData);
         end
 
