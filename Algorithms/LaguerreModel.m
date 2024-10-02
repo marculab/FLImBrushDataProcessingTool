@@ -342,7 +342,7 @@ function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
             s0 = s1;
             s1 = s2;
             s2 = R*s2+c*s3;
-            
+
             f1 = f2;
             f2 = fitData(WF_in, s2, l1, C, vv, D);
         else
@@ -352,6 +352,9 @@ function [shift, LCs, WF_aligned, fit] = findShift(WF_in, l1, C, vv, D)
 
             f2 = f1;
             f1 = fitData(WF_in, s1, l1, C, vv, D);
+        end
+        if iteration>30 % break if iteration is higher than 30 to avoid infite loop
+            break
         end
     end % end of bracketing
 
