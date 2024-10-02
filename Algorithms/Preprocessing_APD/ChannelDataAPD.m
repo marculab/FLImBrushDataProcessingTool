@@ -49,7 +49,7 @@ classdef ChannelDataAPD < handle
         SNR % data SNR
         stat_test % statistic test
         shift % WF shift amount
-        shift_fit % fitted shift
+        % shift_fit % fitted shift
         truncationLength % data truncation length
         %         timeStamp % time stamp of averaged data used for image reconstruction
         %         timeStampDecon % time stamp of deconvolved averaged data used for image reconstruction
