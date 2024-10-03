@@ -3,6 +3,7 @@ classdef ChannelDataAPD < handle
     % See also APDCLASS, FLIMDATACLASS, SYSCALIDATACLASS.
 
     properties
+        softwareVersion %
         averagedData % averaged data
         alpha % alpha value
         APDObj % apd detector class obj, contain gain and iRF information
@@ -82,6 +83,7 @@ classdef ChannelDataAPD < handle
     end
     methods
         function obj = ChannelDataAPD(rawDataIn, CtrlVIn, LVAvgIn, APDObjIn, dtIn, bgIn, laserRepRateIn, upSampleFactorIn) % constructor
+
             obj.dtRaw = dtIn;
             %             figure;plot(rawDataIn(:,1:4));
             %             rawDataIn = alignWaveform_CFDNew(rawDataIn,2.8,obj.dtRaw); % CFD raw waveform 1st
@@ -104,6 +106,18 @@ classdef ChannelDataAPD < handle
             obj.laserRepRate = laserRepRateIn;
             obj.upSampleFactor = upSampleFactorIn; %updated 09/09/2022
             % calculate SNR
+        end
+
+        function getSoftwareVersion(obj) % function to read software version
+            ini = IniConfig();
+            ini.ReadFile('SoftwareVersion.ini');
+            sections = ini.GetSections();
+            [keys, ~] = ini.GetKeys(sections{1});
+            temp = ini.GetValues(sections{1}, keys);
+            MAJOR = temp{1};
+            MINOR = temp{2};
+            PATCH = temp{3};
+            obj.softwareVersion = [num2str(MAJOR) '.' num2str(MINOR) '.' num2str(PATCH)];
         end
 
         function removeDCData(obj,varargin)
@@ -379,6 +393,7 @@ classdef ChannelDataAPD < handle
         end
 
         function runDeconLG(obj, exclude_in, varargin) % Laguerre Deconvolution
+            obj.getSoftwareVersion();
             %---------------generate laguerre functions------------------------
             obj.dataT = double(obj.dataT);
             obj.wf_aligned = zeros(size((obj.dataT)));
