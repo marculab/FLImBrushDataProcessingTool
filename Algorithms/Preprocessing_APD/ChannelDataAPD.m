@@ -523,7 +523,7 @@ classdef ChannelDataAPD < handle
                     end
                     %-----------------------------aligned waveform-----------------------------
                 case 'wf_aligned'
-                    if ~isempty(obj.Lg_LCs)
+                    if ~isempty(obj.wf_aligned) % check whether wf_aligned is empty
                         switch nargin % check number of function input
                             case 2
                                 result = obj.wf_aligned;
@@ -550,8 +550,16 @@ classdef ChannelDataAPD < handle
                                 result = dataAligned - fitting;
                         end
                     else
-                        warning('Deconvolution result not available, run deconvolution before accessing fitted curve!')
-                        result = [];
+                        switch nargin % check number of function input
+                            case 2
+                                result = obj.dataT;
+                                for i = 1:obj.numOfAvgWFs
+                                    result(:,i) = circshift(obj.dataT(:,i),obj.shift(i));
+                                end
+                            case 3
+                                idx = varargin{1};
+                                result = circshift(obj.dataT(:,idx),obj.shift(idx));
+                        end
                     end
                 case 'decay'
                     if ~isempty(obj.Lg_LCs)
