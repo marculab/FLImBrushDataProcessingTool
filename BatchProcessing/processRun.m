@@ -60,10 +60,10 @@ creatFromPath(apd4Obj);
 filename_BG = [filename_BG ext];
 bgObj = backGround(fullfile(foldername_BG,filename_BG));
 loadBG(bgObj,upSampleFactor);
-bgObj.bgGain1 = interp1(apd1Obj.gainV,apd1Obj.apdGain,bgObj.CtrlV1,'spline');
-bgObj.bgGain2 = interp1(apd2Obj.gainV,apd2Obj.apdGain,bgObj.CtrlV2,'spline');
-bgObj.bgGain3 = interp1(apd3Obj.gainV,apd3Obj.apdGain,bgObj.CtrlV3,'spline');
-bgObj.bgGain4 = interp1(apd4Obj.gainV,apd4Obj.apdGain,bgObj.CtrlV4,'spline');
+bgObj.bgGain1 = interp1(apd1Obj.gainV,apd1Obj.apdGain,bgObj.CtrlV1,'pchip');
+bgObj.bgGain2 = interp1(apd2Obj.gainV,apd2Obj.apdGain,bgObj.CtrlV2,'pchip');
+bgObj.bgGain3 = interp1(apd3Obj.gainV,apd3Obj.apdGain,bgObj.CtrlV3,'pchip');
+bgObj.bgGain4 = interp1(apd4Obj.gainV,apd4Obj.apdGain,bgObj.CtrlV4,'pchip');
 
 fBG = figure;
 tiledlayout(4,1)
@@ -154,6 +154,10 @@ upSampleData(Ch1DataObj);
 upSampleData(Ch2DataObj);
 upSampleData(Ch3DataObj);
 upSampleData(Ch4DataObj);
+estimateBG(Ch1DataObj);
+estimateBG(Ch2DataObj);
+estimateBG(Ch3DataObj);
+estimateBG(Ch4DataObj);
 alignWF_CFD(Ch1DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
 alignWF_CFD(Ch2DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
 alignWF_CFD(Ch3DataObj, 0.5, 180*upSampleFactor:size(Ch2DataObj.rawData,1)*upSampleFactor)
@@ -425,6 +429,8 @@ mkdir(saveRootPath,saveFolderName); % create folder with run name
 saveFileName = [runName '.mat'];
 saveFileFullPath = fullfile(saveRootPath,saveFolderName,saveFileName);
 save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
+
+saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,saveFileFullPath)
 
 saveas(fBG,fullfile(saveRootPath,saveFolderName,'Background'),'fig');
 saveas(fRaw,fullfile(saveRootPath,saveFolderName,'RawWaveFrom'),'fig');

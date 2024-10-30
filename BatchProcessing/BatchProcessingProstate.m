@@ -14,14 +14,20 @@ alpha1 = 0.916;
 alpha2 = 0.916;
 alpha3 = 0.916;
 alpha4 = 0.916;
-Datafolder = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240718 p11';
-BGFile = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\20240718 p11\Background\Background01.tdms';
-% IntuitiveDataAggregate(1,:)=[];
-dataFiles = dir([Datafolder '\*.tdms']);
-for i = 1:numel(dataFiles)
+for m=3:20
+    temp = "P"+num2str(m);
+    Datafolder = fullfile('C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase',temp);
+    BGFile = fullfile(Datafolder,'Background\Background01.tdms');
+    BGFile = char(BGFile);
+    % IntuitiveDataAggregate(1,:)=[];
+    dataFiles = dir([char(Datafolder) '\*.tdms']);
+    for i = 1:numel(dataFiles)
 
-    disp(['Processing ' dataFiles(i).name]);
-    DataPath = fullfile(dataFiles(i).folder, dataFiles(i).name);
-    processRun(DataPath, BGFile, APD1Path, APD2Path, APD3Path, APD4Path, alpha1, alpha2, alpha3, alpha4, ChWidth, saveRootPath);
+        disp(['Processing ' dataFiles(i).name]);
+        DataPath = fullfile(dataFiles(i).folder, dataFiles(i).name);
+        processRun(DataPath, BGFile, APD1Path, APD2Path, APD3Path, APD4Path, alpha1, alpha2, alpha3, alpha4, ChWidth, saveRootPath);
 
+    end
+
+    disp("Done");
 end
