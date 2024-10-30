@@ -1623,10 +1623,10 @@ classdef mainTriplexGui_exported < matlab.apps.AppBase
                 app.dataInfoObj.bgFileFolder = foldername_BG;
                 app.bgObj = backGround(fullfile(foldername_BG,filename_BG));
                 loadBG(app.bgObj,app.upSampleFactor);
-                app.bgObj.bgGain1 = interp1(app.apd1Obj.gainV,app.apd1Obj.apdGain,app.bgObj.CtrlV1,'spline');
-                app.bgObj.bgGain2 = interp1(app.apd2Obj.gainV,app.apd2Obj.apdGain,app.bgObj.CtrlV2,'spline');
-                app.bgObj.bgGain3 = interp1(app.apd3Obj.gainV,app.apd3Obj.apdGain,app.bgObj.CtrlV3,'spline');
-                app.bgObj.bgGain4 = interp1(app.apd4Obj.gainV,app.apd4Obj.apdGain,app.bgObj.CtrlV4,'spline');
+                app.bgObj.bgGain1 = interp1(app.apd1Obj.gainV,app.apd1Obj.apdGain,app.bgObj.CtrlV1,'pchip');
+                app.bgObj.bgGain2 = interp1(app.apd2Obj.gainV,app.apd2Obj.apdGain,app.bgObj.CtrlV2,'pchip');
+                app.bgObj.bgGain3 = interp1(app.apd3Obj.gainV,app.apd3Obj.apdGain,app.bgObj.CtrlV3,'pchip');
+                app.bgObj.bgGain4 = interp1(app.apd4Obj.gainV,app.apd4Obj.apdGain,app.bgObj.CtrlV4,'pchip');
                 app.bgFileEditField.Value = app.bgObj.pathToBg;
                 app.bgLoadedLamp.Color = 'g';
                 app.bgLoadedFlag = 1;
