@@ -1,5 +1,5 @@
 % code to batch reprocess FLImBRUSH .mat data
-% Xiangnan 09/09/2022
+% Xiangnan 2024-10-30
 function ReprocessFB20240822EstimateBG(input_mat_name,SaveHardDriveLetter,apd1Obj,apd2Obj,apd3Obj,apd4Obj)
 % input_mat_name must be absolute path
 
