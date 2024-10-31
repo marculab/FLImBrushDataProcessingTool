@@ -472,7 +472,6 @@ classdef ChannelDataAPD < handle
         function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
             %             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
             wf_aligned = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
-            wf_aligned = double(wf_aligned);
             %             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
             irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
             fieldName = strcat('exp',num2str(numOfExp),'DeconObj');

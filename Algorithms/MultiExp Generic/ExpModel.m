@@ -31,12 +31,12 @@ classdef ExpModel < handle
         % constructor
         function obj = ExpModel(order_in, WF_in, irf_in, dt_in, weight_in, tau_lower_lim, tau_upper_lim, exclude_in)
             obj.order = order_in;
-            obj.spec_aligned = WF_in;
+            obj.spec_aligned = single(WF_in);
             obj.N = size(WF_in,2);
             obj.L = size(WF_in,1);
             
             if (size(irf_in,2)==1)||(size(irf_in,2)==obj.N) % check the size of irf
-                obj.irf = irf_in;
+                obj.irf = single(irf_in); % safe as single to save some space
             else
                 error('Size of irf does not match the size of waveforms!')
             end
@@ -110,6 +110,7 @@ classdef ExpModel < handle
         
         function runDecon(obj)
             wfALL = obj.spec_aligned; % copy data to avoid parfor communication overhead
+            wfALL = double(wfALL); % convert to double if it is not
             M = max(wfALL); % find maximum of each waveform
             % if no waveform has peak value higher than 0.1, skip decon and return
             if ~any(M>0.1)
@@ -127,9 +128,10 @@ classdef ExpModel < handle
             wfAvg = mean(wfALL(:,M>0.1),2); % find the average of waveforms with peak value larger than 0.1
             %---------------------find initial guess ------------------------------------
             % find fastest irf which has the max peak value
-            irf_max_value = max(obj.irf);
+            irf = double(obj.irf);
+            irf_max_value = max(irf);
             [~,I] = max(irf_max_value);
-            irf_f = obj.irf(:,I);
+            irf_f = irf(:,I);
             [f,~,~] = fit(tt,wfAvg,obj.FT,'problem',irf_f);
             switch obj.order
                 case 1
@@ -148,10 +150,10 @@ classdef ExpModel < handle
             %----------------------run deconvolution---------------------------------------
             FitObj = obj.FT; % copy fit option to avoid calling obj in parfor
             
-            if size(obj.irf,2)==1 % if irf is column vector replicate
-                irff_all = repmat(obj.irf, 1, obj.N);
+            if size(irf,2)==1 % if irf is column vector replicate
+                irff_all = repmat(irf, 1, obj.N);
             else
-                irff_all = obj.irf;
+                irff_all = irf;
             end
             
             parfor i = 1:obj.N
