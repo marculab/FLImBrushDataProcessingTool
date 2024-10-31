@@ -62,7 +62,9 @@ classdef ChannelDataAPD < handle
         wfLenght % length of each waveform
         wf_aligned % aligned waveform
         exclude % A vector of integers indexing the points you want to exclude, e.g., [1 10 25].
-        expDeconObj  % exponential decon object, does not include data that is filtered
+        exp1DeconObj  % single exponential decon object, does not include data that is filtered
+        exp2DeconObj  % single exponential decon object, does not include data that is filtered
+        exp3DeconObj  % single exponential decon object, does not include data that is filtered
         Ph_H1S % phasor result harmonics 1
         Ph_H1G % phasor result harmonics 1
         Ph_H2S % phasor result harmonics 2
@@ -469,11 +471,14 @@ classdef ChannelDataAPD < handle
 
         function runDeconExp(obj, numOfExp, weight, tauLow, tauHigh, exclude_in) % Multiexponential Deconvolution
             %             wf_aligned = zeros(obj.truncationLength,obj.numOfAvgWFs);
-            wf_aligned = get(obj,'wf_aligned'); % truncated and aligned wavefor10 for deconvolution
+            wf_aligned = get(obj,'wf_aligned'); % truncated and aligned waveform for deconvolution
+            wf_aligned = double(wf_aligned);
             %             irf = zeros(size(obj.APDObj.irfTNorm,1),obj.numOfAvgWFs);
             irf = obj.APDObj.irfTNorm(:,obj.irfIdx); % irf matrix
-            obj.expDeconObj = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
-            runDecon(obj.expDeconObj);
+            fieldName = strcat('exp',num2str(numOfExp),'DeconObj');
+            fieldName = string(fieldName);
+            obj.(fieldName) = ExpModel(numOfExp, wf_aligned, irf, obj.dtUp, weight, tauLow, tauHigh, exclude_in);
+            runDecon(obj.(fieldName));
         end
 
         function runPhasor(obj, Harmonics)
