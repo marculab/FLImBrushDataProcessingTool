@@ -129,7 +129,7 @@ classdef ChannelDataAPD < handle
                 case 2
                     WF_max_threshold = varargin{1};
             end
-            numOfWF = size(obj.preProcessedData,2);
+            numOfWF = size(obj.rawData,2);
             DC = zeros(1,numOfWF);
             WFWindow = 500; % WF window to average DC
             gainWindow = 5; % gain window to average DC
@@ -149,10 +149,11 @@ classdef ChannelDataAPD < handle
                 timeIdx = setxor(timeIdx,Acommon); % remove sturated waveform index
                 GTemp = obj.rawGain(timeIdx); % gain of data inside time window
                 timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
-                DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal from tail
+                DCAllWF = obj.rawData(end-100:end,timeIdx); % get all data used for DC removal from tail
                 % DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
                 DC(i) = mean(DCAllWF(:)); % average all DC data
             end
+            % DC = mean(obj.rawData(end-100:end,:));
             obj.rawDataDCRemoved = obj.rawData-DC; % store data
             obj.preProcessedData = obj.rawData-DC; % store data
 
@@ -432,7 +433,7 @@ classdef ChannelDataAPD < handle
             irfVMaxIdx = find(obj.APDObj.apdGain<10,1,'last'); % find max index of apd gain less than 10
             obj.irfVMax = obj.APDObj.gainV(irfVMaxIdx); % volatge to cap irf
             obj.irfGainMax = obj.APDObj.apdGain(irfVMaxIdx);
-            numOfiRFV = find(obj.APDObj.irfV>obj.irfVMax,1); % find index of irf V higher than 10
+            numOfiRFV = find(obj.APDObj.irfV<obj.irfVMax,1,'last'); % find index of irf V higher than 10
             % obj.APDObj.irfTNorm(:,211) = obj.APDObj.irfTNorm(:,208);
             % numOfiRFV = 80;
             % loop through all V and find corresponding data index
