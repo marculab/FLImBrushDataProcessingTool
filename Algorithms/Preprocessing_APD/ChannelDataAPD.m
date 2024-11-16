@@ -405,21 +405,21 @@ classdef ChannelDataAPD < handle
             obj.exclude = exclude_in;
             switch nargin
                 case 2 %runDecon(obj, exclude)
-                    gainCapIn = 10;
                     obj.K = 12; %default Laguerre order
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 3 % runDecon(obj, exclude, gainCapIn)
-                    gainCapIn = varargin{1};
-                    obj.K = 12;
+                    gainCapIn = 10;
+                case 3 % runDecon(obj, exclude, order)
+                    obj.K = varargin{1};
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 4 % runDecon(obj, exclude, gainCapIn, order)
-                    gainCapIn = varargin{1};
-                    obj.K = varargin{2};
-                    obj.alpha = alpha_up(obj.M,obj.K);
-                case 5 % runDecon(obj, exclude, gainCapIn, order, alpha)
-                    gainCapIn = varargin{1};
-                    obj.K = varargin{2};
-                    obj.alpha = varargin{3};
+                    gainCapIn = 10;
+                case 4 % runDecon(obj, exclude, order, alpha)
+                    obj.K = varargin{1};
+                    obj.alpha = varargin{2};
+                    gainCapIn = 10;
+                case 5 % runDecon(obj, exclude, order, alpha, gainCapIn)
+                    obj.K = varargin{1};
+                    obj.alpha = varargin{2};
+                    gainCapIn = varargin{3};
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
@@ -439,7 +439,7 @@ classdef ChannelDataAPD < handle
             %--------------------------------------------------------------
 
             irfGain = interp1(obj.APDObj.gainV,obj.APDObj.apdGain,obj.APDObj.irfV,'pchip');
-            irfVMaxIdx = find(irfGain<=gainCapIn,1,'last'); % find 1st index of irf gain large than gainCapIn
+            irfVMaxIdx = find(irfGain<=gainCapIn,1,'last')+1; % find 1st index of irf gain large than gainCapIn
             obj.irfVMax = obj.APDObj.irfV(irfVMaxIdx); % volatge to cap irf
             obj.irfGainMax = irfGain(irfVMaxIdx);
             % numOfiRFV = find(obj.APDObj.irfV>obj.irfVMax,1); % find index of irf V higher than 10
