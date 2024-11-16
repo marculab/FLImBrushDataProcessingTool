@@ -352,6 +352,7 @@ classdef ChannelDataAPD < handle
             if endIdx < size(obj.preProcessedData,1) % if enough data points
                 obj.dataT = obj.preProcessedData(start_idx:endIdx,:);
             else % if not enough data points, add zero to the end
+                warning('Not enough data to truncate, append with 0!')
                 availableWFL = length(obj.preProcessedData(start_idx:end,1));
                 temp = zeros(dataLength,size(obj.preProcessedData,2));
                 temp(1:availableWFL,:) = obj.preProcessedData(start_idx:end,:);
