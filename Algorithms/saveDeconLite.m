@@ -1,4 +1,4 @@
-function saveDeconLite(Ch1DataObjIn,Ch2DataObjIn,Ch3DataObjIn,Ch4DataObjIn,saveFileFullPath)
+function saveDeconLite(Ch1DataObjIn,Ch2DataObjIn,Ch3DataObjIn,Ch4DataObjIn,EOP_H1G,EOP_H1S,SP_G,SP_S,saveFileFullPath)
 
 if isempty(Ch4DataObjIn)
     numOfChannel = 3;
@@ -32,7 +32,7 @@ name = strcat(name,'_lite',ext);
 new_filePath = fullfile(filepath,name);
 
 if numOfChannel == 3
-    save(new_filePath,'Ch1DataObj','Ch2DataObj','Ch3DataObj')
+    save(new_filePath,'Ch1DataObj','Ch2DataObj','Ch3DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S')
 else
-    save(new_filePath,'Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj')
+    save(new_filePath,'Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S')
 end
