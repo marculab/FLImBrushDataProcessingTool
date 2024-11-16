@@ -114,7 +114,7 @@ classdef ExpModel < handle
             M = max(wfALL); % find maximum of each waveform
             % if no waveform has peak value higher than 0.1, skip decon and return
             if ~any(M>0.1)
-                msgbox('None of the wavefroms has a peak value higher than 0.1V, exponential fitting skipped!','No data for mExp decon!')
+                warning('None of the wavefroms has a peak value higher than 0.1V, exponential fitting for this channel skipped!','No data for mExp decon!')
                 return
             end
             tt =  obj.t;

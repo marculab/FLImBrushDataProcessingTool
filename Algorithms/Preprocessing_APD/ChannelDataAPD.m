@@ -123,36 +123,37 @@ classdef ChannelDataAPD < handle
         end
 
         function removeDCData(obj,varargin)
-            switch nargin
-                case 1
-                    WF_max_threshold = 1.6;
-                case 2
-                    WF_max_threshold = varargin{1};
-            end
-            numOfWF = size(obj.preProcessedData,2);
-            DC = zeros(1,numOfWF);
-            WFWindow = 500; % WF window to average DC
-            gainWindow = 5; % gain window to average DC
-            satIndex = find(max(obj.rawData)>WF_max_threshold); % saturated waveform index,
-            for i = 1:numOfWF %loop thorugh all data and find DC
-                G = obj.rawGain(i);
-                timeIdx1 = i-WFWindow;
-                if timeIdx1<1
-                    timeIdx1 = 1;
-                end
-                timeIdx2 = i+WFWindow;
-                if timeIdx2 > numOfWF
-                    timeIdx2 = numOfWF;
-                end
-                timeIdx =  timeIdx1:timeIdx2; % idx of data point inside time window
-                Acommon = intersect(timeIdx,satIndex); % find saturated index if it is in time window
-                timeIdx = setxor(timeIdx,Acommon); % remove sturated waveform index
-                GTemp = obj.rawGain(timeIdx); % gain of data inside time window
-                timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
-                DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal from tail
-                % DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
-                DC(i) = mean(DCAllWF(:)); % average all DC data
-            end
+            % switch nargin
+            %     case 1
+            %         WF_max_threshold = 1.6;
+            %     case 2
+            %         WF_max_threshold = varargin{1};
+            % end
+            % numOfWF = size(obj.rawData,2);
+            % DC = zeros(1,numOfWF);
+            % WFWindow = 500; % WF window to average DC
+            % gainWindow = 5; % gain window to average DC
+            % satIndex = find(max(obj.rawData)>WF_max_threshold); % saturated waveform index,
+            % for i = 1:numOfWF %loop thorugh all data and find DC
+            %     G = obj.rawGain(i);
+            %     timeIdx1 = i-WFWindow;
+            %     if timeIdx1<1
+            %         timeIdx1 = 1;
+            %     end
+            %     timeIdx2 = i+WFWindow;
+            %     if timeIdx2 > numOfWF
+            %         timeIdx2 = numOfWF;
+            %     end
+            %     timeIdx =  timeIdx1:timeIdx2; % idx of data point inside time window
+            %     Acommon = intersect(timeIdx,satIndex); % find saturated index if it is in time window
+            %     timeIdx = setxor(timeIdx,Acommon); % remove sturated waveform index
+            %     GTemp = obj.rawGain(timeIdx); % gain of data inside time window
+            %     timeIdx(~(GTemp>=G-gainWindow&GTemp<=G+gainWindow)) = []; % remove index of gain out of range
+            %     DCAllWF = obj.rawData(end-50:end,timeIdx); % get all data used for DC removal from tail
+            %     % DCAllWF = obj.rawData(1:50,timeIdx); % get all data used for DC removal from front
+            %     DC(i) = mean(DCAllWF(:)); % average all DC data
+            % end
+            DC = mean(obj.rawData(end-50:end,:));
             obj.rawDataDCRemoved = obj.rawData-DC; % store data
             obj.preProcessedData = obj.rawData-DC; % store data
 
@@ -402,15 +403,22 @@ classdef ChannelDataAPD < handle
             obj.M = size(obj.dataT,1);
             obj.exclude = exclude_in;
             switch nargin
-                case 2
+                case 2 %runDecon(obj, exclude)
+                    gainCapIn = 10;
                     obj.K = 12; %default Laguerre order
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 3 % runDecon(obj, order)
-                    obj.K = varargin{1};
+                case 3 % runDecon(obj, exclude, gainCapIn)
+                    gainCapIn = varargin{1};
+                    obj.K = 12;
                     obj.alpha = alpha_up(obj.M,obj.K);
-                case 4 % runDecon(obj, order, alpha)
-                    obj.K = varargin{1};
-                    obj.alpha = varargin{2};
+                case 4 % runDecon(obj, exclude, gainCapIn, order)
+                    gainCapIn = varargin{1};
+                    obj.K = varargin{2};
+                    obj.alpha = alpha_up(obj.M,obj.K);
+                case 5 % runDecon(obj, exclude, gainCapIn, order, alpha)
+                    gainCapIn = varargin{1};
+                    obj.K = varargin{2};
+                    obj.alpha = varargin{3};
                 otherwise
                     warning('Too many input argument for LaguerreModel constructor!')
             end
@@ -429,10 +437,13 @@ classdef ChannelDataAPD < handle
             obj.irfIdx = ones(numOfDataPoints,1);
             %--------------------------------------------------------------
 
-            irfVMaxIdx = find(obj.APDObj.apdGain<10,1,'last'); % find max index of apd gain less than 10
-            obj.irfVMax = obj.APDObj.gainV(irfVMaxIdx); % volatge to cap irf
-            obj.irfGainMax = obj.APDObj.apdGain(irfVMaxIdx);
-            numOfiRFV = find(obj.APDObj.irfV>obj.irfVMax,1); % find index of irf V higher than 10
+            irfGain = interp1(obj.APDObj.gainV,obj.APDObj.apdGain,obj.APDObj.irfV,'pchip');
+            irfVMaxIdx = find(irfGain<=gainCapIn,1,'last'); % find 1st index of irf gain large than gainCapIn
+            obj.irfVMax = obj.APDObj.irfV(irfVMaxIdx); % volatge to cap irf
+            obj.irfGainMax = irfGain(irfVMaxIdx);
+            % numOfiRFV = find(obj.APDObj.irfV>obj.irfVMax,1); % find index of irf V higher than 10
+            numOfiRFV = irfVMaxIdx; 
+            
             % obj.APDObj.irfTNorm(:,211) = obj.APDObj.irfTNorm(:,208);
             % numOfiRFV = 80;
             % loop through all V and find corresponding data index
