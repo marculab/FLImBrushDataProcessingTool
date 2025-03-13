@@ -78,7 +78,13 @@ risingEdge = dataSum(minIdx:maxIdx,:);
 % end
 % zeroCrossingIdxMin = zeroCrossingIdxMin';
 shift = mode(zeroCrossingIdxMin)-zeroCrossingIdxMin; % calculate shift
+
+if std(shift)>10
+    warning('CFD failed, skip CFD alignment!')
+    shift = shift*0;
+end
 data_out = data_in_raw;
+
 parfor i = 1:length(shift) %loop through all columns
     data_out(:,i) = circshift(data_in_raw(:,i),shift(i));
 end
