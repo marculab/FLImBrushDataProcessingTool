@@ -45,7 +45,8 @@ dataSum(1:t_d+1,:) = dataSum(1:t_d+1,:)*0;
 % figure;plot(dataSum(:,:)); hold on; plot(dataInvert(:,4));plot(dataDelayed(:,4));hold off
 
 [~,maxIdx] = max(dataSum);
-maxIdx = round(mean(maxIdx))+1;
+maxIdx(max(data_in)<0.1)=NaN;
+maxIdx = round(mean(maxIdx,'omitnan'))+1;
 maxIdx = min(maxIdx,size(dataSum,1));
 
 [~,minIdx] = min(dataSum(1:maxIdx,:));
