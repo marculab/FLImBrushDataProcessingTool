@@ -72,7 +72,7 @@ classdef LaguerreModel < handle
             obj.l1=H_chol*obj.vv';
         end
 
-        function estimate_laguerre(obj,exclude_in) % recursive function to find best shift and decon
+        function estimate_laguerre(obj,shift_in) % recursive function to find best shift and decon
             LCs = zeros(obj.K,size(obj.channeldataObj.data,2));
             shift = zeros(size(obj.channeldataObj.data,2),1);
             WF_aligned = zeros(size(obj.channeldataObj.data));
@@ -84,10 +84,17 @@ classdef LaguerreModel < handle
             vv = obj.vv;
             D = obj.D;
             WF = obj.channeldataObj.data;
-            parfor i = 1:size(obj.channeldataObj.data,2)                
-                % [rss, obj.LCs(:,i)] = fitData(obj.channeldataObj.data(:,i), 8.7, obj.l1, obj.C, obj.vv, obj.D);
-                if ~isnan(sum(WF(:,i))) % if waveform is not all NaN
-                [shift(i), LCs(:,i), WF_aligned(:,i), fit(:,i), iteration(i), exitflag(i)] = findShift(WF(:,i), l1, C, vv, D);
+            if isempty(shift_in)
+                parfor i = 1:size(obj.channeldataObj.data,2)
+                    % [rss, obj.LCs(:,i)] = fitData(obj.channeldataObj.data(:,i), 8.7, obj.l1, obj.C, obj.vv, obj.D);
+                    if ~isnan(sum(WF(:,i))) % if waveform is not all NaN
+                        [shift(i), LCs(:,i), WF_aligned(:,i), fit(:,i), iteration(i), exitflag(i)] = findShift(WF(:,i), l1, C, vv, D);
+                    end
+                end
+            else
+                parfor i = 1:size(obj.channeldataObj.data,2)
+                    [~, LCs(:,i), WF_aligned(:,i), fit(:,i)] = fitData(WF(:,i), shift_in, l1, C, vv, D);
+                    shift(i) = shift_in;
                 end
             end
             obj.shift = shift;
