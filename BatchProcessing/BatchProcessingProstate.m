@@ -2,7 +2,7 @@ clear
 close all
 clc
 addpath(genpath('..\Algorithms'))
-saveRootPath = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\DeCon';
+saveRootPath = 'C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase\DeConNewDC';
 % DataPath = 'Z:\V2 Sacramento Database\SP4-Intuitive Surgical\2023-03-21-Visit\2023_03_22_PEM\2023_03_22_PEM_50.tdms';
 % BGPath = 'Z:\V2 Sacramento Database\SP4-Intuitive Surgical\2023-03-21-Visit\2023_03_21_Baseline_Tissue\Background\Background01.tdms';
 APD1Path = '..\APDDetectorFile\UCD_NCIBT\M00936636.mat';
@@ -14,7 +14,7 @@ alpha1 = 0.916;
 alpha2 = 0.916;
 alpha3 = 0.916;
 alpha4 = 0.916;
-for m=3:20
+for m=11:20%1:20
     temp = "P"+num2str(m);
     Datafolder = fullfile('C:\Users\Xiangnan\Box\Prostate Pilot\ProstateBxDataBase',temp);
     BGFile = fullfile(Datafolder,'Background\Background01.tdms');
