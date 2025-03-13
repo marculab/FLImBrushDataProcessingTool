@@ -430,7 +430,7 @@ saveFileName = [runName '.mat'];
 saveFileFullPath = fullfile(saveRootPath,saveFolderName,saveFileName);
 save(saveFileFullPath, 'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3');
 
-saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,saveFileFullPath)
+saveDeconLite(Ch1DataObj,Ch2DataObj,Ch3DataObj,Ch4DataObj,[],[],[],[],saveFileFullPath)
 
 saveas(fBG,fullfile(saveRootPath,saveFolderName,'Background'),'fig');
 saveas(fRaw,fullfile(saveRootPath,saveFolderName,'RawWaveFrom'),'fig');
