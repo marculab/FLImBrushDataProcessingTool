@@ -18,10 +18,10 @@ apd4Obj = apdClass(fullfile(APDFolder,'M00928868 DASPI.mat'));
 apd4Obj.creatFromPath();
 %% load in BG review table
 RunLevelData = importHNRunData("H&N Aggregate Input Data 20241029.xlsx", "Run_Level", [1, Inf]);
-T = RunLevelData(RunLevelData.Patient>100,:);
+T = RunLevelData(RunLevelData.Patient==144|RunLevelData.Patient==149|RunLevelData.Patient==154,:);
 %%
-root = "A:\V2_Sacramento_Database\Da Vinci Robot Study (100 patients)\Data_100_Patient_Study";
-for i = 1:553
+root = "E:\DataProcessingRelated\RealtimeDeconOptimization";
+for i = 1:size(T,1)
     ID = T.Patient(i);
     Run = T.Run(i);
     DeConFile = T.DeconvolutionFile(i);
@@ -41,7 +41,7 @@ for i = 1:553
         end
         DeConFile
         tic
-        ReprocessFB20241115EstimateBG(DeConFile,'A:',apd1Obj,apd2Obj,apd3Obj,apd4Obj,0) % change the drive letter
+        ReprocessFB20241115EstimateBG(DeConFile,'F:',apd1Obj,apd2Obj,apd3Obj,apd4Obj,0) % change the drive letter
         toc
     end
 end

@@ -4,16 +4,16 @@ function ReprocessFB20241115EstimateBG(input_mat_name,SaveHardDriveLetter,apd1Ob
 % input_mat_name must be absolute path
 
 [filepath,name,~] = fileparts(input_mat_name);
-% runName = split(name,'_');
-% runName = join(runName(1:end-1),"_");
-% name = runName{1};
+runName = split(name,'_');
+runName = join(runName(1:end-1),"_");
+name = runName{1};
 name = char(name);
 pathSplit = split(filepath,'\');
 pathSplit{1}=SaveHardDriveLetter;
 filepath = join(pathSplit,'\');
 filepath = filepath{1};
-DateString = char(datetime(2024,11,15));
-filepath = [filepath '_' DateString];
+DateString = char(datetime(2025,05,01));
+filepath = [filepath '_' DateString 'Tolx10000'];
 if ~exist(filepath, 'dir') % check folder exist, if not make folder
     mkdir(filepath)
 end
@@ -575,7 +575,7 @@ Ch1DataObj.toSingle();
 Ch2DataObj.toSingle();
 Ch3DataObj.toSingle();
 
-saveName = fullfile(filepath,name);
+saveName = fullfile(filepath,[name '.mat']);
 if numOfChannel==4
     Ch4DataObj.toSingle();
     save(saveName,'dataInfoObj','Ch1DataObj','Ch2DataObj','Ch3DataObj','Ch4DataObj','EOP_H1G','EOP_H1S','SP_G','SP_S','-v7.3')

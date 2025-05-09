@@ -12,9 +12,9 @@ addpath(genpath('E:\MyGitRepo\FLImBrushDataProcessingTool\Algorithms'))
 %     '\Data_100_Patient_Study\Subject_146\Triplex\ALL_DECONVOLVED_FILES' ...
 %     '\P800853_07_15_22_02_12.5GS_wCFDBug_lite.mat'];
 
-path1 = 'E:\Patient175\CorrectCFD\P800853_03_29_23_02_12.5GS_IRF';
+path1 = 'E:\DataProcessingRelated\RealtimeDeconOptimization\Subject_144\Triplex\ALL_DECONVOLVED_FILES\P800853_06_29_22_02_12.5GS.mat';
 % path2 = path1;
-path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
+path2 = 'F:\DataProcessingRelated\RealtimeDeconOptimization\Subject_144\Triplex\ALL_DECONVOLVED_FILES_15-Nov-2024\P800853_06_29_22_02_12.5GS.mat';
 % path1 = 'E:\Patient146\CorrectCFD\P800853_07_15_22_02_12.5GS_IRF';
 % path2 = 'E:\Patient146\WrongCFD\P800853_07_15_22_02_12.5GS_wCFDBug';
 
@@ -27,41 +27,18 @@ path2 = 'E:\Patient175\WrongCFD\P800853_03_29_23_02_12.5GS_wCFDBug';
 data1 = load(path1);
 data2 = load(path2);
 
-%% plot effect of wrong CFD
-dataT1 = data1.Ch2DataObj.dataT;
-% dataT2 = data2.Ch2DataObj.dataT;
-% idx = 450:455;
-WF = dataT1(:,2000);
-WF1 = circshift(WF,-4);
-WF2 = circshift(WF,-2);
-WF3 = circshift(WF,2);
-WF4 = circshift(WF,4);
-WFMatrix = [WF WF1 WF2 WF3 WF4];
-WFMatrix = double(WFMatrix);
+%% plot data
+dataT1 = data1.Ch3DataObj.dataT;
+dataT2 = data2.Ch3DataObj.dataT;
+Idx = 500;
 figure
-tiledlayout(2,1)
-nexttile
-plot(WFMatrix)
-xlim([0 200])
-grid on
-hold on
-nexttile
-plot(WF)
-hold on
-plot(mean(WFMatrix,2))
-xlim([0 200])
-legend('original', 'Shifted average')
-hold off
-grid on
-%% redo CFD align dataT
-% dataT1 = alignWaveform_CFDNew(dataT1, 2.4, 0.08,0.5);
-% dataT2 = alignWaveform_CFDNew(dataT2, 2.4, 0.08,0.5);
-% figure
-% tiledlayout(1,2)
-% nexttile
-% plot(dataT1(:,idx))
-% nexttile
-% plot(dataT2(:,idx))
+plot([dataT1(:,Idx) dataT2(:,Idx)])
+%% plot lifetime
+figure
+plot(data1.Ch2DataObj.shift-data2.Ch2DataObj.shift)
+
+figure
+histogram(data1.Ch2DataObj.Lg_LTs-data2.Ch2DataObj.Lg_LTs)
 %% rerun deonvolution
 % data1 = load('E:\DataProcessingRelated\20221108FB_vs_V4\20221108FBvsV4\Decon 2024-3-14 10-36 fixed CFD\20221108FBvsV4_01.mat')
 exclude = data1.Ch1DataObj.exclude;
