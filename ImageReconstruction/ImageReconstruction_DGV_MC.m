@@ -7,21 +7,36 @@ clc
 addpath(genpath(pwd))
 
 %% load in data
-root = 'E:\Prostate RARP\RARP_P2';
+root = 'C:\Users\Xiangnan\Box\Prostate Pilot\RARPDatabase\RARP_P3';
 [DeConfile,DeConpath] = uigetfile([root '\*.mat'],'Please select DeCon file');
 [Txtfile,Txtpath] = uigetfile([root '\*.txt'],'Please select text file');
-[Posfile,Pospath] = uigetfile([root '\*.mat'],'Please select CNN Segementation Pos file');
+[Posfile,Pospath] = uigetfile([root '\*.xlsx'],'Please select MC Pos file');
+[MCfile,MCpath] = uigetfile([root '\*.csv'],'Please select MC Pos file');
 [videoName,videoPath] = uigetfile([root '\*.avi'],'Please select video file');
-savePath = 'E:\Prostate RARP\RARP_P2\videos\AugmentedImages';
+savePath = 'C:\Users\Xiangnan\Box\Prostate Pilot\RARPDatabase\RARP_P3\AugmentedImages';
 %% load in data
 load(fullfile(DeConpath,DeConfile))
-load(fullfile(Pospath,Posfile))
+[ABFrame, ~, ~] = importPos(fullfile(Pospath,Posfile));
+[Frame, PointIndex, X, Y] = importAllFrame(fullfile(MCpath,MCfile));
 VideoData = importVideoTextFile(fullfile(Txtpath,Txtfile));
 RepRate = Ch1DataObj.laserRepRate;
+ABFrame = ABFrame+1;
+Frame = Frame+1;
+%% set up reference frame and extract location data
+% refFrame = Inf;
+refFrame = 1332;
+PointIndex = PointIndex(Frame==refFrame);
+ABFrameIdx = ABFrame(PointIndex+1);
+X = X(Frame==refFrame);
+Y = Y(Frame==refFrame);
 
+%% remove bad data point
+ABFrameIdx = ABFrame(X>386);
+X = X(X>386);
+Y = Y(X>386);
 %% open video and get the last image for augmentation
 v = VideoReader(fullfile(videoPath, videoName));
-im = read(v,inf);
+im = read(v,refFrame);
 imx = size(im,2);
 imy = size(im,1);
 im = rgb2gray(im);
@@ -58,14 +73,14 @@ G4 = circshift(Ch4DataObj.gain,shift);
 
 %% repopulate output data mat with interplation
 % reset start time to 0
-VideoData(:,9) = VideoData(:,9)-VideoData(1,9);
-% use CNN segmentation location data
-try
-    VideoData(:,6:7) = double(pos(:,7:8));
-catch
-    % VideoData(:,6:7) = double(pos_new(:,1:2));
-    VideoData(:,6:7) = double(Coordinates(:,1:2));
-end
+VideoData(:,9) = VideoData(:,9)-VideoData(end,9);
+% use MC location data
+pos = zeros(size(VideoData,1),2);
+pos(ABFrameIdx,1) = X;
+pos(ABFrameIdx,2) = Y;
+
+VideoData(:,6:7) = pos;
+
 % Length = 70000;
 Length = VideoData(end,9);
 VideoData(VideoData(:,9)>Length,:) = [];
@@ -93,15 +108,18 @@ removeIdx = find(removeFlag);
 VideoData(removeIdx,:) = [];
 
 % remove all 0 points
-temp = VideoData(:,6)+VideoData(:,7);
-ZeroIdx = find(temp==0);
-VideoData(ZeroIdx,:)=[];
+% temp = VideoData(:,6)+VideoData(:,7);
+% ZeroIdx = find(temp==0);
+% VideoData(ZeroIdx,:)=[];
+VideoData(VideoData(:,6)==0,6) = NaN;
+VideoData(VideoData(:,7)==0,7) = NaN;
 
 frameNum = 1:size(VideoData,1);
 frameNum = frameNum';
 
 time = 0:1:size(Ch1LT,1)-1;
 time = time'*1000/RepRate*4;
+time = time-time(end);
 frameT = VideoData(:,9);
 [frameT,ia] = unique(frameT); % find duplicate frame
 VideoData = VideoData(ia,:); % remove duplicated data
@@ -143,15 +161,40 @@ output.gain3 = G3;
 output.gain4 = G4;
 
 %% save data
-cd(DeConpath)
+% cd(DeConpath)
 [filepath,name,ext] = fileparts(videoName);
-save([name '_ImgRecon.mat'],'output')
-disp('Reconstructed image .mat file saved successfully!')
-close all
+% save([name '_ImgRecon.mat'],'output')
+% disp('Reconstructed image .mat file saved successfully!')
+% close all
 %% set position daya
 posData.px = xx;
 posData.py = yy;
 posData.frames = frameIdx;
+%% filter data
+position = [xx yy];
+gainMask = (G2<1000)&(G3<1000);
+% gainMask(1950:end) = [];
+position = position(gainMask,:);
+Ch1LT = Ch1LT(gainMask);
+Ch2LT = Ch2LT(gainMask);
+Ch3LT = Ch3LT(gainMask);
+Ch4LT = Ch4LT(gainMask);
+G1 = G1(gainMask);
+G2 = G2(gainMask);
+G3 = G3(gainMask);
+G4 = G4(gainMask);
+
+%% remove point with (0,0) position
+removeFlag = position(:,1)+position(:,2);
+position(removeFlag==0,:)=[];
+Ch1LT(removeFlag==0)=[];
+Ch2LT(removeFlag==0)=[];
+Ch3LT(removeFlag==0)=[];
+Ch4LT(removeFlag==0)=[];
+G1(removeFlag==0)=[];
+G2(removeFlag==0)=[];
+G3(removeFlag==0)=[];
+G4(removeFlag==0)=[];
 
 %%
 cd(savePath)
@@ -159,13 +202,17 @@ cd(savePath)
 radius = 10;
 alpha = 0.5;
 cmap = jet(256);
+sizeArr = ones(size(Ch1LT))*radius;
+
 %-------------------------------------------Channel 1 lifetime----------------------------------------------------------
 figure('units','normalized','outerposition',[0 0 1 1])
 tiledlayout(1,2)
 nexttile
 scale = [floor(quantile(Ch1LT,0.1)) ceil(quantile(Ch1LT,0.9))];
 % scale = [2 5];
-[augmentedImg,~] = AugmentImg(im, posData, Ch1LT, scale, radius, alpha, cmap);
+% [augmentedImg,~] = AugmentImg(im, posData, Ch1LT, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, Ch1LT, im, Ch1SNR, 0, scale);
+
 % show image
 imshow(augmentedImg); 
 title([name ' Channel 1 lifetime'],'Interpreter','none')
@@ -179,7 +226,7 @@ set(gca,'LooseInset',get(gca,'TightInset'))
 % exportgraphics(gca, [name '_ch1 lifetime','.jpg'],'Resolution',600);
 %-------------------------------------------Channel 1 Gain----------------------------------------------------------
 scale  = [floor(quantile(G1,0.10)) ceil(quantile(G1,0.90))];
-[augmentedImg,~] = AugmentImg(im, posData, G1, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, G1, im, Ch1SNR, 0,scale);
 % show image
 nexttile
 imshow(augmentedImg)
@@ -192,7 +239,7 @@ h0.Label.String = 'Gain (a.u.)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
 % exportgraphics(gca, [name '_ch1 gain','.jpg'],'Resolution',600);
-exportgraphics(gcf, [name '_ch1','.jpg'],'Resolution',600);
+exportgraphics(gcf, [name '_ch1_DGV','.jpg'],'Resolution',600);
 %----------------------------------------Channel 2 lifetime----------------------------------------------
 figure('units','normalized','outerposition',[0 0 1 1])
 tiledlayout(1,2)
@@ -200,7 +247,7 @@ nexttile
 
 scale = [floor(quantile(Ch2LT,0.1)) ceil(quantile(Ch2LT,0.9))];
 % scale = [2 5];
-[augmentedImg,~] = AugmentImg(im, posData, Ch2LT, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, Ch2LT, im, Ch1SNR, 0, scale);
 % show image
 imshow(augmentedImg)
 title([name ' Channel 2 lifetime'],'Interpreter','none')
@@ -216,7 +263,7 @@ set(gca,'LooseInset',get(gca,'TightInset'))
 % scale = [mean(G2)-1*std(G2) mean(G2)+1*std(G2)];
 scale  = [floor(quantile(G2,0.10)) ceil(quantile(G2,0.90))];
 % scale(scale<0) = 0;
-[augmentedImg,~] = AugmentImg(im, posData, G2, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, G2, im, Ch1SNR, 0, scale);
 % show image
 nexttile
 imshow(augmentedImg)
@@ -228,12 +275,12 @@ h0 = colorbar;
 h0.Label.String = 'Gain (a.u.)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
-exportgraphics(gcf, [name '_ch2','.jpg'],'Resolution',600);
+exportgraphics(gcf, [name '_ch2_DGV','.jpg'],'Resolution',600);
 
 %------------------------------------Channel 3 lifetime------------------------------------------------------
 scale = [floor(quantile(Ch3LT,0.1)) ceil(quantile(Ch3LT,0.9))];
 % scale = [2 5];
-[augmentedImg,~] = AugmentImg(im, posData, Ch3LT, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, Ch3LT, im, Ch1SNR, 0, scale);
 % show image
 figure('units','normalized','outerposition',[0 0 1 1])
 tiledlayout(1,2)
@@ -251,7 +298,7 @@ set(gca,'LooseInset',get(gca,'TightInset'))
 
 %-------------------------------------------Channel 3 Gain----------------------------------------------------------
 scale  = [floor(quantile(G3,0.10)) ceil( quantile(G3,0.90))];
-[augmentedImg,~] = AugmentImg(im, posData, G3, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, G3, im, Ch1SNR, 0, scale);
 % show image
 nexttile
 imshow(augmentedImg)
@@ -263,12 +310,12 @@ h0 = colorbar;
 h0.Label.String = 'Gain (a.u.)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
-exportgraphics(gcf, [name '_ch3','.jpg'],'Resolution',600);
+exportgraphics(gcf, [name '_ch3_DGV','.jpg'],'Resolution',600);
 
 %------------------------------------Channel 4 lifetime------------------------------------------------------
 scale = [floor(quantile(Ch4LT,0.1)) ceil(quantile(Ch4LT,0.9))];
 % scale = [2 5];
-[augmentedImg,~] = AugmentImg(im, posData, Ch4LT, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, Ch4LT, im, Ch1SNR, 0, scale);
 % show image
 figure('units','normalized','outerposition',[0 0 1 1])
 tiledlayout(1,2)
@@ -286,7 +333,7 @@ set(gca,'LooseInset',get(gca,'TightInset'))
 
 %-------------------------------------------Channel 4 Gain----------------------------------------------------------
 scale  = [floor(quantile(G4,0.10)) ceil( quantile(G4,0.90))];
-[augmentedImg,~] = AugmentImg(im, posData, G4, scale, radius, alpha, cmap);
+augmentedImg = Overlay_DGV(size(im,2), size(im,1), sizeArr, position, G4, im, Ch1SNR, 0, scale);
 % show image
 nexttile
 imshow(augmentedImg)
@@ -298,6 +345,6 @@ h0 = colorbar;
 h0.Label.String = 'Gain (a.u.)';
 set(gca,'FontSize',15)
 set(gca,'LooseInset',get(gca,'TightInset'))
-exportgraphics(gcf, [name '_ch4','.jpg'],'Resolution',600);
+exportgraphics(gcf, [name '_ch4_DGV','.jpg'],'Resolution',600);
 
 close all
